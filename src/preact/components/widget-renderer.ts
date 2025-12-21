@@ -7,6 +7,7 @@ import { SwitchWidget } from "./widgets/switch";
 import { TextInputWidget } from "./widgets/text-input";
 import { NumericWidget } from "./widgets/numeric";
 import { DropdownWidget } from "./widgets/dropdown";
+import { SliderWidget } from "./widgets/slider";
 import { WidgetPreview } from "./widget-preview";
 
 function getControlType(control: UiControl): string {
@@ -32,6 +33,10 @@ export function WidgetRenderer(props: { control: UiControl; index: number; onEmi
 
   if (type === "dropdown" || type === "ui_dropdown") {
     return html`<${DropdownWidget} control=${control} index=${index} onEmit=${onEmit} />`;
+  }
+
+  if (type === "slider" || type === "ui_slider") {
+    return html`<${SliderWidget} control=${control} index=${index} onEmit=${onEmit} />`;
   }
 
   if (type === "button" || type === "ui_button") {

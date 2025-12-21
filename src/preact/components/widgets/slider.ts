@@ -1,0 +1,330 @@
+import { html } from "htm/preact";
+import { useEffect, useRef, useState } from "preact/hooks";
+import type { VNode } from "preact";
+import type { UiControl } from "../../state";
+
+export type SliderControl = UiControl & {
+  label?: string;
+  name?: string;
+  value?: number | string;
+  min?: number | string;
+  max?: number | string;
+  step?: number | string;
+  invert?: boolean;
+  outs?: "all" | "end" | string;
+  tooltip?: string;
+  className?: string;
+  width?: number | string;
+  height?: number | string;
+};
+
+const DEFAULT_THROTTLE_MS = 10;
+const SLIDER_STYLE_ID = "nr-dashboard-slider-style";
+
+function ensureSliderStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
+  if (!doc) return;
+  if (doc.getElementById(SLIDER_STYLE_ID)) return;
+  const style = doc.createElement("style");
+  style.id = SLIDER_STYLE_ID;
+  style.textContent = `
+    :root {
+      --nr-dashboard-slider-track: rgba(111, 111, 111, 0.5);
+      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-thumb-shadow: 0 1px 3px rgba(0,0,0,0.35);
+      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+    }
+
+    .nr-dashboard-slider {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      align-items: center;
+      padding: 0 12px;
+    }
+
+    .nr-dashboard-slider.is-vertical {
+      flex-direction: row;
+      padding: 0;
+      font-size: 12px;
+    }
+
+    .nr-dashboard-slider__label {
+      font-size: 13px;
+      opacity: 0.8;
+      white-space: nowrap;
+    }
+
+    .nr-dashboard-slider__label.is-vertical {
+      margin-left: 8px;
+    }
+
+    .nr-dashboard-slider__range {
+      width: 100%;
+      accent-color: var(--nr-dashboard-slider-fill);
+      background: transparent;
+      touch-action: none;
+    }
+
+    .nr-dashboard-slider__range.is-vertical {
+      width: 32px;
+      height: 160px;
+      writing-mode: bt-lr;
+      -webkit-appearance: slider-vertical;
+    }
+
+    .nr-dashboard-slider__range::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: var(--nr-dashboard-slider-track);
+    }
+
+    .nr-dashboard-slider__range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      margin-top: -5px;
+      border-radius: 50%;
+      background: var(--nr-dashboard-slider-thumb);
+      box-shadow: var(--nr-dashboard-slider-thumb-shadow);
+      border: 1px solid transparent;
+    }
+
+    .nr-dashboard-slider__range:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--nr-dashboard-slider-focus) 40%, transparent);
+    }
+
+    .nr-dashboard-slider__range::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: var(--nr-dashboard-slider-track);
+    }
+
+    .nr-dashboard-slider__range::-moz-range-progress {
+      height: 6px;
+      border-radius: 999px;
+      background: var(--nr-dashboard-slider-fill);
+    }
+
+    .nr-dashboard-slider__range::-moz-range-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: var(--nr-dashboard-slider-thumb);
+      box-shadow: var(--nr-dashboard-slider-thumb-shadow);
+      border: 1px solid transparent;
+    }
+
+    .nr-dashboard-slider__ticks {
+      position: relative;
+      width: 100%;
+      height: 10px;
+      margin-top: 6px;
+    }
+
+    .nr-dashboard-slider__ticks.is-vertical {
+      width: 32px;
+      height: 160px;
+      margin-top: 0;
+      margin-left: 6px;
+    }
+
+    .nr-dashboard-slider__tick {
+      position: absolute;
+      width: 2px;
+      height: 8px;
+      background: var(--nr-dashboard-slider-track);
+      transform: translateX(-1px);
+    }
+
+    .nr-dashboard-slider__tick.is-active {
+      background: var(--nr-dashboard-slider-fill);
+    }
+
+    .nr-dashboard-slider__tick.is-vertical {
+      width: 8px;
+      height: 2px;
+      transform: translateY(-1px);
+    }
+
+    .nr-dashboard-slider__sign {
+      position: absolute;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: var(--nr-dashboard-slider-fill);
+      color: #fff;
+      font-size: 11px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .nr-dashboard-slider__sign.is-vertical {
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .nr-dashboard-slider__value {
+      opacity: 0.6;
+      font-size: 12px;
+      color: var(--nr-dashboard-slider-text);
+    }
+  `;
+  doc.head.appendChild(style);
+}
+
+function toNumber(value: unknown, fallback: number): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+export function clampSliderValue(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+export function buildSliderEmit(ctrl: SliderControl, fallbackLabel: string, value: number): Record<string, unknown> {
+  return {
+    payload: value,
+    topic: (ctrl as { topic?: string }).topic ?? fallbackLabel,
+    type: "slider",
+  };
+}
+
+export function SliderWidget(props: { control: UiControl; index: number; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, onEmit } = props;
+  const asSlider = control as SliderControl;
+  const label = asSlider.label || asSlider.name || `Slider ${index + 1}`;
+
+  ensureSliderStyles();
+
+  const min = toNumber(asSlider.min, 0);
+  const max = toNumber(asSlider.max, 10);
+  const step = Math.abs(toNumber(asSlider.step, 1)) || 1;
+  const outs = asSlider.outs === "end" ? "end" : "all";
+  const isVertical = toNumber(asSlider.width ?? 0, 0) < toNumber(asSlider.height ?? 0, 0);
+  const invert = Boolean(asSlider.invert);
+  const isDiscrete = outs === "end";
+
+  const initial = clampSliderValue(toNumber(asSlider.value ?? min, min), min, max);
+  const [value, setValue] = useState<number>(initial);
+
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => () => {
+    if (timer.current !== undefined) {
+      clearTimeout(timer.current);
+    }
+  }, []);
+
+  const toDisplayValue = (logical: number): number => (invert ? max - (logical - min) : logical);
+  const fromDisplayValue = (display: number): number => (invert ? max - (display - min) : display);
+
+  const emit = (next: number) => {
+    if (!onEmit) return;
+    onEmit("ui-control", buildSliderEmit(asSlider, label, next));
+  };
+
+  const scheduleEmit = (next: number) => {
+    if (!onEmit) return;
+    if (outs !== "all") return;
+    if (timer.current !== undefined) clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      timer.current = undefined;
+      emit(next);
+    }, DEFAULT_THROTTLE_MS);
+  };
+
+  const handleInput = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    const rawDisplay = toNumber(target.value, toDisplayValue(value));
+    const logical = clampSliderValue(fromDisplayValue(rawDisplay), min, max);
+    setValue(logical);
+    if (outs === "all") {
+      scheduleEmit(logical);
+    }
+  };
+
+  const handleChange = (e: Event) => {
+    if (outs !== "end") return;
+    const target = e.target as HTMLInputElement;
+    const rawDisplay = toNumber(target.value, toDisplayValue(value));
+    const logical = clampSliderValue(fromDisplayValue(rawDisplay), min, max);
+    setValue(logical);
+    emit(logical);
+  };
+
+  const handleWheel = (e: WheelEvent) => {
+    if (outs !== "all") return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? step : -step;
+    const next = clampSliderValue(value + delta, min, max);
+    setValue(next);
+    scheduleEmit(next);
+  };
+
+  const sliderValue = toDisplayValue(value);
+  const span = Math.max(1, max - min);
+  const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
+  const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
+  const showTicks = isDiscrete && stepCount > 0 && stepCount <= 200;
+
+  const sliderStyle = isVertical
+    ? {
+        width: "32px",
+        height: "160px",
+        writingMode: "bt-lr" as const,
+        WebkitAppearance: "slider-vertical",
+        background: `linear-gradient(to top, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`,
+      }
+    : {
+        width: "100%",
+        background: `linear-gradient(to right, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`,
+      };
+
+  const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
+
+  return html`<div class=${containerClass}>
+    ${!isVertical ? html`<span class="nr-dashboard-slider__label">${label}</span>` : null}
+    <input
+      class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+      type="range"
+      min=${min}
+      max=${max}
+      step=${step}
+      value=${sliderValue}
+      title=${asSlider.tooltip || undefined}
+      onInput=${handleInput}
+      onChange=${handleChange}
+      onWheel=${handleWheel}
+      style=${{
+        ...sliderStyle,
+        transform: isVertical && invert ? "rotate(180deg)" : undefined,
+      }}
+    />
+    ${isVertical ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
+    ${showTicks
+      ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
+          ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
+            const pos = (idx / stepCount) * 100;
+            const active = percent * 100 >= pos;
+            const style = isVertical
+              ? { top: `${100 - pos}%`, left: "0" }
+              : { left: `${pos}%`, top: "0" };
+            return html`<span
+              class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
+              style=${style}
+            ></span>`;
+          })}
+          <span
+            class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
+            style=${isVertical
+              ? { top: `${100 - percent * 100}%` }
+              : { left: `${percent * 100}%`, transform: "translate(-50%, 0)" }}
+          >${value}</span>
+        </div>`
+      : null}
+    <span class="nr-dashboard-slider__value">${value}</span>
+  </div>`;
+}

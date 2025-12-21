@@ -1,6 +1,7 @@
 {
     "name": "node-red-dashboard",
     "version": "3.6.6",
+    "type": "module",
     "description": "A set of dashboard nodes for Node-RED",
     "keywords": [
         "node-red"
