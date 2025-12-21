@@ -6,6 +6,7 @@ import { useDashboardState } from "./state";
 import { TabNav } from "./components/layout/TabNav";
 import { GroupGrid } from "./components/layout/GroupGrid";
 import { useLayoutAnnouncements } from "./components/layout/utils";
+import { ToastOverlay } from "./components/ToastOverlay";
 import { SizesProvider, useSizes } from "./hooks/useSizes";
 
 export { groupColumnSpan } from "./components/layout/utils";
@@ -133,6 +134,7 @@ export function App(): VNode {
       tabId=${tabId}
       actions=${actions}
     />
+    <${ToastOverlay} toasts=${state.toasts} onDismiss=${actions.dismissToast} />
   </${SizesProvider}>`;
 }
 

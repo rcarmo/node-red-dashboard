@@ -6,6 +6,9 @@ export type UiSocketHandlers = {
   onControls?: (data: unknown) => void;
   onReplayDone?: () => void;
   onConnect?: (socketId: string) => void;
+  onControl?: (data: unknown) => void;
+  onToast?: (data: unknown) => void;
+  onAudio?: (data: unknown) => void;
 };
 
 export type UiSocketBridge = {
@@ -22,6 +25,18 @@ export function createSocketBridge(handlers: UiSocketHandlers = {}): UiSocketBri
   socket.on("ui-controls", (data) => {
     handlers.onControls?.(data);
     socket.emit("ui-replay-state");
+  });
+
+  socket.on("ui-control", (data) => {
+    handlers.onControl?.(data);
+  });
+
+  socket.on("show-toast", (data) => {
+    handlers.onToast?.(data);
+  });
+
+  socket.on("ui-audio", (data) => {
+    handlers.onAudio?.(data);
   });
 
   socket.on("ui-replay-done", () => {

@@ -1,6 +1,6 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import type { UiControl } from "../../state";
 
 export type AudioControl = UiControl & {
@@ -10,6 +10,9 @@ export type AudioControl = UiControl & {
   className?: string;
   autoplay?: boolean;
   loop?: boolean;
+  play?: boolean;
+  stop?: boolean;
+  reset?: boolean;
 };
 
 export function shouldAutoPlay(isDisabled: boolean, autoplay?: boolean): boolean {
@@ -22,17 +25,35 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
   const label = c.label || c.name || `Audio ${index + 1}`;
   const ref = useRef<HTMLAudioElement | null>(null);
   const isDisabled = Boolean(disabled);
+  const [playIntent, setPlayIntent] = useState<boolean>(false);
 
   useEffect(() => {
     if (!ref.current) return;
     if (isDisabled) {
       ref.current.pause();
+      setPlayIntent(false);
       return;
     }
-    if (shouldAutoPlay(isDisabled, c.autoplay)) {
-      void ref.current.play().catch(() => undefined);
+    if (c.reset) {
+      ref.current.pause();
+      ref.current.currentTime = 0;
+      setPlayIntent(false);
+      return;
     }
-  }, [c.autoplay, c.url, isDisabled]);
+    if (c.stop) {
+      ref.current.pause();
+      setPlayIntent(false);
+      return;
+    }
+    if (shouldAutoPlay(isDisabled, c.autoplay) || c.play) {
+      setPlayIntent(true);
+      if (typeof ref.current.play === "function") {
+        void ref.current.play().catch(() => undefined);
+      }
+    } else {
+      setPlayIntent(false);
+    }
+  }, [c.autoplay, c.play, c.stop, c.reset, c.url, isDisabled]);
 
   return html`<div class=${c.className || ""}>
     <div style=${{ fontSize: "12px", opacity: 0.7, marginBottom: "4px" }}>${label}</div>
@@ -41,6 +62,7 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
       src=${c.url || ""}
       controls
       loop=${Boolean(c.loop)}
+      data-play-intent=${playIntent ? "true" : "false"}
       aria-disabled=${isDisabled}
       tabIndex=${isDisabled ? -1 : undefined}
       style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto" }}

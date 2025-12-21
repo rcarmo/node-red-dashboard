@@ -8,6 +8,8 @@ export type FormField = {
   label?: string;
   type?: string;
   value?: unknown;
+  required?: boolean;
+  placeholder?: string;
 };
 
 export type FormControl = UiControl & {
@@ -65,6 +67,8 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
               name=${f.name}
               type=${type}
               value=${values[f.name] ?? ""}
+              required=${Boolean(f.required)}
+              placeholder=${f.placeholder || ""}
               onInput=${(ev: Event) => setField(f.name, (ev.target as HTMLInputElement).value)}
               disabled=${isDisabled}
               style=${{

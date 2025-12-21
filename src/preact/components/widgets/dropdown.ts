@@ -1,5 +1,5 @@
 import { html } from "htm/preact";
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 
@@ -44,6 +44,10 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const opts = useMemo(() => asDrop.options ?? [], [asDrop.options]);
   const multiple = Boolean(asDrop.multiple);
   const [value, setValue] = useState<unknown>(asDrop.value ?? (multiple ? [] : null));
+
+  useEffect(() => {
+    setValue(asDrop.value ?? (multiple ? [] : null));
+  }, [asDrop.value, multiple, opts]);
 
   const handleChange = (e: Event) => {
     const target = e.target as HTMLSelectElement;

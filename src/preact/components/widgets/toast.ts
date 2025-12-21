@@ -1,4 +1,5 @@
 import { html } from "htm/preact";
+import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 
@@ -7,6 +8,9 @@ export type ToastControl = UiControl & {
   label?: string;
   message?: string;
   level?: "info" | "warn" | "error";
+  displayTime?: number; // milliseconds; <=0 means persistent
+  dismissible?: boolean;
+  className?: string;
 };
 
 export function resolveToastToneColor(level?: "info" | "warn" | "error"): string {
@@ -22,16 +26,51 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
   const msg = c.message || "Toast message";
   const tone = c.level || "info";
   const toneColor = resolveToastToneColor(tone);
+  const [visible, setVisible] = useState<boolean>(true);
+  const dismissible = c.dismissible !== false;
+  const displayMs = Number.isFinite(c.displayTime) ? Math.max(0, Number(c.displayTime)) : 3000;
+
+  useEffect(() => {
+    setVisible(true);
+    if (displayMs > 0) {
+      const timer = window.setTimeout(() => setVisible(false), displayMs);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [c.message, c.label, c.level, displayMs]);
+
+  if (!visible) return null;
 
   return html`<div
+    class=${c.className || ""}
     style=${{
       border: `1px solid ${toneColor}`,
       padding: "8px 10px",
       borderRadius: "8px",
       background: "rgba(255,255,255,0.04)",
+      position: "relative",
     }}
+    role="status"
+    aria-live="polite"
   >
     <div style=${{ fontWeight: 600, marginBottom: "4px" }}>${label}</div>
     <div style=${{ fontSize: "13px" }}>${msg}</div>
+    ${dismissible
+      ? html`<button
+          type="button"
+          aria-label="Close notification"
+          onClick=${() => setVisible(false)}
+          style=${{
+            position: "absolute",
+            top: "6px",
+            right: "6px",
+            background: "transparent",
+            border: "none",
+            color: toneColor,
+            cursor: "pointer",
+            fontWeight: 700,
+          }}
+        >×</button>`
+      : null}
   </div>`;
 }
