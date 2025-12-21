@@ -2,10 +2,12 @@ import { render, type VNode } from "preact";
 import { html } from "htm/preact";
 import { useEffect, useMemo } from "preact/hooks";
 import { useDashboardState } from "./state";
-import type { UiMenuItem, UiTheme } from "./state";
-import { WidgetRenderer } from "./components/widget-renderer";
+import type { UiGroup, UiMenuItem, UiTheme } from "./state";
+import { TabNav } from "./components/layout/TabNav";
+import { GroupGrid } from "./components/layout/GroupGrid";
+import { useLayoutAnnouncements } from "./components/layout/utils";
 
-type SiteSizes = {
+export type SiteSizes = {
   sx: number;
   sy: number;
   gx: number;
@@ -16,6 +18,8 @@ type SiteSizes = {
   py: number;
   columns: number;
 };
+
+export { groupColumnSpan } from "./components/layout/utils";
 
 const themeVarMap: Record<string, string> = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
@@ -127,25 +131,6 @@ export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): voi
   });
 }
 
-export function groupColumnSpan(group: unknown, maxColumns: number): number {
-  const width =
-    (group as { header?: { config?: { width?: number | string } } })?.header?.config
-      ?.width;
-  const span = coerceNumber(width, maxColumns || 1);
-  const capped = Math.max(1, Math.min(maxColumns || 1, span));
-  return Number.isFinite(capped) ? capped : 1;
-}
-
-function useLayoutAnnouncements(groups: unknown[], sizes: SiteSizes, tabId: string | number | undefined): void {
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const detail = { tabId, groupCount: groups.length, sizes };
-    window.dispatchEvent(new CustomEvent("dashboard:layout", { detail }));
-    // Align with legacy behavior where widgets recompute sizes on resize
-    window.dispatchEvent(new Event("resize"));
-  }, [groups, sizes, tabId]);
-}
-
 export function applySizesToRoot(sizes: SiteSizes, root?: HTMLElement): void {
   if (!root && typeof document === "undefined") return;
   const target = root ?? document.documentElement;
@@ -229,42 +214,16 @@ export function App(): VNode {
       <section style=${layoutStyles}>
         <nav style=${navStyles}>
           <h3 style=${{ marginTop: 0 }}>Tabs</h3>
-          <ul style=${{ listStyle: "none", padding: 0, margin: 0, opacity: 0.9 }}>
-            ${state.menu.length === 0
-              ? html`<li style=${{ opacity: 0.6 }}>No tabs yet</li>`
-              : state.menu.map((tab, idx) => {
-                  const active = idx === state.selectedTabIndex;
-                  return html`<li key=${tab.id ?? tab.header ?? idx}>
-                    <button
-                      style=${{
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "8px 10px",
-                        marginBottom: "6px",
-                        borderRadius: "6px",
-                        border: active
-                          ? "1px solid rgba(255,255,255,0.35)"
-                          : "1px solid rgba(255,255,255,0.12)",
-                        background: active
-                          ? "rgba(255,255,255,0.08)"
-                          : "rgba(255,255,255,0.04)",
-                        color: "inherit",
-                        cursor: "pointer",
-                        opacity: tab.disabled || tab.hidden ? 0.4 : 1,
-                      }}
-                      disabled=${tab.disabled || tab.hidden}
-                      onClick=${() => {
-                        if (typeof window !== "undefined") {
-                          window.location.hash = `#/${idx}`;
-                        }
-                        actions.selectTab(idx);
-                      }}
-                    >
-                      ${tab.header || tab.name || `Tab ${idx + 1}`}
-                    </button>
-                  </li>`;
-                })}
-          </ul>
+          <${TabNav}
+            menu=${state.menu}
+            selectedIndex=${state.selectedTabIndex}
+            onSelect=${(idx: number) => {
+              if (typeof window !== "undefined") {
+                window.location.hash = `#/${idx}`;
+              }
+              actions.selectTab(idx);
+            }}
+          />
         </nav>
         <main style=${contentStyles}>
           ${state.menu.length === 0
@@ -293,78 +252,18 @@ export function App(): VNode {
                   </div>`;
                 }
 
-                const gridStyles: Record<string, string> = {
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${sizes.columns}, minmax(0, 1fr))`,
-                  columnGap: `${sizes.gx}px`,
-                  rowGap: `${sizes.gy}px`,
-                  alignContent: "start",
-                };
-
-                const groups = (selectedTab.items ?? []).filter((group) => {
-                  const hidden = Boolean(
-                    (group as { header?: { config?: { hidden?: boolean } } })?.header?.config
-                      ?.hidden,
-                  );
-                  return !hidden;
-                });
-
-                if (groups.length === 0) {
-                  return html`<div style=${{ opacity: 0.7 }}>No groups in this tab yet.</div>`;
-                }
-
-                return html`<div style=${gridStyles}>
-                  ${groups.map((group, groupIdx) => {
-                    const span = groupColumnSpan(group, sizes.columns);
-                    const cardStyles: Record<string, string> = {
-                      gridColumn: `span ${span}`,
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      borderRadius: "10px",
-                      padding: `${sizes.py + 12}px ${sizes.px + 12}px`,
-                      background: "rgba(255,255,255,0.03)",
-                      minHeight: `${sizes.sy * 2}px`,
-                    };
-                    const header = (group as { header?: { name?: string; id?: string | number } }).header;
-                    const title = header?.name || `Group ${groupIdx + 1}`;
-                    const items = (group as { items?: unknown[] }).items ?? [];
-
-                    return html`<section key=${header?.id ?? title} style=${cardStyles}>
-                      <header style=${{ fontWeight: 600, marginBottom: "8px" }}>${title}</header>
-                      <div style=${{ opacity: 0.8, fontSize: "13px", marginBottom: "8px" }}>
-                        ${items.length} widget${items.length === 1 ? "" : "s"}
-                      </div>
-                      ${items.length === 0
-                        ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>
-                            No widgets in this group yet.
-                          </div>`
-                        : html`<ul style=${{
-                              listStyle: "none",
-                              margin: 0,
-                              padding: 0,
-                              display: "grid",
-                              gap: `${sizes.cy}px`,
-                            }}>
-                            ${items.map((control, ctrlIdx) => html`<li
-                                  key=${(control as { id?: string | number })?.id ?? ctrlIdx}
-                                  style=${{
-                                    border: "1px dashed rgba(255,255,255,0.14)",
-                                    borderRadius: "8px",
-                                    padding: `${sizes.py + 8}px ${sizes.px + 10}px`,
-                                    background: "rgba(255,255,255,0.02)",
-                                    fontSize: "12px",
-                                    opacity: 0.9,
-                                  }}
-                                >
-                                  <${WidgetRenderer}
-                                    control=${control}
-                                    index=${ctrlIdx}
-                                    onEmit=${actions.emit ?? undefined}
-                                  />
-                                </li>`)}
-                          </ul>`}
-                    </section>`;
-                  })}
-                </div>`;
+                return html`<${GroupGrid}
+                  groups=${(selectedTab.items ?? []) as unknown as UiGroup[]}
+                  sizes=${{
+                    columns: sizes.columns,
+                    gx: sizes.gx,
+                    gy: sizes.gy,
+                    px: sizes.px,
+                    py: sizes.py,
+                    cy: sizes.cy,
+                  }}
+                  onEmit=${actions.emit ?? undefined}
+                />`;
               })()}
         </main>
       </section>
