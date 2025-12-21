@@ -1,13 +1,14 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiGroup } from "../../state";
+import type { SiteSizes } from "../../types";
 import { groupColumnSpan } from "./utils";
 import { ensureLayoutStyles } from "./layout-styles";
 import { GroupCard } from "./GroupCard";
 
 export function GroupGrid(props: {
   groups: UiGroup[];
-  sizes: { columns: number; gx: number; gy: number; px: number; py: number; cy: number };
+  sizes: Pick<SiteSizes, "columns" | "gx" | "gy" | "px" | "py" | "cy" | "cx" | "dense">;
   onEmit?: (event: string, msg?: Record<string, unknown>) => void;
 }): VNode {
   const { groups, sizes, onEmit } = props;
@@ -28,18 +29,23 @@ export function GroupGrid(props: {
     columnGap: `${sizes.gx}px`,
     rowGap: `${sizes.gy}px`,
     alignContent: "start",
+    gridAutoFlow: sizes.dense ? "dense" : "row",
   };
 
   return html`<div style=${gridStyles}>
     ${visible.map((group, idx) => {
       const span = groupColumnSpan(group, sizes.columns);
+      const paddingX = Math.max(0, sizes.px);
+      const paddingY = Math.max(0, sizes.py);
+      const itemGapY = Math.max(0, sizes.cy);
+      const itemGapX = Math.max(0, sizes.cx);
       return html`<${GroupCard}
         key=${group.header?.id ?? idx}
         group=${group}
         index=${idx}
         columnSpan=${span}
-        padding=${{ x: sizes.px + 12, y: sizes.py + 12 }}
-        sizes=${{ cy: sizes.cy }}
+        padding=${{ x: paddingX, y: paddingY }}
+        sizes=${{ cy: itemGapY, cx: itemGapX }}
         onEmit=${onEmit}
       />`;
     })}

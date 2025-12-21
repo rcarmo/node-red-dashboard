@@ -9,7 +9,7 @@ export function GroupCard(props: {
   index: number;
   columnSpan: number;
   padding: { x: number; y: number };
-  sizes: { cy: number };
+  sizes: { cy: number; cx: number };
   onEmit?: (event: string, msg?: Record<string, unknown>) => void;
 }): VNode {
   const { group, index, columnSpan, padding, sizes, onEmit } = props;
@@ -32,13 +32,16 @@ export function GroupCard(props: {
       ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>No widgets in this group yet.</div>`
       : html`<ul
           class="nr-dashboard-group-card__list"
-          style=${{ gap: `${sizes.cy}px` }}
+          style=${{
+            rowGap: `${sizes.cy}px`,
+            columnGap: `${sizes.cx}px`,
+          }}
         >
           ${items.map((control, ctrlIdx) => html`<li
                 class="nr-dashboard-group-card__item"
                 key=${(control as { id?: string | number })?.id ?? ctrlIdx}
                 style=${{
-                  padding: `${padding.y - 4}px ${padding.x - 2}px`,
+                  padding: `${Math.max(0, padding.y - 4)}px ${Math.max(0, padding.x - 2)}px`,
                 }}
               >
                 <${WidgetRenderer}

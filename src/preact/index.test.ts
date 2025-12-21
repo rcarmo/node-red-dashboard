@@ -4,7 +4,9 @@ import {
   applySizesToRoot,
   applyThemeToRoot,
   groupColumnSpan,
+  findFirstFocusable,
   resolveSizes,
+  shouldShowLoading,
 } from "./index";
 
 const originalWindow = globalThis.window;
@@ -38,6 +40,7 @@ describe("Sizing", () => {
       px: 0,
       py: 0,
       columns: 24,
+      dense: false,
     });
   });
 
@@ -89,6 +92,7 @@ describe("Theme application", () => {
         themeState: {
           "page-backgroundColor": { value: "#111" },
           "widget-textColor": { value: "#eee" },
+          "page-textColor": { value: "#abc" },
         },
       },
       root,
@@ -96,10 +100,32 @@ describe("Theme application", () => {
 
     expect(style["--nr-dashboard-pageBackgroundColor"]).toBe("#111");
     expect(style["--nr-dashboard-widgetTextColor"]).toBe("#eee");
+    expect(style["--nr-dashboard-pageTextColor"]).toBe("#abc");
 
     applyThemeToRoot(null, root);
     expect(style["--nr-dashboard-pageBackgroundColor"]).toBeUndefined();
     expect(style["--nr-dashboard-widgetTextColor"]).toBeUndefined();
+    expect(style["--nr-dashboard-pageTextColor"]).toBeUndefined();
+  });
+});
+
+describe("Loading and focus helpers", () => {
+  test("shouldShowLoading is true unless ready", () => {
+    expect(shouldShowLoading("connecting")).toBe(true);
+    expect(shouldShowLoading("ready")).toBe(false);
+  });
+
+  test("findFirstFocusable returns query result or root", () => {
+    const btn = { tagName: "BUTTON" } as unknown as HTMLElement;
+    const root = {
+      querySelector: () => btn,
+    } as unknown as HTMLElement;
+    expect(findFirstFocusable(root)).toBe(btn);
+
+    const rootFallback = {
+      querySelector: () => null,
+    } as unknown as HTMLElement;
+    expect(findFirstFocusable(rootFallback)).toBe(rootFallback);
   });
 });
 

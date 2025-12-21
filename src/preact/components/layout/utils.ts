@@ -1,5 +1,5 @@
 import { useEffect } from "preact/hooks";
-import type { SiteSizes } from "../../index";
+import type { SiteSizes } from "../../types";
 
 export function groupColumnSpan(group: unknown, maxColumns: number): number {
   const width = (group as { header?: { config?: { width?: number | string } } })?.header?.config?.width;

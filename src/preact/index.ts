@@ -1,33 +1,27 @@
 import { render, type VNode } from "preact";
 import { html } from "htm/preact";
-import { useEffect, useMemo } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
+import type { DashboardActions, DashboardState, UiGroup, UiMenuItem, UiTheme } from "./state";
 import { useDashboardState } from "./state";
-import type { UiGroup, UiMenuItem, UiTheme } from "./state";
 import { TabNav } from "./components/layout/TabNav";
 import { GroupGrid } from "./components/layout/GroupGrid";
 import { useLayoutAnnouncements } from "./components/layout/utils";
-
-export type SiteSizes = {
-  sx: number;
-  sy: number;
-  gx: number;
-  gy: number;
-  cx: number;
-  cy: number;
-  px: number;
-  py: number;
-  columns: number;
-};
+import { SizesProvider, useSizes } from "./hooks/useSizes";
 
 export { groupColumnSpan } from "./components/layout/utils";
+export { resolveSizes, applySizesToRoot } from "./lib/sizes";
+export type { ConnectionState } from "./state";
 
 const themeVarMap: Record<string, string> = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
+  "page-textColor": "--nr-dashboard-pageTextColor",
   "page-titlebar-backgroundColor": "--nr-dashboard-titlebarBackgroundColor",
   "page-sidebar-backgroundColor": "--nr-dashboard-sidebarBackgroundColor",
+  "page-sidebarTextColor": "--nr-dashboard-sidebarTextColor",
   "group-backgroundColor": "--nr-dashboard-groupBackgroundColor",
   "group-textColor": "--nr-dashboard-groupTextColor",
   "group-borderColor": "--nr-dashboard-groupBorderColor",
+  "widget-color": "--nr-dashboard-widgetColor",
   "widget-textColor": "--nr-dashboard-widgetTextColor",
   "widget-backgroundColor": "--nr-dashboard-widgetBackgroundColor",
   "widget-borderColor": "--nr-dashboard-widgetBorderColor",
@@ -37,7 +31,7 @@ const themeVarMap: Record<string, string> = {
 const appStyles: Record<string, string> = {
   fontFamily: "'Inter', system-ui, sans-serif",
   background: "var(--nr-dashboard-pageBackgroundColor, #0f1115)",
-  color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+  color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #e9ecf1))",
   minHeight: "100vh",
   display: "grid",
   gridTemplateRows: "56px 1fr",
@@ -60,50 +54,12 @@ const layoutStyles: Record<string, string> = {
 const navStyles: Record<string, string> = {
   borderRight: "1px solid rgba(255,255,255,0.08)",
   padding: "16px",
+  color: "var(--nr-dashboard-sidebarTextColor, inherit)",
 };
 
 const contentStyles: Record<string, string> = {
   padding: "16px",
 };
-
-function coerceNumber(value: unknown, fallback: number): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-export function resolveSizes(site: unknown): SiteSizes {
-  const base: SiteSizes = {
-    sx: 48,
-    sy: 48,
-    gx: 6,
-    gy: 6,
-    cx: 6,
-    cy: 6,
-    px: 0,
-    py: 0,
-    columns: 24,
-  };
-
-  if (typeof window !== "undefined" && window.innerWidth < 350) {
-    base.sx = 42;
-    base.sy = 42;
-  }
-
-  const sizes = (site as { sizes?: Partial<SiteSizes> } | null)?.sizes;
-  if (!sizes) return base;
-
-  return {
-    sx: coerceNumber(sizes.sx, base.sx),
-    sy: coerceNumber(sizes.sy, base.sy),
-    gx: coerceNumber(sizes.gx, base.gx),
-    gy: coerceNumber(sizes.gy, base.gy),
-    cx: coerceNumber(sizes.cx, base.cx),
-    cy: coerceNumber(sizes.cy, base.cy),
-    px: coerceNumber(sizes.px, base.px),
-    py: coerceNumber(sizes.py, base.py),
-    columns: coerceNumber(sizes.columns, base.columns),
-  };
-}
 
 function getEffectiveTheme(tab: UiMenuItem | null, globalTheme: UiTheme | null): UiTheme | null {
   if (tab?.theme) return tab.theme;
@@ -131,26 +87,19 @@ export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): voi
   });
 }
 
-export function applySizesToRoot(sizes: SiteSizes, root?: HTMLElement): void {
-  if (!root && typeof document === "undefined") return;
-  const target = root ?? document.documentElement;
-  const entries: Array<[string, string]> = [
-    ["--nr-dashboard-sx", `${sizes.sx}`],
-    ["--nr-dashboard-sy", `${sizes.sy}`],
-    ["--nr-dashboard-gx", `${sizes.gx}`],
-    ["--nr-dashboard-gy", `${sizes.gy}`],
-    ["--nr-dashboard-cx", `${sizes.cx}`],
-    ["--nr-dashboard-cy", `${sizes.cy}`],
-    ["--nr-dashboard-px", `${sizes.px}`],
-    ["--nr-dashboard-py", `${sizes.py}`],
-    ["--nr-dashboard-columns", `${sizes.columns}`],
-  ];
-  entries.forEach(([k, v]) => target.style.setProperty(k, v));
+export function shouldShowLoading(connection: DashboardState["connection"]): boolean {
+  return connection !== "ready";
+}
+
+export function findFirstFocusable(root: HTMLElement | null): HTMLElement | null {
+  if (!root) return null;
+  const selector = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
+  const candidate = root.querySelector<HTMLElement>(selector);
+  return candidate ?? root;
 }
 
 export function App(): VNode {
   const { state, selectedTab, actions } = useDashboardState();
-  const sizes = useMemo(() => resolveSizes(state.site), [state.site]);
   const tabId = selectedTab?.id ?? selectedTab?.header;
 
   // Hash-based routing to mirror legacy /<tabIndex>
@@ -177,12 +126,35 @@ export function App(): VNode {
     applyThemeToRoot(theme);
   }, [selectedTab, state.theme]);
 
-  // Expose sizing tokens as CSS custom properties for layout and future widgets
-  useEffect(() => {
-    applySizesToRoot(sizes);
-  }, [sizes]);
+  return html`<${SizesProvider} site=${state.site} tabId=${tabId}>
+    <${DashboardShell}
+      state=${state}
+      selectedTab=${selectedTab}
+      tabId=${tabId}
+      actions=${actions}
+    />
+  </${SizesProvider}>`;
+}
 
+type DashboardShellProps = {
+  state: DashboardState;
+  selectedTab: UiMenuItem | null;
+  tabId: string | number | undefined;
+  actions: DashboardActions;
+};
+
+function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellProps): VNode {
+  const sizes = useSizes();
+  const mainRef = useRef<HTMLElement | null>(null);
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
+
+  useEffect(() => {
+    if (state.connection !== "ready") return;
+    const target = findFirstFocusable(mainRef.current);
+    if (target && typeof target.focus === "function") {
+      target.focus({ preventScroll: true } as FocusOptions);
+    }
+  }, [selectedTab, state.connection]);
 
   const statusLabel = (() => {
     switch (state.connection) {
@@ -197,7 +169,7 @@ export function App(): VNode {
 
   return html`
     <div style=${appStyles}>
-      ${state.connection !== "ready"
+      ${shouldShowLoading(state.connection)
         ? html`<div style=${{
               padding: "12px 16px",
               background: "rgba(255,255,255,0.06)",
@@ -225,8 +197,10 @@ export function App(): VNode {
             }}
           />
         </nav>
-        <main style=${contentStyles}>
-          ${state.menu.length === 0
+        <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
+          ${shouldShowLoading(state.connection)
+            ? html`<${LoadingSkeleton} columns=${sizes.columns} />`
+            : state.menu.length === 0
             ? html`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
                 <p style=${{ margin: "0 0 8px" }}>No tabs defined yet.</p>
                 <p style=${{ margin: 0 }}>Add UI nodes in Node-RED and deploy to see them here.</p>
@@ -261,6 +235,13 @@ export function App(): VNode {
                     px: sizes.px,
                     py: sizes.py,
                     cy: sizes.cy,
+                    cx: sizes.cx,
+                    dense:
+                      Boolean(
+                        ((state.site as { sizes?: { dense?: boolean } } | null)?.sizes?.dense ??
+                          (state.site as { layout?: { dense?: boolean } } | null)?.layout?.dense ??
+                          false),
+                      ),
                   }}
                   onEmit=${actions.emit ?? undefined}
                 />`;
@@ -269,6 +250,31 @@ export function App(): VNode {
       </section>
     </div>
   `;
+}
+
+function LoadingSkeleton({ columns }: { columns: number }): VNode {
+  const cards = Array.from({ length: Math.max(3, Math.min(columns, 6)) });
+  return html`<div
+    style=${{
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+      gap: "12px",
+    }}
+  >
+    ${cards.map(
+      (_v, idx) => html`<div
+        key=${idx}
+        style=${{
+          minHeight: "140px",
+          borderRadius: "10px",
+          background: "linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+          backgroundSize: "200% 100%",
+          animation: "nr-dashboard-skeleton 1.2s ease-in-out infinite",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}
+      ></div>`,
+    )}
+  </div>`;
 }
 
 export function bootstrap(): void {

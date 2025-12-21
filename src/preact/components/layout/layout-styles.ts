@@ -7,12 +7,12 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
   style.id = LAYOUT_STYLE_ID;
   style.textContent = `
     :root {
-      --nr-dashboard-card-bg: rgba(255, 255, 255, 0.03);
-      --nr-dashboard-card-border: rgba(255, 255, 255, 0.12);
-      --nr-dashboard-card-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
-      --nr-dashboard-nav-active: rgba(255, 255, 255, 0.08);
-      --nr-dashboard-nav-border-active: rgba(255, 255, 255, 0.35);
-      --nr-dashboard-nav-border: rgba(255, 255, 255, 0.12);
+      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, rgba(255, 255, 255, 0.03));
+      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, rgba(255, 255, 255, 0.12));
+      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, #e9ecf1));
+      --nr-dashboard-nav-active: var(--nr-dashboard-sidebarBackgroundColor, rgba(255, 255, 255, 0.08));
+      --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.35));
+      --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.12));
     }
 
     .nr-dashboard-tabs {
@@ -71,11 +71,20 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     .nr-dashboard-group-card__item {
-      border: 1px dashed rgba(255, 255, 255, 0.14);
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.02);
       font-size: 12px;
       opacity: 0.9;
+    }
+
+    .nr-dashboard-widget-frame {
+      background: var(--nr-dashboard-widgetBackgroundColor, #14171d);
+      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.08));
+      color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      border-radius: 8px;
+    }
+
+    @keyframes nr-dashboard-skeleton {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
   `;
   doc.head.appendChild(style);
