@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { applyFormat, layoutStyles, mergeStyleString } from "./text";
+import type { TextControl } from "./text";
 
-const baseCtrl = { layoutAlign: "space-between center" } as any;
+const baseCtrl: Partial<TextControl> = { layoutAlign: "space-between center" };
 
 describe("Text widget helpers", () => {
   test("applyFormat replaces payload token", () => {

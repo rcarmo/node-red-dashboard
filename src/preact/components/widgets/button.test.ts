@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { buildButtonEmit, resolveButtonColor } from "./button";
+import type { ButtonControl } from "./button";
 
-const base = {} as any;
+const base: ButtonControl = {};
 
 describe("Button widget helpers", () => {
   test("resolves colors with bgcolor fallback", () => {

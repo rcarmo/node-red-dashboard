@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import tsParser from "@typescript-eslint/parser";
 import tsPlugin from "@typescript-eslint/eslint-plugin";
+import globals from "globals";
 
 export default [
   {
@@ -26,8 +27,8 @@ export default [
         ecmaVersion: "latest",
       },
       globals: {
-        window: "readonly",
-        document: "readonly",
+        ...globals.browser,
+        ...globals.node,
       },
     },
     plugins: { "@typescript-eslint": tsPlugin },

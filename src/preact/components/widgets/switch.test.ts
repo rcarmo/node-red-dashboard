@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { buildSwitchEmit, resolveSwitchColors } from "./switch";
+import type { SwitchControl } from "./switch";
 
-const base = {} as any;
+const base: SwitchControl = {};
 
 describe("Switch widget helpers", () => {
   test("resolves colors based on state", () => {
