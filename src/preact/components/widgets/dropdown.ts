@@ -1,5 +1,5 @@
 import { html } from "htm/preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
@@ -98,6 +98,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const opts = useMemo(() => asDrop.options ?? [], [asDrop.options]);
   const multiple = Boolean(asDrop.multiple);
   const [value, setValue] = useState<unknown>(normalizeValue(asDrop.value, opts, multiple));
+  const lastReset = useRef<boolean>(false);
 
   useEffect(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
@@ -113,8 +114,12 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   }, [asDrop.value, asDrop.resetSelection, multiple, opts]);
 
   useEffect(() => {
-    if (asDrop.resetSelection) {
+    if (asDrop.resetSelection && !lastReset.current) {
       setValue(multiple ? [] : null);
+      lastReset.current = true;
+    }
+    if (!asDrop.resetSelection) {
+      lastReset.current = false;
     }
   }, [asDrop.resetSelection, multiple]);
 

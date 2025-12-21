@@ -181,4 +181,47 @@ describe("ui-control handler", () => {
     const disabledSkip = __test.handleUiControl(prev, { tab: "B" });
     expect(disabledSkip.selectedTabIndex).toBe(0);
   });
+
+  test("patches dropdown options and reset via ui-control", () => {
+    const prev = {
+      connection: "ready",
+      socketId: "abc",
+      menu: [
+        {
+          header: "A",
+          items: [
+            {
+              header: { name: "G1" },
+              items: [
+                {
+                  id: 1,
+                  type: "dropdown",
+                  options: [{ label: "Old", value: "old" }],
+                  value: "old",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      globals: [],
+      site: null,
+      theme: null,
+      selectedTabIndex: 0,
+      replayDone: true,
+      toasts: [],
+    } as const;
+
+    const next = __test.handleUiControl(prev, {
+      id: 1,
+      options: [{ label: "New", value: "new" }],
+      value: "new",
+      resetSearch: true,
+    });
+
+    const ctrl = next.menu[0].items?.[0].items?.[0] as Record<string, unknown>;
+    expect((ctrl.options as Array<{ label: string }>)[0].label).toBe("New");
+    expect(ctrl.value).toBe("new");
+    expect(ctrl.resetSelection).toBe(true);
+  });
 });
