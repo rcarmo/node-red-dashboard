@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { createSocketBridge, UiSocketBridge } from "./socket";
 import { speakText } from "./lib/tts";
+import type { LocaleMap } from "./lib/i18n";
 
 export type UiGroup = {
   header?: {
@@ -36,6 +37,8 @@ export type UiControlsPayload = {
   globals?: UiControl[];
   site?: UiSite;
   theme?: UiTheme;
+  locales?: LocaleMap;
+  lang?: string;
   nothing?: boolean;
 };
 
@@ -48,6 +51,8 @@ export type DashboardState = {
   globals: UiControl[];
   site: UiSite | null;
   theme: UiTheme | null;
+  locales: LocaleMap | null;
+  lang: string | null;
   selectedTabIndex: number | null;
   replayDone: boolean;
   toasts: ToastMessage[];
@@ -119,6 +124,8 @@ const initialState: DashboardState = {
   globals: [],
   site: null,
   theme: null,
+  locales: null,
+  lang: null,
   selectedTabIndex: null,
   replayDone: false,
   toasts: [],
@@ -140,6 +147,8 @@ export function useDashboardState(): DashboardStore {
         const globals = data.globals ?? [];
         const site = data.site ?? null;
         const theme = data.theme ?? null;
+        const locales = data.locales ?? null;
+        const lang = data.lang ?? null;
         const defaultTab = getFirstVisibleTab(menu);
         setState((prev) => ({
           ...prev,
@@ -148,6 +157,8 @@ export function useDashboardState(): DashboardStore {
           globals,
           site,
           theme,
+          locales,
+          lang,
           selectedTabIndex: defaultTab,
         }));
       },

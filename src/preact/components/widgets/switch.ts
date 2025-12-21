@@ -3,6 +3,7 @@ import { useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useElementSize } from "../../hooks/useElementSize";
+import { useI18n } from "../../lib/i18n";
 
 export type SwitchControl = UiControl & {
   label?: string;
@@ -33,7 +34,8 @@ export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next
 export function SwitchWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asSwitch = control as SwitchControl;
-  const label = asSwitch.label || asSwitch.name || `Switch ${index + 1}`;
+  const { t } = useI18n();
+  const label = asSwitch.label || asSwitch.name || t("switch_label", "Switch {index}", { index: index + 1 });
   const initial = Boolean(asSwitch.value ?? asSwitch.state);
   const [checked, setChecked] = useState<boolean>(initial);
   const [ref, size] = useElementSize<HTMLLabelElement>();
@@ -93,7 +95,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
         ${!checked && asSwitch.officon ? html`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${label}
       </span>
-      <span style=${{ opacity: 0.7, fontSize: "12px" }}>${checked ? "On" : "Off"}</span>
+      <span style=${{ opacity: 0.7, fontSize: "12px" }}>${checked ? t("switch_on", "On") : t("switch_off", "Off")}</span>
       <span style=${{ opacity: 0.5, fontSize: "10px" }}>
         ${Math.round(size.width)}×${Math.round(size.height)} px
       </span>

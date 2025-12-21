@@ -30,6 +30,8 @@ var socketio = require('socket.io');
 var serveStatic = require('serve-static');
 var compression = require('compression');
 var dashboardVersion = require('./package.json').version;
+var preactLocales = {};
+var logger;
 
 var baseConfiguration = {};
 var io;
@@ -44,6 +46,40 @@ var removeStateTimeout = 1000;
 var ev = new events.EventEmitter();
 var params = {};
 ev.setMaxListeners(0);
+
+function normalizeLangTag(lang) {
+    if (!lang || typeof lang !== "string") { return undefined; }
+    return lang.replace("_", "-").split(".")[0];
+}
+
+function loadPreactLocales() {
+    var root = path.join(__dirname, "nodes", "locales");
+    try {
+        var langs = fs.readdirSync(root);
+        preactLocales = {};
+        langs.forEach(function(langDir) {
+            var localePath = path.join(root, langDir, "preact.json");
+            if (!fs.existsSync(localePath)) { return; }
+            try {
+                var raw = fs.readFileSync(localePath, "utf8");
+                var parsed = JSON.parse(raw);
+                if (parsed && parsed.preact) {
+                    preactLocales[langDir.toLowerCase()] = parsed.preact;
+                }
+            }
+            catch (e) {
+                if (logger && logger.warn) {
+                    logger.warn("[Dashboard] Failed to load locale file "+localePath+": "+e.message);
+                }
+            }
+        });
+    }
+    catch (err) {
+        if (logger && logger.warn) {
+            logger.warn("[Dashboard] Unable to read preact locales: "+err.message);
+        }
+    }
+}
 
 // default manifest.json to be returned as required.
 var mani = {
@@ -323,6 +359,7 @@ function join() {
 }
 
 function init(server, app, log, redSettings) {
+    logger = log;
     var uiSettings = redSettings.ui || {};
     if ((uiSettings.hasOwnProperty("path")) && (typeof uiSettings.path === "string")) {
         settings.path = uiSettings.path;
@@ -337,6 +374,9 @@ function init(server, app, log, redSettings) {
     }
     settings.defaultGroupHeader = uiSettings.defaultGroup || 'Default';
     settings.verbose = redSettings.verbose || false;
+
+    settings.lang = normalizeLangTag(redSettings.lang || process.env.LANG) || "en";
+    loadPreactLocales();
 
     var fullPath = join(redSettings.httpNodeRoot, settings.path);
     var socketIoPath = join(fullPath, 'socket.io');
@@ -455,7 +495,9 @@ function updateUi(to) {
             site: baseConfiguration.site,
             theme: baseConfiguration.theme,
             menu: menu,
-            globals: globals
+            globals: globals,
+            locales: preactLocales,
+            lang: baseConfiguration.site && baseConfiguration.site.lang ? baseConfiguration.site.lang : settings.lang
         });
         updateUiPending = false;
     });
@@ -587,6 +629,9 @@ function addLink(name, link, icon, order, target, className) {
 
 function addBaseConfig(config) {
     if (config) { baseConfiguration = config; }
+    var derivedLang = normalizeLangTag((config.site && config.site.lang) || settings.lang);
+    if (!baseConfiguration.site) { baseConfiguration.site = {}; }
+    baseConfiguration.site.lang = derivedLang || baseConfiguration.site.lang || "en";
     mani.name = config.site ? config.site.name : "Node-RED Dashboard";
     mani.short_name = mani.name.replace("Node-RED","").trim();
     mani.background_color = config.theme.themeState["page-titlebar-backgroundColor"].value;

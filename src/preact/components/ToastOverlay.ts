@@ -9,10 +9,12 @@ import {
   messageStyles,
   closeButtonStyles,
 } from "./styles/toastStyles";
+import { useI18n } from "../lib/i18n";
 
 export function ToastOverlay(props: { toasts: ToastMessage[]; onDismiss: (id: string) => void }): VNode {
   const { toasts, onDismiss } = props;
   if (!toasts.length) return null;
+  const { t } = useI18n();
 
   return html`<div
     style=${overlayStyles}
@@ -23,11 +25,11 @@ export function ToastOverlay(props: { toasts: ToastMessage[]; onDismiss: (id: st
         key=${toast.id}
         style=${{ ...cardBaseStyles, border: `1px solid ${toneColor}` }}
       >
-        <div style=${titleStyles}>${toast.title || "Notification"}</div>
+        <div style=${titleStyles}>${toast.title || t("toast_overlay_title", "Notification")}</div>
         <div style=${messageStyles}>${String(toast.message ?? "")}</div>
         <button
           type="button"
-          aria-label="Dismiss notification"
+          aria-label=${t("toast_overlay_close", "Dismiss notification")}
           onClick=${() => onDismiss(toast.id)}
           style=${{
             ...closeButtonStyles,

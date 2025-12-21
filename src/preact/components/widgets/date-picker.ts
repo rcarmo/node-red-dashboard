@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import type { VNode } from "preact";
 import { useState } from "preact/hooks";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type DatePickerControl = UiControl & {
   name?: string;
@@ -24,7 +25,8 @@ export function resolveDateInputType(mode?: string): "date" | "time" | "datetime
 export function DatePickerWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const c = control as DatePickerControl;
-  const label = c.label || c.name || `Date ${index + 1}`;
+  const label = c.label || c.name || t("date_label", "Date {index}", { index: index + 1 });
+  const { t } = useI18n();
   const [value, setValue] = useState<string>(c.value || "");
   const [error, setError] = useState<string>("");
   const isDisabled = Boolean(disabled);
@@ -33,15 +35,15 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
 
   const validate = (next: string): boolean => {
     if (c.required && next.trim().length === 0) {
-      setError(c.error || "A value is required.");
+      setError(c.error || t("error_required", "A value is required."));
       return false;
     }
     if (c.min && next && next < c.min) {
-      setError(c.error || "Value is before the allowed range.");
+      setError(c.error || t("error_min", "Value is before the allowed range."));
       return false;
     }
     if (c.max && next && next > c.max) {
-      setError(c.error || "Value is after the allowed range.");
+      setError(c.error || t("error_max", "Value is after the allowed range."));
       return false;
     }
     setError("");

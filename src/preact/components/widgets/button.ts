@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useElementSize } from "../../hooks/useElementSize";
+import { useI18n } from "../../lib/i18n";
 
 export type ButtonControl = UiControl & {
   label?: string;
@@ -32,7 +33,8 @@ export function buildButtonEmit(ctrl: ButtonControl, fallbackLabel: string): Rec
 export function ButtonWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asButton = control as ButtonControl;
-  const label = asButton.label || asButton.name || `Button ${index + 1}`;
+  const { t } = useI18n();
+  const label = asButton.label || asButton.name || t("button_label", "Button {index}", { index: index + 1 });
   const color = resolveButtonColor(asButton);
   const [ref, size] = useElementSize<HTMLButtonElement>();
 

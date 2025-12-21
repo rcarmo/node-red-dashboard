@@ -1,6 +1,7 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type LinkControl = UiControl & {
   name?: string;
@@ -18,7 +19,8 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
   const { control, index, disabled } = props;
   const c = control as LinkControl;
   const href = resolveLinkHref(c);
-  const label = c.label || c.name || href || `Link ${index + 1}`;
+  const { t } = useI18n();
+  const label = c.label || c.name || href || t("link_label", "Link {index}", { index: index + 1 });
   const target = c.target || "_blank";
   const icon = c.icon;
   const isDisabled = Boolean(disabled);

@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import type { VNode } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type AudioControl = UiControl & {
   name?: string;
@@ -22,7 +23,8 @@ export function shouldAutoPlay(isDisabled: boolean, autoplay?: boolean): boolean
 export function AudioWidget(props: { control: UiControl; index: number; disabled?: boolean }): VNode {
   const { control, index, disabled } = props;
   const c = control as AudioControl;
-  const label = c.label || c.name || `Audio ${index + 1}`;
+  const { t } = useI18n();
+  const label = c.label || c.name || t("audio_label", "Audio {index}", { index: index + 1 });
   const ref = useRef<HTMLAudioElement | null>(null);
   const isDisabled = Boolean(disabled);
   const [playIntent, setPlayIntent] = useState<boolean>(false);

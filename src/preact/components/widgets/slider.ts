@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type SliderControl = UiControl & {
   label?: string;
@@ -211,7 +212,8 @@ export function buildSliderEmit(ctrl: SliderControl, fallbackLabel: string, valu
 export function SliderWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asSlider = control as SliderControl;
-  const label = asSlider.label || asSlider.name || `Slider ${index + 1}`;
+  const { t } = useI18n();
+  const label = asSlider.label || asSlider.name || t("slider_label", "Slider {index}", { index: index + 1 });
   const isDisabled = Boolean(disabled);
 
   ensureSliderStyles();

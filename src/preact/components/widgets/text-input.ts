@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type TextInputControl = UiControl & {
   label?: string;
@@ -39,7 +40,8 @@ export function buildTextEmit(ctrl: TextInputControl, fallbackLabel: string, val
 export function TextInputWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asInput = control as TextInputControl;
-  const label = asInput.label || asInput.name || `Input ${index + 1}`;
+  const label = asInput.label || asInput.name || t("input_label", "Input {index}", { index: index + 1 });
+  const { t } = useI18n();
   const [value, setValue] = useState<string>((asInput.value as string) ?? "");
   const [error, setError] = useState<string>("");
   const maxLength = (control as { maxlength?: number }).maxlength;
@@ -51,11 +53,11 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
 
   const validate = (next: string): boolean => {
     if (asInput.required && next.trim().length === 0) {
-      setError(asInput.error || "This field is required.");
+      setError(asInput.error || t("error_required", "This field is required."));
       return false;
     }
     if (pattern && !pattern.test(next)) {
-      setError(asInput.error || "Value does not match the required format.");
+      setError(asInput.error || t("error_pattern", "Value does not match the required format."));
       return false;
     }
     setError("");
@@ -107,7 +109,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   return html`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
     <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
     ${asInput.required
-      ? html`<span style=${{ fontSize: "11px", opacity: 0.65 }}>Required</span>`
+      ? html`<span style=${{ fontSize: "11px", opacity: 0.72 }}>${t("required_label", "Required")}</span>`
       : null}
     <input
       class=${asInput.className || ""}
@@ -135,7 +137,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
     />
     ${typeof maxLength === "number"
       ? html`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
-          ${value.length}/${maxLength}
+          ${t("char_counter", "{used}/{max}", { used: value.length, max: maxLength })}
         </span>`
       : null}
     ${error

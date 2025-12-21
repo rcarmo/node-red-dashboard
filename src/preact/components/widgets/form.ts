@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import type { VNode } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type FormField = {
   name: string;
@@ -34,7 +35,8 @@ export function buildFormEmit(ctrl: FormControl, fallbackLabel: string, values: 
 export function FormWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const c = control as FormControl;
-  const title = c.label || c.name || `Form ${index + 1}`;
+  const { t } = useI18n();
+  const title = c.label || c.name || t("form_label", "Form {index}", { index: index + 1 });
   const fields = useMemo(() => c.fields || [], [c.fields]);
   const isDisabled = Boolean(disabled);
   const [values, setValues] = useState<Record<string, string>>(() => {
@@ -60,10 +62,10 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
       fields.forEach((f) => {
         const val = (values[f.name] ?? "").trim();
         if (f.required && val.length === 0) {
-          nextErrors[f.name] = f.error || "This field is required.";
+          nextErrors[f.name] = f.error || t("error_required", "This field is required.");
         } else if (f.pattern) {
           const re = new RegExp(f.pattern);
-          if (!re.test(val)) nextErrors[f.name] = f.error || "Value does not match the required format.";
+          if (!re.test(val)) nextErrors[f.name] = f.error || t("error_pattern", "Value does not match the required format.");
         }
       });
       setErrors(nextErrors);
@@ -73,7 +75,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
   >
     <div style=${{ fontWeight: 600 }}>${title}</div>
     ${fields.length === 0
-      ? html`<div style=${{ fontSize: "12px", opacity: 0.7 }}>No fields configured.</div>`
+      ? html`<div style=${{ fontSize: "12px", opacity: 0.7 }}>${t("form_no_fields", "No fields configured.")}</div>`
       : fields.map((f) => {
           const type = f.type === "number" ? "number" : f.type === "password" ? "password" : f.type === "email" ? "email" : "text";
           return html`<label style=${{ display: "grid", gap: "4px" }} key=${f.name}>
@@ -102,7 +104,10 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
             />
             ${typeof (f as { maxlength?: number }).maxlength === "number"
               ? html`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
-                  ${(values[f.name] ?? "").length}/${(f as { maxlength?: number }).maxlength}
+                  ${t("char_counter", "{used}/{max}", {
+                    used: (values[f.name] ?? "").length,
+                    max: (f as { maxlength?: number }).maxlength ?? 0,
+                  })}
                 </span>`
               : null}
             ${errors[f.name]
@@ -127,7 +132,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
         cursor: "pointer",
       }}
     >
-      ${c.submit || "Submit"}
+      ${c.submit || t("submit_label", "Submit")}
     </button>
   </form>`;
 }

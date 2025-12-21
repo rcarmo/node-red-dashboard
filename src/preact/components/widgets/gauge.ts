@@ -4,6 +4,7 @@ import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { GaugeChart } from "echarts/charts";
 import { registerEChartsModules, useECharts } from "../../lib/echarts";
+import { useI18n } from "../../lib/i18n";
 
 registerEChartsModules([GaugeChart]);
 
@@ -56,7 +57,8 @@ export function buildSegments(ctrl: GaugeControl, min: number, max: number): Arr
 export function GaugeWidget(props: { control: UiControl; index: number }): VNode {
   const { control, index } = props;
   const asGauge = control as GaugeControl;
-  const label = asGauge.label || asGauge.name || `Gauge ${index + 1}`;
+  const { t } = useI18n();
+  const label = asGauge.label || asGauge.name || t("gauge_label", "Gauge {index}", { index: index + 1 });
   const min = toNumber(asGauge.min, 0);
   const max = toNumber(asGauge.max, 10);
   const [value, setValue] = useState<number>(clamp(toNumber(asGauge.value ?? min, min), min, max));

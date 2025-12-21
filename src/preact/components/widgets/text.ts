@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useElementSize } from "../../hooks/useElementSize";
+import { useI18n } from "../../lib/i18n";
 
 type TextControl = UiControl & {
   label?: string;
@@ -52,7 +53,8 @@ export function mergeStyleString(base: Record<string, string>, style?: string): 
 export function TextWidget(props: { control: UiControl; index: number }): VNode {
   const { control, index } = props;
   const asText = control as TextControl;
-  const label = asText.label || asText.name || `Text ${index + 1}`;
+  const { t } = useI18n();
+  const label = asText.label || asText.name || t("text_label", "Text {index}", { index: index + 1 });
   const raw = asText.value ?? asText.text ?? "";
   const formatted = applyFormat(asText.format, raw);
   const color = typeof asText.color === "string" ? asText.color : undefined;

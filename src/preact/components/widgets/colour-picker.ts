@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import type { VNode } from "preact";
 import { useState } from "preact/hooks";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type ColourPickerControl = UiControl & {
   name?: string;
@@ -18,7 +19,8 @@ export function resolveColourValue(value?: string, fallback = "#ff0000"): string
 export function ColourPickerWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const c = control as ColourPickerControl;
-  const label = c.label || c.name || `Colour ${index + 1}`;
+  const { t } = useI18n();
+  const label = c.label || c.name || t("colour_label", "Colour {index}", { index: index + 1 });
   const [value, setValue] = useState<string>(resolveColourValue(c.value));
   const isDisabled = Boolean(disabled);
 

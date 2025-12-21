@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type ToastControl = UiControl & {
   name?: string;
@@ -22,8 +23,9 @@ export function resolveToastToneColor(level?: "info" | "warn" | "error"): string
 export function ToastWidget(props: { control: UiControl; index: number }): VNode {
   const { control, index } = props;
   const c = control as ToastControl;
-  const label = c.label || c.name || `Toast ${index + 1}`;
-  const msg = c.message || "Toast message";
+  const { t } = useI18n();
+  const label = c.label || c.name || t("toast_label", "Toast {index}", { index: index + 1 });
+  const msg = c.message || t("toast_message", "Toast message");
   const tone = c.level || "info";
   const toneColor = resolveToastToneColor(tone);
   const [visible, setVisible] = useState<boolean>(true);
@@ -58,7 +60,7 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
     ${dismissible
       ? html`<button
           type="button"
-          aria-label="Close notification"
+          aria-label=${t("toast_close", "Close notification")}
           onClick=${() => setVisible(false)}
           style=${{
             position: "absolute",

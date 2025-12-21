@@ -1,6 +1,6 @@
 import { render, type VNode } from "preact";
 import { html } from "htm/preact";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 import type { DashboardActions, DashboardState, UiGroup, UiMenuItem, UiTheme } from "./state";
 import { useDashboardState } from "./state";
 import { TabNav } from "./components/layout/TabNav";
@@ -8,6 +8,7 @@ import { GroupGrid } from "./components/layout/GroupGrid";
 import { useLayoutAnnouncements } from "./components/layout/utils";
 import { ToastOverlay } from "./components/ToastOverlay";
 import { SizesProvider, useSizes } from "./hooks/useSizes";
+import { I18nProvider, hydrateLocales, useI18n } from "./lib/i18n";
 
 export { groupColumnSpan } from "./components/layout/utils";
 export { resolveSizes, applySizesToRoot } from "./lib/sizes";
@@ -102,6 +103,12 @@ export function findFirstFocusable(root: HTMLElement | null): HTMLElement | null
 export function App(): VNode {
   const { state, selectedTab, actions } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
+  const locales = useMemo(() => state.locales ?? hydrateLocales(), [state.locales]);
+  const lang =
+    state.lang ??
+    (state.site as { lang?: string; locale?: string } | null)?.lang ??
+    (state.site as { lang?: string; locale?: string } | null)?.locale ??
+    (typeof navigator !== "undefined" ? navigator.language : "en");
 
   // Hash-based routing to mirror legacy /<tabIndex>
   useEffect(() => {
@@ -127,15 +134,17 @@ export function App(): VNode {
     applyThemeToRoot(theme);
   }, [selectedTab, state.theme]);
 
-  return html`<${SizesProvider} site=${state.site} tabId=${tabId}>
-    <${DashboardShell}
-      state=${state}
-      selectedTab=${selectedTab}
-      tabId=${tabId}
-      actions=${actions}
-    />
-    <${ToastOverlay} toasts=${state.toasts} onDismiss=${actions.dismissToast} />
-  </${SizesProvider}>`;
+  return html`<${I18nProvider} lang=${lang} locales=${locales}>
+    <${SizesProvider} site=${state.site} tabId=${tabId}>
+      <${DashboardShell}
+        state=${state}
+        selectedTab=${selectedTab}
+        tabId=${tabId}
+        actions=${actions}
+      />
+      <${ToastOverlay} toasts=${state.toasts} onDismiss=${actions.dismissToast} />
+    </${SizesProvider}>
+  </${I18nProvider}>`;
 }
 
 type DashboardShellProps = {
@@ -147,6 +156,7 @@ type DashboardShellProps = {
 
 function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellProps): VNode {
   const sizes = useSizes();
+  const { t } = useI18n();
   const mainRef = useRef<HTMLElement | null>(null);
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
 
@@ -162,11 +172,11 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const statusLabel = (() => {
     switch (state.connection) {
       case "ready":
-        return "Connected";
+        return t("status_connected", "Connected");
       case "connecting":
-        return "Connecting";
+        return t("status_connecting", "Connecting");
       default:
-        return "Disconnected";
+        return t("status_disconnected", "Disconnected");
     }
   })();
 
@@ -179,16 +189,20 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               borderBottom: "1px solid rgba(255,255,255,0.1)",
               fontSize: "13px",
             }}>
-            Loading dashboard…
+            ${t("loading", "Loading dashboard...")}
           </div>`
         : null}
       <header style=${toolbarStyles}>
-        <strong>Node-RED Dashboard v2</strong>
-        <span style=${{ fontSize: "12px", opacity: 0.7 }}>Socket: ${statusLabel}${state.socketId ? ` (${state.socketId})` : ""}</span>
+        <strong>${t("app_title", "Node-RED Dashboard v2")}</strong>
+        <span style=${{ fontSize: "12px", opacity: 0.7 }}>
+          ${state.socketId
+            ? t("socket_status_with_id", "Socket: {status} ({id})", { status: statusLabel, id: state.socketId })
+            : t("socket_status", "Socket: {status}", { status: statusLabel })}
+        </span>
       </header>
       <section style=${layoutStyles}>
         <nav style=${navStyles}>
-          <h3 style=${{ marginTop: 0 }}>Tabs</h3>
+          <h3 style=${{ marginTop: 0 }}>${t("tabs_label", "Tabs")}</h3>
           <${TabNav}
             menu=${state.menu}
             selectedIndex=${state.selectedTabIndex}
@@ -205,12 +219,12 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
             ? html`<${LoadingSkeleton} columns=${sizes.columns} />`
             : state.menu.length === 0
             ? html`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
-                <p style=${{ margin: "0 0 8px" }}>No tabs defined yet.</p>
-                <p style=${{ margin: 0 }}>Add UI nodes in Node-RED and deploy to see them here.</p>
+                <p style=${{ margin: "0 0 8px" }}>${t("no_tabs_defined_title", "No tabs defined yet.")}</p>
+                <p style=${{ margin: 0 }}>${t("no_tabs_defined_body", "Add UI nodes in Node-RED and deploy to see them here.")}</p>
               </div>`
             : (() => {
                 if (!selectedTab) {
-                  return html`<div style=${{ opacity: 0.7 }}>Select a tab to view its content.</div>`;
+                  return html`<div style=${{ opacity: 0.7 }}>${t("select_tab_prompt", "Select a tab to view its content.")}</div>`;
                 }
 
                 if (selectedTab.link) {

@@ -4,6 +4,7 @@ import { useMemo, useState } from "preact/hooks";
 import type { UiControl, UiGroup } from "../../state";
 import { WidgetRenderer } from "../widget-renderer";
 import { ensureLayoutStyles } from "./layout-styles";
+import { useI18n } from "../../lib/i18n";
 
 export function GroupCard(props: {
   group: UiGroup;
@@ -16,6 +17,7 @@ export function GroupCard(props: {
 }): VNode {
   const { group, index, columnSpan, padding, sizes, onEmit, tabName } = props;
   ensureLayoutStyles();
+  const { t } = useI18n();
 
   const header = group.header;
   const title = header?.name || `Group ${index + 1}`;
@@ -64,7 +66,7 @@ export function GroupCard(props: {
       <button
         type="button"
         aria-expanded=${!collapsed}
-        aria-label=${collapsed ? "Expand group" : "Collapse group"}
+        aria-label=${collapsed ? t("expand_group", "Expand group") : t("collapse_group", "Collapse group")}
         onClick=${toggleCollapse}
         style=${{
           border: "1px solid rgba(255,255,255,0.16)",
@@ -77,11 +79,15 @@ export function GroupCard(props: {
       >${collapsed ? "+" : "-"}</button>
       <span>${title}</span>
     </header>
-    <div class="nr-dashboard-group-card__meta">${items.length} widget${items.length === 1 ? "" : "s"}</div>
+    <div class="nr-dashboard-group-card__meta">
+      ${items.length === 1
+        ? t("widget_count_one", "{count} widget", { count: items.length })
+        : t("widget_count_other", "{count} widgets", { count: items.length })}
+    </div>
     ${collapsed
-      ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>Collapsed</div>`
+      ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>${t("collapsed", "Collapsed")}</div>`
       : items.length === 0
-      ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>No widgets in this group yet.</div>`
+      ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>${t("no_widgets", "No widgets in this group yet.")}</div>`
       : html`<ul
           class="nr-dashboard-group-card__list"
           style=${{

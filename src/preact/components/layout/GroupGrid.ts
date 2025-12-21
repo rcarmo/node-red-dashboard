@@ -5,6 +5,7 @@ import type { SiteSizes } from "../../types";
 import { groupColumnSpan } from "./utils";
 import { ensureLayoutStyles } from "./layout-styles";
 import { GroupCard } from "./GroupCard";
+import { useI18n } from "../../lib/i18n";
 
 export function GroupGrid(props: {
   groups: UiGroup[];
@@ -14,6 +15,7 @@ export function GroupGrid(props: {
 }): VNode {
   const { groups, sizes, onEmit, tabName } = props;
   ensureLayoutStyles();
+  const { t } = useI18n();
 
   const visible = groups.filter((group) => {
     const hidden = Boolean((group.header as { config?: { hidden?: boolean } } | undefined)?.config?.hidden);
@@ -21,7 +23,7 @@ export function GroupGrid(props: {
   });
 
   if (visible.length === 0) {
-    return html`<div style=${{ opacity: 0.7 }}>No groups in this tab yet.</div>`;
+    return html`<div style=${{ opacity: 0.7 }}>${t("no_groups", "No groups in this tab yet.")}</div>`;
   }
 
   const gridStyles: Record<string, string> = {

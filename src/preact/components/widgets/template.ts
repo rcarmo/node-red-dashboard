@@ -1,6 +1,7 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type TemplateControl = UiControl & {
   name?: string;
@@ -17,7 +18,8 @@ export function resolveTemplateHtml(ctrl: TemplateControl): string {
 export function TemplateWidget(props: { control: UiControl; index: number }): VNode {
   const { control, index } = props;
   const c = control as TemplateControl;
-  const title = c.name || `Template ${index + 1}`;
+  const { t } = useI18n();
+  const title = c.name || t("template_label", "Template {index}", { index: index + 1 });
   const htmlContent = resolveTemplateHtml(c);
 
   return html`<div class=${c.className || ""} style=${{ width: "100%" }}>

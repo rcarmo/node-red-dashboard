@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type DropdownOption = { label: string; value: unknown; type?: string; disabled?: boolean };
 export type DropdownControl = UiControl & {
@@ -47,7 +48,8 @@ export function buildDropdownEmit(ctrl: DropdownControl, fallbackLabel: string, 
 export function DropdownWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asDrop = control as DropdownControl;
-  const label = asDrop.label || asDrop.name || `Select ${index + 1}`;
+  const { t } = useI18n();
+  const label = asDrop.label || asDrop.name || t("dropdown_label", "Select {index}", { index: index + 1 });
   const opts = useMemo(() => asDrop.options ?? [], [asDrop.options]);
   const multiple = Boolean(asDrop.multiple);
   const [value, setValue] = useState<unknown>(asDrop.value ?? (multiple ? [] : null));

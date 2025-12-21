@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiControl } from "../state";
 import { useElementSize } from "../hooks/useElementSize";
+import { useI18n } from "../lib/i18n";
 
 function widgetLabel(control: UiControl, idx: number): string {
   const asAny = control as { type?: string; id?: string | number; name?: string; label?: string };
@@ -19,6 +20,7 @@ export function WidgetPreview(props: { control: UiControl; index: number }): VNo
   const label = widgetLabel(control, index);
   const value = (asAny.value ?? asAny.text ?? "").toString();
   const [ref, size] = useElementSize<HTMLDivElement>();
+  const { t } = useI18n();
 
   if (type === "text" || type === "ui_text") {
     return html`<div
@@ -26,7 +28,7 @@ export function WidgetPreview(props: { control: UiControl; index: number }): VNo
       style=${{ display: "flex", flexDirection: "column", gap: "4px" }}
     >
       <strong>${label}</strong>
-      <span style=${{ opacity: 0.9 }}>${value || "(no value yet)"}</span>
+      <span style=${{ opacity: 0.9 }}>${value || t("widget_preview_empty", "(no value yet)")}</span>
       <span style=${{ opacity: 0.55, fontSize: "10px" }}>
         ${Math.round(size.width)}×${Math.round(size.height)} px
       </span>

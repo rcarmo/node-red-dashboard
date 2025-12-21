@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import { useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
+import { useI18n } from "../../lib/i18n";
 
 export type NumericControl = UiControl & {
   label?: string;
@@ -41,7 +42,8 @@ export function buildNumericEmit(ctrl: NumericControl, fallbackLabel: string, va
 export function NumericWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asNum = control as NumericControl;
-  const label = asNum.label || asNum.name || `Number ${index + 1}`;
+  const { t } = useI18n();
+  const label = asNum.label || asNum.name || t("number_label", "Number {index}", { index: index + 1 });
   const min = toNumber(asNum.min, Number.MIN_SAFE_INTEGER);
   const max = toNumber(asNum.max, Number.MAX_SAFE_INTEGER);
   const step = toNumber(asNum.step, 1) || 1;
