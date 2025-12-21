@@ -59,7 +59,13 @@ export function formatGaugeDetail(value: number, delta: number | undefined, form
 }
 
 export function buildSegments(ctrl: GaugeControl, min: number, max: number): Array<[number, string]> {
-  const colors = ctrl.colors && ctrl.colors.length >= 3 ? ctrl.colors : ["#00B500", "#E6E600", "#CA3838"];
+  const colors = ctrl.colors && ctrl.colors.length >= 3
+    ? ctrl.colors
+    : [
+        "var(--nr-dashboard-widgetColor, #00B500)",
+        "var(--nr-dashboard-warnColor, #E6E600)",
+        "var(--nr-dashboard-errorColor, #CA3838)",
+      ];
   const seg1 = toNumber(ctrl.seg1, (min + max) / 3);
   const seg2 = toNumber(ctrl.seg2, ((min + max) / 3) * 2);
   const span = max - min || 1;
@@ -150,8 +156,8 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
               return dirs[idx];
             },
           },
-          pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "#fff" } },
-          anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "#fff" } },
+          pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+          anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
           detail: {
             valueAnimation: true,
             formatter: () => formatted,

@@ -31,14 +31,14 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
   style.id = SLIDER_STYLE_ID;
   style.textContent = `
     :root {
-      --nr-dashboard-slider-track: rgba(111, 111, 111, 0.5);
-      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-thumb-shadow: 0 1px 3px rgba(0,0,0,0.35);
-      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-        --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
-        --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.25));
-        --nr-dashboard-slider-chip-shadow: var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
+      --nr-dashboard-slider-track: var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18));
+      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetColor, #1f8af2);
+      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetColor, #1f8af2);
+      --nr-dashboard-slider-thumb-shadow: 0 1px 3px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
+      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetColor, #1f8af2);
+      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.25));
+      --nr-dashboard-slider-chip-shadow: 0 4px 12px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
     }
 
     .nr-dashboard-slider {
@@ -176,7 +176,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
         background: var(--nr-dashboard-slider-chip-bg);
         color: var(--nr-dashboard-slider-text);
       font-size: 11px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      box-shadow: var(--nr-dashboard-slider-chip-shadow);
       pointer-events: none;
       white-space: nowrap;
     }

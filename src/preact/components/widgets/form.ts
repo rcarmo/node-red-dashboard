@@ -209,7 +209,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
         borderRadius: "6px",
         border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
         background: "var(--nr-dashboard-widgetColor, #2563eb)",
-        color: "#fff",
+        color: "var(--nr-dashboard-widgetTextColor, #fff)",
         fontWeight: 600,
         cursor: "pointer",
       }}

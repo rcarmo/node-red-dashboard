@@ -89,21 +89,21 @@ type Windowing = {
 };
 
 const DEFAULT_COLORS = [
-  "#1F77B4",
-  "#AEC7E8",
-  "#FF7F0E",
-  "#2CA02C",
-  "#98DF8A",
-  "#D62728",
-  "#FF9896",
-  "#9467BD",
-  "#C5B0D5",
-  "#7EB3C6",
-  "#BC5879",
-  "#6DC2DF",
-  "#D7D185",
-  "#91CA96",
-  "#DEB64D",
+  "var(--nr-dashboard-widgetColor, #1F77B4)",
+  "var(--nr-dashboard-chartColor1, #AEC7E8)",
+  "var(--nr-dashboard-chartColor2, #FF7F0E)",
+  "var(--nr-dashboard-chartColor3, #2CA02C)",
+  "var(--nr-dashboard-chartColor4, #98DF8A)",
+  "var(--nr-dashboard-chartColor5, #D62728)",
+  "var(--nr-dashboard-chartColor6, #FF9896)",
+  "var(--nr-dashboard-chartColor7, #9467BD)",
+  "var(--nr-dashboard-chartColor8, #C5B0D5)",
+  "var(--nr-dashboard-chartColor9, #7EB3C6)",
+  "var(--nr-dashboard-chartColor10, #BC5879)",
+  "var(--nr-dashboard-chartColor11, #6DC2DF)",
+  "var(--nr-dashboard-chartColor12, #D7D185)",
+  "var(--nr-dashboard-chartColor13, #91CA96)",
+  "var(--nr-dashboard-chartColor14, #DEB64D)",
 ];
 
 export function normalizeLook(look?: string): ChartLook {
@@ -417,7 +417,9 @@ export function buildChartOption(
         formatter: (val: number) => valueFormatter(val),
         color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
       },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } },
+      splitLine: {
+        lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(255,255,255,0.1))" },
+      },
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
     };
 
@@ -445,8 +447,15 @@ export function buildChartOption(
       splitNumber: radarSplitNumber,
       shape: radarShape,
       axisName: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.15)" } },
-      splitArea: { areaStyle: { color: ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.05)"] } },
+      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(255,255,255,0.15))" } },
+      splitArea: {
+        areaStyle: {
+          color: [
+            "var(--nr-dashboard-chartSplitAreaLow, rgba(255,255,255,0.02))",
+            "var(--nr-dashboard-chartSplitAreaHigh, rgba(255,255,255,0.05))",
+          ],
+        },
+      },
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
     };
     option.series = buildRadarSeries(data);

@@ -4161,12 +4161,12 @@ function TextWidget(props) {
     padding: "4px 2px"
   }, asText.style);
   return m2`<div ref=${ref} class=${asText.className || ""} style=${container}>
-    <div style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</div>
+    <div style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
     <div
       style=${{
     fontSize: fontSize || "16px",
     fontWeight: 600,
-    color: color || "inherit",
+    color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
     lineHeight: 1.4,
     wordBreak: "break-word",
     fontFamily
@@ -4246,7 +4246,7 @@ function ButtonWidget(props) {
   const asButton = control;
   const { t: t4 } = useI18n();
   const label = asButton.label || asButton.name || t4("button_label", "Button {index}", { index: index + 1 });
-  const color = resolveButtonColor(asButton);
+  const color = resolveButtonColor(asButton) || "var(--nr-dashboard-widgetColor, #1f8af2)";
   const [ref, size] = useElementSize();
   const payload = T2(() => buildButtonEmit(asButton, label).payload, [asButton, label]);
   const handleClick = () => {
@@ -4264,9 +4264,9 @@ function ButtonWidget(props) {
     width: "100%",
     padding: "10px 12px",
     borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.18)",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
     background: color,
-    color: "#fff",
+    color: "var(--nr-dashboard-widgetTextColor, #fff)",
     fontWeight: 600,
     cursor: onEmit ? "pointer" : "default"
   }}
@@ -4282,8 +4282,8 @@ function ButtonWidget(props) {
 // src/preact/components/widgets/switch.ts
 function resolveSwitchColors(ctrl, checked) {
   if (checked)
-    return ctrl.oncolor || "#3ddc97";
-  return ctrl.offcolor || "rgba(255,255,255,0.12)";
+    return ctrl.oncolor || "var(--nr-dashboard-widgetColor, #3ddc97)";
+  return ctrl.offcolor || "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))";
 }
 function buildSwitchEmit(ctrl, fallbackLabel, next) {
   return {
@@ -4356,7 +4356,8 @@ function SwitchWidget(props) {
     borderRadius: "12px",
     background: bg,
     position: "relative",
-    transition: "background 120ms ease, transform 120ms ease"
+    transition: "background 120ms ease, transform 120ms ease",
+    boxShadow: "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))"
   }}
     >
       <div
@@ -4367,20 +4368,22 @@ function SwitchWidget(props) {
     width: "20px",
     height: "20px",
     borderRadius: "50%",
-    background: "white",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.35)",
+    background: "var(--nr-dashboard-widgetTextColor, #fff)",
+    boxShadow: "0 1px 2px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
     transition: "left 120ms ease"
   }}
       ></div>
     </div>
     <div style=${{ display: "flex", flexDirection: "column", gap: "2px" }}>
-      <span style=${{ fontWeight: 600 }}>
+      <span style=${{ fontWeight: 600, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${checked && asSwitch.onicon ? m2`<span class="fa ${asSwitch.onicon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${!checked && asSwitch.officon ? m2`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${label}
       </span>
-      <span style=${{ opacity: 0.7, fontSize: "12px" }}>${checked ? t4("switch_on", "On") : t4("switch_off", "Off")}</span>
-      <span style=${{ opacity: 0.5, fontSize: "10px" }}>
+      <span style=${{ opacity: 0.7, fontSize: "12px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
+        ${checked ? t4("switch_on", "On") : t4("switch_off", "Off")}
+      </span>
+      <span style=${{ opacity: 0.5, fontSize: "10px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${Math.round(size.width)}×${Math.round(size.height)} px
       </span>
     </div>
@@ -4415,8 +4418,8 @@ function buildTextEmit(ctrl, fallbackLabel, value2) {
 function TextInputWidget(props) {
   const { control, index, disabled, onEmit } = props;
   const asInput = control;
-  const label = asInput.label || asInput.name || t4("input_label", "Input {index}", { index: index + 1 });
   const { t: t4 } = useI18n();
+  const label = asInput.label || asInput.name || t4("input_label", "Input {index}", { index: index + 1 });
   const [value2, setValue] = d2(asInput.value ?? "");
   const [error, setError] = d2("");
   const maxLength = control.maxlength;
@@ -4479,7 +4482,7 @@ function TextInputWidget(props) {
     }
   };
   return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     ${asInput.required ? m2`<span style=${{ fontSize: "11px", opacity: 0.72 }}>${t4("required_label", "Required")}</span>` : null}
     <input
       class=${asInput.className || ""}
@@ -4498,9 +4501,9 @@ function TextInputWidget(props) {
     width: "100%",
     padding: "10px 12px",
     borderRadius: "8px",
-    border: error ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(255,255,255,0.05)",
-    color: "inherit"
+    border: error ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)"
   }}
     />
     ${typeof maxLength === "number" ? m2`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
@@ -4546,10 +4549,6 @@ function formatDateInput(value2, mode, lang) {
 }
 
 // src/preact/components/widgets/numeric.ts
-function toNumber(value2, fallback) {
-  const n3 = Number(value2);
-  return Number.isFinite(n3) ? n3 : fallback;
-}
 function clampValue(value2, min, max, wrap) {
   if (wrap) {
     if (value2 > max)
@@ -4600,7 +4599,7 @@ function NumericWidget(props) {
   const pre = prePart || "";
   const post = postPart || "";
   return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <div style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
       ${pre ? m2`<span style=${{ opacity: 0.7 }}>${pre}</span>` : null}
       <input
@@ -4618,9 +4617,9 @@ function NumericWidget(props) {
     width: "100%",
     padding: "10px 12px",
     borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(255,255,255,0.05)",
-    color: "inherit"
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)"
   }}
       />
       ${post ? m2`<span style=${{ opacity: 0.7 }}>${post}</span>` : null}
@@ -4753,7 +4752,7 @@ function DropdownWidget(props) {
     }
   };
   return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <select
       multiple=${multiple}
       class=${asDrop.className || ""}
@@ -4765,9 +4764,9 @@ function DropdownWidget(props) {
     width: "100%",
     padding: "10px 12px",
     borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(255,255,255,0.05)",
-    color: "inherit"
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)"
   }}
     >
       ${asDrop.place && !multiple ? m2`<option value="" disabled selected=${value2 == null || value2 === ""}>${asDrop.place}</option>` : null}
@@ -4800,12 +4799,14 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
   style.id = SLIDER_STYLE_ID;
   style.textContent = `
     :root {
-      --nr-dashboard-slider-track: rgba(111, 111, 111, 0.5);
-      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-thumb-shadow: 0 1px 3px rgba(0,0,0,0.35);
-      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-track: var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18));
+      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetColor, #1f8af2);
+      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetColor, #1f8af2);
+      --nr-dashboard-slider-thumb-shadow: 0 1px 3px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
+      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetColor, #1f8af2);
       --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.25));
+      --nr-dashboard-slider-chip-shadow: 0 4px 12px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
     }
 
     .nr-dashboard-slider {
@@ -4940,10 +4941,10 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       position: absolute;
       padding: 4px 8px;
       border-radius: 12px;
-      background: var(--nr-dashboard-slider-fill);
-      color: #fff;
+        background: var(--nr-dashboard-slider-chip-bg);
+        color: var(--nr-dashboard-slider-text);
       font-size: 11px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+      box-shadow: var(--nr-dashboard-slider-chip-shadow);
       pointer-events: none;
       white-space: nowrap;
     }
@@ -41437,7 +41438,11 @@ function formatGaugeDetail(value2, delta, format2, units, formatter) {
   return `${base2} ${delta === 0 ? "(0)" : `(${sign}${deltaFormatted})`}`;
 }
 function buildSegments(ctrl, min3, max3) {
-  const colors = ctrl.colors && ctrl.colors.length >= 3 ? ctrl.colors : ["#00B500", "#E6E600", "#CA3838"];
+  const colors = ctrl.colors && ctrl.colors.length >= 3 ? ctrl.colors : [
+    "var(--nr-dashboard-widgetColor, #00B500)",
+    "var(--nr-dashboard-warnColor, #E6E600)",
+    "var(--nr-dashboard-errorColor, #CA3838)"
+  ];
   const seg1 = toNumber3(ctrl.seg1, (min3 + max3) / 3);
   const seg2 = toNumber3(ctrl.seg2, (min3 + max3) / 3 * 2);
   const span = max3 - min3 || 1;
@@ -41521,8 +41526,8 @@ function GaugeWidget(props) {
             return dirs[idx];
           }
         },
-        pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "#fff" } },
-        anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "#fff" } },
+        pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
         detail: {
           valueAnimation: true,
           formatter: () => formatted,
@@ -41642,7 +41647,7 @@ function ColourPickerWidget(props) {
   const [value2, setValue] = d2(resolveColourValue(c3.value));
   const isDisabled = Boolean(disabled);
   return m2`<label style=${{ display: "grid", gap: "6px" }}>
-    <span style=${{ fontSize: "12px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "12px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <input
       class=${c3.className || ""}
       type="color"
@@ -41727,10 +41732,10 @@ function AudioWidget(props) {
 // src/preact/components/widgets/toast.ts
 function resolveToastToneColor(level) {
   if (level === "error")
-    return "#f87171";
+    return "var(--nr-dashboard-errorColor, #f87171)";
   if (level === "warn")
-    return "#facc15";
-  return "#60a5fa";
+    return "var(--nr-dashboard-warnColor, #facc15)";
+  return "var(--nr-dashboard-infoColor, #60a5fa)";
 }
 function ToastWidget(props) {
   const { control, index } = props;
@@ -41758,8 +41763,7 @@ function ToastWidget(props) {
     style=${{
     border: `1px solid ${toneColor}`,
     padding: "8px 10px",
-    borderRadius: "8px",
-    background: "rgba(255,255,255,0.04)",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
     position: "relative"
   }}
     role="status"
@@ -41996,7 +42000,7 @@ function FormWidget(props) {
     borderRadius: "6px",
     border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
     background: "var(--nr-dashboard-widgetColor, #2563eb)",
-    color: "#fff",
+    color: "var(--nr-dashboard-widgetTextColor, #fff)",
     fontWeight: 600,
     cursor: "pointer"
   }}
@@ -45490,21 +45494,21 @@ registerEChartsModules([
 ]);
 import_dayjs.default.extend(import_utc.default);
 var DEFAULT_COLORS = [
-  "#1F77B4",
-  "#AEC7E8",
-  "#FF7F0E",
-  "#2CA02C",
-  "#98DF8A",
-  "#D62728",
-  "#FF9896",
-  "#9467BD",
-  "#C5B0D5",
-  "#7EB3C6",
-  "#BC5879",
-  "#6DC2DF",
-  "#D7D185",
-  "#91CA96",
-  "#DEB64D"
+  "var(--nr-dashboard-widgetColor, #1F77B4)",
+  "var(--nr-dashboard-chartColor1, #AEC7E8)",
+  "var(--nr-dashboard-chartColor2, #FF7F0E)",
+  "var(--nr-dashboard-chartColor3, #2CA02C)",
+  "var(--nr-dashboard-chartColor4, #98DF8A)",
+  "var(--nr-dashboard-chartColor5, #D62728)",
+  "var(--nr-dashboard-chartColor6, #FF9896)",
+  "var(--nr-dashboard-chartColor7, #9467BD)",
+  "var(--nr-dashboard-chartColor8, #C5B0D5)",
+  "var(--nr-dashboard-chartColor9, #7EB3C6)",
+  "var(--nr-dashboard-chartColor10, #BC5879)",
+  "var(--nr-dashboard-chartColor11, #6DC2DF)",
+  "var(--nr-dashboard-chartColor12, #D7D185)",
+  "var(--nr-dashboard-chartColor13, #91CA96)",
+  "var(--nr-dashboard-chartColor14, #DEB64D)"
 ];
 function normalizeLook(look) {
   const l3 = (look || "line").toLowerCase();
@@ -45780,7 +45784,9 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
         formatter: (val) => valueFormatter(val),
         color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
       },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } },
+      splitLine: {
+        lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(255,255,255,0.1))" }
+      },
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } }
     };
     if (look === "horizontalBar") {
@@ -45804,8 +45810,15 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       splitNumber: radarSplitNumber,
       shape: radarShape,
       axisName: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
-      splitLine: { lineStyle: { color: "rgba(255,255,255,0.15)" } },
-      splitArea: { areaStyle: { color: ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.05)"] } },
+      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(255,255,255,0.15))" } },
+      splitArea: {
+        areaStyle: {
+          color: [
+            "var(--nr-dashboard-chartSplitAreaLow, rgba(255,255,255,0.02))",
+            "var(--nr-dashboard-chartSplitAreaHigh, rgba(255,255,255,0.05))"
+          ]
+        }
+      },
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } }
     };
     option.series = buildRadarSeries(data);
@@ -46346,6 +46359,47 @@ function getEffectiveTheme(tab, globalTheme) {
     return tab.theme;
   return globalTheme ?? null;
 }
+function parseColor(value2) {
+  if (!value2)
+    return null;
+  const trimmed = value2.trim();
+  if (trimmed.startsWith("#")) {
+    const hex = trimmed.slice(1);
+    if (hex.length === 3) {
+      const [r3, g2, b] = hex.split("");
+      return {
+        r: parseInt(r3 + r3, 16),
+        g: parseInt(g2 + g2, 16),
+        b: parseInt(b + b, 16)
+      };
+    }
+    if (hex.length === 6) {
+      return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16)
+      };
+    }
+  }
+  const rgbMatch = trimmed.match(/rgba?\(([^)]+)\)/i);
+  if (rgbMatch) {
+    const parts2 = rgbMatch[1].split(",").map((p3) => Number(p3.trim()));
+    if (parts2.length >= 3 && parts2.every((n3) => Number.isFinite(n3))) {
+      return { r: parts2[0], g: parts2[1], b: parts2[2] };
+    }
+  }
+  return null;
+}
+function relativeLuminance({ r: r3, g: g2, b }) {
+  const channel = (v3) => {
+    const n3 = v3 / 255;
+    return n3 <= 0.03928 ? n3 / 12.92 : ((n3 + 0.055) / 1.055) ** 2.4;
+  };
+  const rl = channel(r3);
+  const gl = channel(g2);
+  const bl = channel(b);
+  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+}
 function applyThemeToRoot(theme2, root) {
   if (!root && typeof document === "undefined")
     return;
@@ -46356,6 +46410,8 @@ function applyThemeToRoot(theme2, root) {
     });
     return;
   }
+  const backgroundValue = theme2.themeState?.["page-backgroundColor"]?.value;
+  const textValue = theme2.themeState?.["page-textColor"]?.value;
   Object.entries(themeVarMap).forEach(([key, cssVar]) => {
     const value2 = theme2.themeState?.[key]?.value;
     if (typeof value2 === "string" && value2.length > 0) {
@@ -46364,6 +46420,14 @@ function applyThemeToRoot(theme2, root) {
       target.style.removeProperty(cssVar);
     }
   });
+  if (!textValue && typeof backgroundValue === "string" && backgroundValue.length > 0) {
+    const rgb = parseColor(backgroundValue);
+    if (rgb) {
+      const lum2 = relativeLuminance(rgb);
+      const derivedText = lum2 > 0.6 ? "#0b0d11" : "#f4f6fb";
+      target.style.setProperty("--nr-dashboard-pageTextColor", derivedText);
+    }
+  }
 }
 function shouldShowLoading(connection) {
   return connection !== "ready";

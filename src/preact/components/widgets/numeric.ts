@@ -4,24 +4,6 @@ import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { formatNumber } from "../../lib/format";
-    <input
-      type="number"
-      value=${value}
-      step=${step}
-      min=${min ?? undefined}
-      max=${max ?? undefined}
-      disabled=${Boolean(disabled)}
-      onInput=${handleChange}
-      onBlur=${handleBlur}
-      style=${{
-        width: "100%",
-        padding: "10px 12px",
-        borderRadius: "8px",
-        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
-        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
-        color: "var(--nr-dashboard-widgetTextColor, inherit)",
-      }}
-    />
 
 export function clampValue(value: number, min: number, max: number, wrap: boolean): number {
   if (wrap) {
@@ -78,7 +60,7 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
   const post = postPart || "";
 
   return html`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <div style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
       ${pre ? html`<span style=${{ opacity: 0.7 }}>${pre}</span>` : null}
       <input
@@ -96,9 +78,9 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
           width: "100%",
           padding: "10px 12px",
           borderRadius: "8px",
-          border: "1px solid rgba(255,255,255,0.18)",
-          background: "rgba(255,255,255,0.05)",
-          color: "inherit",
+          border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+          background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+          color: "var(--nr-dashboard-widgetTextColor, inherit)",
         }}
       />
       ${post ? html`<span style=${{ opacity: 0.7 }}>${post}</span>` : null}

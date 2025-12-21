@@ -25,7 +25,7 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
   const isDisabled = Boolean(disabled);
 
   return html`<label style=${{ display: "grid", gap: "6px" }}>
-    <span style=${{ fontSize: "12px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "12px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <input
       class=${c.className || ""}
       type="color"
