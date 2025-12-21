@@ -18,7 +18,8 @@ export type UiSocketBridge = {
 };
 
 export function createSocketBridge(handlers: UiSocketHandlers = {}): UiSocketBridge {
-  const path = `${window.location.pathname}socket.io`;
+  const basePath = window.location.pathname.endsWith("/") ? window.location.pathname : `${window.location.pathname}/`;
+  const path = `${basePath}socket.io`;
   const secure = window.location.protocol === "https:";
   const socket = io({ path, secure });
 

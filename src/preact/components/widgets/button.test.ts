@@ -17,4 +17,10 @@ describe("Button widget helpers", () => {
     const custom = buildButtonEmit({ ...base, payload: 123, topic: "t" }, "Label");
     expect(custom).toEqual({ payload: 123, topic: "t", type: "button" });
   });
+
+  test("builds typed payloads", () => {
+    expect(buildButtonEmit({ payload: "123", payloadType: "num" }, "Label").payload).toBe(123);
+    expect(buildButtonEmit({ payloadType: "date" }, "Label").payload).toBeGreaterThan(0);
+    expect(buildButtonEmit({ payload: "{\"a\":1}", payloadType: "json" }, "Label").payload).toEqual({ a: 1 });
+  });
 });

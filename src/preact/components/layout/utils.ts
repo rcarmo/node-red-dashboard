@@ -14,7 +14,20 @@ export function useLayoutAnnouncements(groups: unknown[], sizes: SiteSizes, tabI
     const detail = { tabId, groupCount: groups.length, sizes };
     window.dispatchEvent(new CustomEvent("dashboard:layout", { detail }));
     window.dispatchEvent(new Event("resize"));
-  }, [groups, sizes, tabId]);
+  }, [
+    tabId,
+    groups.length,
+    sizes.columns,
+    sizes.gx,
+    sizes.gy,
+    sizes.px,
+    sizes.py,
+    sizes.cx,
+    sizes.cy,
+    sizes.sx,
+    sizes.sy,
+    sizes.dense,
+  ]);
 }
 
 function coerceNumber(value: unknown, fallback: number): number {

@@ -1,8 +1,10 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
+import { useMemo } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useElementSize } from "../../hooks/useElementSize";
 import { useI18n } from "../../lib/i18n";
+import { resolveTypedPayload } from "../../lib/payload";
 
 export type ButtonControl = UiControl & {
   label?: string;
@@ -11,6 +13,7 @@ export type ButtonControl = UiControl & {
   bgcolor?: string;
   icon?: string;
   payload?: unknown;
+  payloadType?: string;
   topic?: string;
   className?: string;
   tooltip?: string;
@@ -23,8 +26,9 @@ export function resolveButtonColor(ctrl: ButtonControl): string {
 }
 
 export function buildButtonEmit(ctrl: ButtonControl, fallbackLabel: string): Record<string, unknown> {
+  const val = resolveTypedPayload(ctrl.payload ?? true, ctrl.payloadType);
   return {
-    payload: ctrl.payload ?? true,
+    payload: val,
     topic: ctrl.topic ?? fallbackLabel,
     type: "button",
   };
@@ -35,8 +39,9 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   const asButton = control as ButtonControl;
   const { t } = useI18n();
   const label = asButton.label || asButton.name || t("button_label", "Button {index}", { index: index + 1 });
-  const color = resolveButtonColor(asButton);
+  const color = resolveButtonColor(asButton) || "var(--nr-dashboard-widgetColor, #1f8af2)";
   const [ref, size] = useElementSize<HTMLButtonElement>();
+  const payload = useMemo(() => buildButtonEmit(asButton, label).payload, [asButton, label]);
 
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
@@ -54,9 +59,9 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       width: "100%",
       padding: "10px 12px",
       borderRadius: "8px",
-      border: "1px solid rgba(255,255,255,0.18)",
+      border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
       background: color,
-      color: "#fff",
+      color: "var(--nr-dashboard-widgetTextColor, #fff)",
       fontWeight: 600,
       cursor: onEmit ? "pointer" : "default",
     }}

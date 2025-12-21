@@ -107,6 +107,42 @@ describe("Theme application", () => {
     expect(style["--nr-dashboard-widgetTextColor"]).toBeUndefined();
     expect(style["--nr-dashboard-pageTextColor"]).toBeUndefined();
   });
+
+  test("derives readable text when only background is supplied", () => {
+    const style: Record<string, string> = {};
+    const root = {
+      style: {
+        setProperty: (k: string, v: string) => {
+          style[k] = v;
+        },
+        removeProperty: (k: string) => {
+          delete style[k];
+        },
+      },
+    } as HTMLElement;
+
+    applyThemeToRoot(
+      {
+        themeState: {
+          "page-backgroundColor": { value: "#ffffff" },
+        },
+      },
+      root,
+    );
+
+    expect(style["--nr-dashboard-pageTextColor"]).toBe("#0b0d11");
+
+    applyThemeToRoot(
+      {
+        themeState: {
+          "page-backgroundColor": { value: "#000000" },
+        },
+      },
+      root,
+    );
+
+    expect(style["--nr-dashboard-pageTextColor"]).toBe("#f4f6fb");
+  });
 });
 
 describe("Loading and focus helpers", () => {

@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "bun:test";
+import { beforeEach, describe, expect, test, vi } from "bun:test";
 import { Window } from "happy-dom";
 import { createSocketBridge } from "./socket";
 
@@ -21,16 +21,27 @@ const mockSocket = {
 };
 
 vi.mock("socket.io-client", () => ({
-  io: () => {
-    mockIo();
+  io: (opts?: unknown) => {
+    mockIo(opts);
     return mockSocket;
   },
 }));
 
 describe("socket bridge", () => {
+  beforeEach(() => {
+    mockIo.mockClear();
+    mockSocket.on.mockClear();
+    mockSocket.emit.mockClear();
+    mockSocket.removeAllListeners.mockClear();
+    mockSocket.close.mockClear();
+    window.location.href = "http://example.com/ui";
+  });
+
   test("emits with socketid and wires handlers", () => {
     const onControls = vi.fn();
     const bridge = createSocketBridge({ onControls });
+
+    expect(mockIo).toHaveBeenCalledWith({ path: "/ui/socket.io", secure: false });
 
     // simulate incoming ui-controls
     const handler = mockSocket.on.mock.calls.find((c) => c[0] === "ui-controls")?.[1] as (d: unknown) => void;
@@ -44,5 +55,11 @@ describe("socket bridge", () => {
     bridge.dispose();
     expect(mockSocket.removeAllListeners).toHaveBeenCalled();
     expect(mockSocket.close).toHaveBeenCalled();
+  });
+
+  test("appends trailing slash when missing", () => {
+    window.location.href = "https://example.com/ui";
+    createSocketBridge();
+    expect(mockIo).toHaveBeenCalledWith({ path: "/ui/socket.io", secure: true });
   });
 });

@@ -142,7 +142,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   };
 
   return html`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <select
       multiple=${multiple}
       class=${asDrop.className || ""}
@@ -154,9 +154,9 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
         width: "100%",
         padding: "10px 12px",
         borderRadius: "8px",
-        border: "1px solid rgba(255,255,255,0.18)",
-        background: "rgba(255,255,255,0.05)",
-        color: "inherit",
+        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+        color: "var(--nr-dashboard-widgetTextColor, inherit)",
       }}
     >
       ${asDrop.place && !multiple

@@ -4,24 +4,24 @@ import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { formatNumber } from "../../lib/format";
-
-export type NumericControl = UiControl & {
-  label?: string;
-  name?: string;
-  format?: string;
-  min?: number | string;
-  max?: number | string;
-  step?: number | string;
-  wrap?: boolean;
-  topic?: string;
-  tooltip?: string;
-  className?: string;
-};
-
-function toNumber(value: unknown, fallback: number): number {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-}
+    <input
+      type="number"
+      value=${value}
+      step=${step}
+      min=${min ?? undefined}
+      max=${max ?? undefined}
+      disabled=${Boolean(disabled)}
+      onInput=${handleChange}
+      onBlur=${handleBlur}
+      style=${{
+        width: "100%",
+        padding: "10px 12px",
+        borderRadius: "8px",
+        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+        color: "var(--nr-dashboard-widgetTextColor, inherit)",
+      }}
+    />
 
 export function clampValue(value: number, min: number, max: number, wrap: boolean): number {
   if (wrap) {

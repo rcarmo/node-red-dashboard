@@ -18,11 +18,13 @@ export type SwitchControl = UiControl & {
   onicon?: string;
   officon?: string;
   className?: string;
+  passthru?: boolean;
+  decouple?: boolean;
 };
 
 export function resolveSwitchColors(ctrl: SwitchControl, checked: boolean): string {
-  if (checked) return ctrl.oncolor || "#3ddc97";
-  return ctrl.offcolor || "rgba(255,255,255,0.12)";
+  if (checked) return ctrl.oncolor || "var(--nr-dashboard-widgetColor, #3ddc97)";
+  return ctrl.offcolor || "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))";
 }
 
 export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next: boolean): Record<string, unknown> {
@@ -30,9 +32,9 @@ export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next
     payload: next ? ctrl.onvalue ?? true : ctrl.offvalue ?? false,
     topic: ctrl.topic ?? fallbackLabel,
     type: "switch",
-  };
+          background: resolveSwitchColors(asSwitch, value === true || value === 1 || value === "1"),
 }
-
+          boxShadow: "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
 function matchesValue(candidate: unknown, target: unknown): boolean {
   if (candidate === target) return true;
   try {
@@ -43,8 +45,8 @@ function matchesValue(candidate: unknown, target: unknown): boolean {
 }
 
 export function SwitchWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
-  const { control, index, disabled, onEmit } = props;
-  const asSwitch = control as SwitchControl;
+            background: "var(--nr-dashboard-widgetTextColor, #fff)",
+            boxShadow: "0 1px 2px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
   const { t } = useI18n();
   const label = asSwitch.label || asSwitch.name || t("switch_label", "Switch {index}", { index: index + 1 });
   const toChecked = (val: unknown): boolean => {
@@ -67,10 +69,15 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     if (disabled) return;
     const next = !checked;
     setChecked(next);
-    if (onEmit) {
+    if (!onEmit) return;
+    if (asSwitch.passthru === false && asSwitch.decouple) {
+      // Decoupled mode: only emit when state actually changes frontend->backend
       const payload = buildSwitchEmit(asSwitch, label, next);
       onEmit("ui-control", payload);
+      return;
     }
+    const payload = buildSwitchEmit(asSwitch, label, next);
+    onEmit("ui-control", payload);
   };
 
   const bg = resolveSwitchColors(asSwitch, checked);

@@ -72,12 +72,12 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
   );
 
   return html`<div ref=${ref} class=${asText.className || ""} style=${container}>
-    <div style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</div>
+    <div style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
     <div
       style=${{
         fontSize: fontSize || "16px",
         fontWeight: 600,
-        color: color || "inherit",
+        color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
         lineHeight: 1.4,
         wordBreak: "break-word",
         fontFamily: fontFamily,

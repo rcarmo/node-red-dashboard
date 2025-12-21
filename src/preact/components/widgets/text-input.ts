@@ -40,8 +40,8 @@ export function buildTextEmit(ctrl: TextInputControl, fallbackLabel: string, val
 export function TextInputWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asInput = control as TextInputControl;
-  const label = asInput.label || asInput.name || t("input_label", "Input {index}", { index: index + 1 });
   const { t } = useI18n();
+  const label = asInput.label || asInput.name || t("input_label", "Input {index}", { index: index + 1 });
   const [value, setValue] = useState<string>((asInput.value as string) ?? "");
   const [error, setError] = useState<string>("");
   const maxLength = (control as { maxlength?: number }).maxlength;
@@ -107,7 +107,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   };
 
   return html`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     ${asInput.required
       ? html`<span style=${{ fontSize: "11px", opacity: 0.72 }}>${t("required_label", "Required")}</span>`
       : null}
@@ -130,9 +130,9 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
         borderRadius: "8px",
         border: error
           ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
-          : "1px solid rgba(255,255,255,0.18)",
-        background: "rgba(255,255,255,0.05)",
-        color: "inherit",
+          : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+        color: "var(--nr-dashboard-widgetTextColor, inherit)",
       }}
     />
     ${typeof maxLength === "number"

@@ -80,6 +80,53 @@ function getEffectiveTheme(tab: UiMenuItem | null, globalTheme: UiTheme | null):
   return globalTheme ?? null;
 }
 
+type Rgb = { r: number; g: number; b: number };
+
+function parseColor(value: string | undefined): Rgb | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+
+  if (trimmed.startsWith("#")) {
+    const hex = trimmed.slice(1);
+    if (hex.length === 3) {
+      const [r, g, b] = hex.split("");
+      return {
+        r: parseInt(r + r, 16),
+        g: parseInt(g + g, 16),
+        b: parseInt(b + b, 16),
+      };
+    }
+    if (hex.length === 6) {
+      return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16),
+      };
+    }
+  }
+
+  const rgbMatch = trimmed.match(/rgba?\(([^)]+)\)/i);
+  if (rgbMatch) {
+    const parts = rgbMatch[1].split(",").map((p) => Number(p.trim()));
+    if (parts.length >= 3 && parts.every((n) => Number.isFinite(n))) {
+      return { r: parts[0], g: parts[1], b: parts[2] };
+    }
+  }
+
+  return null;
+}
+
+function relativeLuminance({ r, g, b }: Rgb): number {
+  const channel = (v: number) => {
+    const n = v / 255;
+    return n <= 0.03928 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+  };
+  const rl = channel(r);
+  const gl = channel(g);
+  const bl = channel(b);
+  return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+}
+
 export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): void {
   if (!root && typeof document === "undefined") return;
   const target = root ?? document.documentElement;
@@ -91,6 +138,9 @@ export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): voi
     return;
   }
 
+  const backgroundValue = theme.themeState?.["page-backgroundColor"]?.value;
+  const textValue = theme.themeState?.["page-textColor"]?.value;
+
   Object.entries(themeVarMap).forEach(([key, cssVar]) => {
     const value = theme.themeState?.[key]?.value;
     if (typeof value === "string" && value.length > 0) {
@@ -99,6 +149,16 @@ export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): voi
       target.style.removeProperty(cssVar);
     }
   });
+
+  // If the theme only sets a background, derive a readable text color for contrast.
+  if (!textValue && typeof backgroundValue === "string" && backgroundValue.length > 0) {
+    const rgb = parseColor(backgroundValue);
+    if (rgb) {
+      const lum = relativeLuminance(rgb);
+      const derivedText = lum > 0.6 ? "#0b0d11" : "#f4f6fb";
+      target.style.setProperty("--nr-dashboard-pageTextColor", derivedText);
+    }
+  }
 }
 
 export function shouldShowLoading(connection: DashboardState["connection"]): boolean {
