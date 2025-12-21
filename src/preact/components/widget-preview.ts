@@ -1,6 +1,7 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiControl } from "../state";
+import { useElementSize } from "../hooks/useElementSize";
 
 function widgetLabel(control: UiControl, idx: number): string {
   const asAny = control as { type?: string; id?: string | number; name?: string; label?: string };
@@ -17,16 +18,31 @@ export function WidgetPreview(props: { control: UiControl; index: number }): VNo
   const type = (asAny.type || "widget").toString();
   const label = widgetLabel(control, index);
   const value = (asAny.value ?? asAny.text ?? "").toString();
+  const [ref, size] = useElementSize<HTMLDivElement>();
 
   if (type === "text" || type === "ui_text") {
-    return html`<div style=${{ display: "flex", flexDirection: "column", gap: "4px" }}>
+    return html`<div
+      ref=${ref}
+      style=${{ display: "flex", flexDirection: "column", gap: "4px" }}
+    >
       <strong>${label}</strong>
       <span style=${{ opacity: 0.9 }}>${value || "(no value yet)"}</span>
+      <span style=${{ opacity: 0.55, fontSize: "10px" }}>
+        ${Math.round(size.width)}×${Math.round(size.height)} px
+      </span>
     </div>`;
   }
 
-  return html`<div style=${{ display: "flex", justifyContent: "space-between", gap: "6px" }}>
+  return html`<div
+    ref=${ref}
+    style=${{ display: "flex", justifyContent: "space-between", gap: "6px" }}
+  >
     <span>${label}</span>
     <span style=${{ opacity: 0.65, fontSize: "11px" }}>${type}</span>
   </div>`;
+}
+
+export function WidgetPreviewWithSize(props: { control: UiControl; index: number }): VNode {
+  // Deprecated alias kept for future swaps if needed
+  return html`<${WidgetPreview} ...${props} />`;
 }

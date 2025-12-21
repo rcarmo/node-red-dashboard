@@ -3,7 +3,7 @@ import { html } from "htm/preact";
 import { useEffect, useMemo } from "preact/hooks";
 import { useDashboardState } from "./state";
 import type { UiMenuItem, UiTheme } from "./state";
-import { WidgetPreview } from "./components/widget-preview";
+import { WidgetRenderer } from "./components/widget-renderer";
 
 type SiteSizes = {
   sx: number;
@@ -355,7 +355,11 @@ export function App(): VNode {
                                     opacity: 0.9,
                                   }}
                                 >
-                                  <${WidgetPreview} control=${control} index=${ctrlIdx} />
+                                  <${WidgetRenderer}
+                                    control=${control}
+                                    index=${ctrlIdx}
+                                    onEmit=${actions.emit ?? undefined}
+                                  />
                                 </li>`)}
                           </ul>`}
                     </section>`;
