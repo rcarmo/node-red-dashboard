@@ -22,6 +22,13 @@ function parseOptionValue(val: string, type?: string): unknown {
     const n = Number(val);
     return Number.isFinite(n) ? n : val;
   }
+  if (type === "json") {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
   try {
     return JSON.parse(val);
   } catch {
@@ -89,12 +96,19 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
         : null}
       ${opts.map((opt) => {
         const serialized = typeof opt.value === "string" ? opt.value : JSON.stringify(opt.value);
+        const inferredType = opt.type
+          ? opt.type
+          : typeof opt.value === "number"
+          ? "number"
+          : typeof opt.value === "string"
+          ? "string"
+          : "json";
         const selected = multiple
           ? Array.isArray(value) && (value as unknown[]).some((v) => JSON.stringify(v) === JSON.stringify(opt.value))
           : JSON.stringify(value) === JSON.stringify(opt.value);
         return html`<option
           value=${serialized}
-          data-type=${opt.type || (typeof opt.value === "number" ? "number" : "string")}
+          data-type=${inferredType}
           disabled=${opt.disabled || false}
           selected=${selected}
         >

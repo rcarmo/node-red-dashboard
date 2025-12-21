@@ -154,4 +154,31 @@ describe("ui-control handler", () => {
 
     expect(next.menu[0].items?.[0].header?.config?.collapsed).toBe(true);
   });
+
+  test("handles tab navigation via ui-control string and number", () => {
+    const prev = {
+      connection: "ready",
+      socketId: "abc",
+      menu: [
+        { header: "A" },
+        { header: "B", disabled: true },
+        { header: "C" },
+      ],
+      globals: [],
+      site: null,
+      theme: null,
+      selectedTabIndex: 0,
+      replayDone: true,
+      toasts: [],
+    } as const;
+
+    const byName = __test.handleUiControl(prev, { tab: "C" });
+    expect(byName.selectedTabIndex).toBe(2);
+
+    const byNumber = __test.handleUiControl(prev, { tab: 2 });
+    expect(byNumber.selectedTabIndex).toBe(2);
+
+    const disabledSkip = __test.handleUiControl(prev, { tab: "B" });
+    expect(disabledSkip.selectedTabIndex).toBe(0);
+  });
 });

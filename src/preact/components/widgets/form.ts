@@ -10,6 +10,8 @@ export type FormField = {
   value?: unknown;
   required?: boolean;
   placeholder?: string;
+  pattern?: string;
+  error?: string;
 };
 
 export type FormControl = UiControl & {
@@ -42,6 +44,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
     });
     return initial;
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const setField = (name: string, v: string) => {
     setValues((prev) => ({ ...prev, [name]: v }));
@@ -53,6 +56,18 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
     onSubmit=${(e: Event) => {
       e.preventDefault();
       if (isDisabled) return;
+      const nextErrors: Record<string, string> = {};
+      fields.forEach((f) => {
+        const val = (values[f.name] ?? "").trim();
+        if (f.required && val.length === 0) {
+          nextErrors[f.name] = f.error || "This field is required.";
+        } else if (f.pattern) {
+          const re = new RegExp(f.pattern);
+          if (!re.test(val)) nextErrors[f.name] = f.error || "Value does not match the required format.";
+        }
+      });
+      setErrors(nextErrors);
+      if (Object.keys(nextErrors).length > 0) return;
       onEmit?.("ui-control", buildFormEmit(c, title, values));
     }}
   >
@@ -60,7 +75,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
     ${fields.length === 0
       ? html`<div style=${{ fontSize: "12px", opacity: 0.7 }}>No fields configured.</div>`
       : fields.map((f) => {
-          const type = f.type === "number" ? "number" : f.type === "password" ? "password" : "text";
+          const type = f.type === "number" ? "number" : f.type === "password" ? "password" : f.type === "email" ? "email" : "text";
           return html`<label style=${{ display: "grid", gap: "4px" }} key=${f.name}>
             <span style=${{ fontSize: "12px", opacity: 0.8 }}>${f.label || f.name}</span>
             <input
@@ -69,16 +84,34 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
               value=${values[f.name] ?? ""}
               required=${Boolean(f.required)}
               placeholder=${f.placeholder || ""}
+              aria-invalid=${errors[f.name] ? "true" : "false"}
+              aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
+              inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
+              maxLength=${(f as { maxlength?: number }).maxlength || undefined}
               onInput=${(ev: Event) => setField(f.name, (ev.target as HTMLInputElement).value)}
               disabled=${isDisabled}
               style=${{
                 padding: "8px 10px",
                 borderRadius: "6px",
-                border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+                border: errors[f.name]
+                  ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
+                  : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
                 background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
                 color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
               }}
             />
+            ${typeof (f as { maxlength?: number }).maxlength === "number"
+              ? html`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
+                  ${(values[f.name] ?? "").length}/${(f as { maxlength?: number }).maxlength}
+                </span>`
+              : null}
+            ${errors[f.name]
+              ? html`<span
+                  id=${`err-${f.name}`}
+                  role="alert"
+                  style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px" }}
+                >${errors[f.name]}</span>`
+              : null}
           </label>`;
         })}
     <button

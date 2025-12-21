@@ -51,4 +51,34 @@ describe("Dropdown ui_control updates", () => {
     expect(options).toEqual(["Three", "Four"]);
     expect(select.value).toBe("4");
   });
+
+  test("emits typed values (number/json) and multi-select arrays", () => {
+    const emitted: unknown[] = [];
+    const { container } = render(
+      h(DropdownWidget, {
+        control: {
+          label: "Choose",
+          multiple: true,
+          options: [
+            { label: "One", value: "1", type: "num" },
+            { label: "Obj", value: { a: 1 }, type: "json" },
+          ],
+        },
+        index: 0,
+        onEmit: (_ev: string, msg?: Record<string, unknown>) => {
+          emitted.push(msg?.payload);
+        },
+      }),
+    );
+
+    const select = container.querySelector("select") as HTMLSelectElement;
+    select.options[0].selected = true;
+    select.options[1].selected = true;
+    select.dispatchEvent(new window.Event("change", { bubbles: true }));
+
+    expect(Array.isArray(emitted[0])).toBe(true);
+    const payload = emitted[0] as unknown[];
+    expect(payload[0]).toBe(1); // number coerced
+    expect(payload[1]).toEqual({ a: 1 });
+  });
 });

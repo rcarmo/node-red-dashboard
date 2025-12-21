@@ -12,6 +12,9 @@ export type TextInputControl = UiControl & {
   tooltip?: string;
   className?: string;
   value?: string;
+  required?: boolean;
+  pattern?: string;
+  error?: string;
 };
 
 function inputType(mode?: string): string {
@@ -38,10 +41,26 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   const asInput = control as TextInputControl;
   const label = asInput.label || asInput.name || `Input ${index + 1}`;
   const [value, setValue] = useState<string>((asInput.value as string) ?? "");
+  const [error, setError] = useState<string>("");
+  const maxLength = (control as { maxlength?: number }).maxlength;
   const delay = Number.isFinite(asInput.delay) ? Number(asInput.delay) : 0;
   const sendOnEnter = delay <= 0 || (control as { type?: string }).type === "text-input-CR";
   const timer = useRef<number | undefined>(undefined);
   const type = useMemo(() => inputType(asInput.mode), [asInput.mode]);
+  const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
+
+  const validate = (next: string): boolean => {
+    if (asInput.required && next.trim().length === 0) {
+      setError(asInput.error || "This field is required.");
+      return false;
+    }
+    if (pattern && !pattern.test(next)) {
+      setError(asInput.error || "Value does not match the required format.");
+      return false;
+    }
+    setError("");
+    return true;
+  };
 
   useEffect(() => () => {
     if (timer.current !== undefined) {
@@ -51,6 +70,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
 
   const emitValue = (next: string) => {
     if (!onEmit) return;
+    if (!validate(next)) return;
     const payload = buildTextEmit(asInput, label, next);
     onEmit("ui-control", payload);
   };
@@ -78,6 +98,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   };
 
   const handleBlur = () => {
+    validate(value);
     if (asInput.sendOnBlur) {
       emitValue(value);
     }
@@ -85,12 +106,19 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
 
   return html`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
     <span style=${{ fontSize: "13px", opacity: 0.8 }}>${label}</span>
+    ${asInput.required
+      ? html`<span style=${{ fontSize: "11px", opacity: 0.65 }}>Required</span>`
+      : null}
     <input
       class=${asInput.className || ""}
       type=${type}
       value=${value}
       title=${asInput.tooltip || undefined}
       disabled=${Boolean(disabled)}
+      aria-invalid=${error ? "true" : "false"}
+      aria-errormessage=${error ? `err-${index}` : undefined}
+      inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
+      maxLength=${maxLength || undefined}
       onInput=${handleChange}
       onKeyDown=${handleKeyDown}
       onBlur=${handleBlur}
@@ -98,10 +126,24 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
         width: "100%",
         padding: "10px 12px",
         borderRadius: "8px",
-        border: "1px solid rgba(255,255,255,0.18)",
+        border: error
+          ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
+          : "1px solid rgba(255,255,255,0.18)",
         background: "rgba(255,255,255,0.05)",
         color: "inherit",
       }}
     />
+    ${typeof maxLength === "number"
+      ? html`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
+          ${value.length}/${maxLength}
+        </span>`
+      : null}
+    ${error
+      ? html`<span
+          id=${`err-${index}`}
+          role="alert"
+          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px" }}
+        >${error}</span>`
+      : null}
   </label>`;
 }

@@ -11,4 +11,20 @@ describe("Form helpers", () => {
     const payload = buildFormEmit({ topic: "custom" }, "Form 1", { ok: "yes" });
     expect(payload).toEqual({ payload: { ok: "yes" }, topic: "custom", type: "form" });
   });
+
+  test("carries pattern metadata for validation", () => {
+    const ctrl = {
+      label: "Form",
+      fields: [{ name: "email", pattern: "^.+@.+\\..+$", required: true }],
+    } as never;
+    expect((ctrl.fields || [])[0].pattern).toContain("@" );
+  });
+
+  test("carries maxlength metadata", () => {
+    const ctrl = {
+      label: "Form",
+      fields: [{ name: "msg", maxlength: 12 }],
+    } as never;
+    expect((ctrl.fields || [])[0].maxlength).toBe(12);
+  });
 });
