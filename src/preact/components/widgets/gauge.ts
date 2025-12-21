@@ -27,6 +27,14 @@ export type GaugeControl = UiControl & {
   className?: string;
 };
 
+function computeGaugeHeight(ctrl: GaugeControl): number {
+  const gtype = (ctrl.gtype || "gage").toString().toLowerCase();
+  if (gtype === "wave") return 260;
+  if (gtype === "compass") return 240;
+  if (gtype === "donut") return 220;
+  return 220;
+}
+
 function toNumber(value: unknown, fallback: number): number {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
@@ -96,6 +104,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
     units: asGauge.units ?? "",
   });
   const reverse = Boolean(asGauge.reverse);
+  const chartHeight = computeGaugeHeight(asGauge);
 
   useEffect(() => {
     prevValue.current = value;
@@ -103,7 +112,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
 
   useECharts(
     chartRef,
-    [value, min, max, segments, showTicks, showMinMax, isDonut, isWave, isCompass, formatted, label, reverse, formatter],
+    [value, min, max, segments, showTicks, showMinMax, isDonut, isWave, isCompass, formatted, label, reverse, formatter, chartHeight],
     () => ({
       backgroundColor: "transparent",
       series: [
@@ -160,7 +169,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
     class=${asGauge.className || ""}
     style=${{
       width: "100%",
-      minHeight: "220px",
+      minHeight: `${chartHeight}px`,
       display: "flex",
       flexDirection: "column",
       gap: "8px",
@@ -170,6 +179,6 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
     aria-label=${ariaLabel}
   >
     <div style=${{ fontWeight: 600 }}>${label}</div>
-    <div ref=${chartRef} style=${{ width: "100%", height: "220px" }}></div>
+    <div ref=${chartRef} style=${{ width: "100%", height: `${chartHeight}px` }}></div>
   </div>`;
 }

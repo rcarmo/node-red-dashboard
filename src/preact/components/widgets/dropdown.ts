@@ -62,7 +62,9 @@ function parseWithOptions(raw: string, opts: DropdownOption[]): unknown {
 
 function normalizeValue(value: unknown, opts: DropdownOption[], multiple: boolean): unknown {
   if (multiple) {
-    if (Array.isArray(value)) return value;
+    if (Array.isArray(value)) {
+      return value.map((v) => parseWithOptions(serializeOptionValue(v), opts));
+    }
     if (value === null || value === undefined || value === "") return [];
     if (typeof value === "string") {
       return value
@@ -75,7 +77,8 @@ function normalizeValue(value: unknown, opts: DropdownOption[], multiple: boolea
   }
   if (value === undefined) return null;
   if (value === "") return null;
-  return value as unknown;
+  const serialized = serializeOptionValue(value);
+  return parseWithOptions(serialized, opts);
 }
 
 export function buildDropdownEmit(ctrl: DropdownControl, fallbackLabel: string, value: unknown): Record<string, unknown> {
@@ -96,7 +99,16 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const [value, setValue] = useState<unknown>(normalizeValue(asDrop.value, opts, multiple));
 
   useEffect(() => {
-    setValue(normalizeValue(asDrop.value, opts, multiple));
+    const normalized = normalizeValue(asDrop.value, opts, multiple);
+    if (multiple) {
+      const filtered = (normalized as unknown[]).filter((v) =>
+        opts.some((o) => serializeOptionValue(o.value) === serializeOptionValue(v)),
+      );
+      setValue(filtered);
+    } else {
+      const exists = opts.some((o) => serializeOptionValue(o.value) === serializeOptionValue(normalized));
+      setValue(exists ? normalized : null);
+    }
   }, [asDrop.value, multiple, opts]);
 
   const handleChange = (e: Event) => {
