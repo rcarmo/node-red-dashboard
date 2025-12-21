@@ -198,6 +198,15 @@ function toNumber(value: unknown, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+export function normalizeSliderRange(minValue: unknown, maxValue: unknown, invert?: boolean): { min: number; max: number; invert: boolean } {
+  const rawMin = toNumber(minValue, 0);
+  const rawMax = toNumber(maxValue, 10);
+  const min = Math.min(rawMin, rawMax);
+  const max = Math.max(rawMin, rawMax);
+  const shouldInvert = Boolean(invert) || rawMin > rawMax;
+  return { min, max, invert: shouldInvert };
+}
+
 export function clampSliderValue(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -219,12 +228,10 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
 
   ensureSliderStyles();
 
-  const min = toNumber(asSlider.min, 0);
-  const max = toNumber(asSlider.max, 10);
+  const { min, max, invert } = normalizeSliderRange(asSlider.min, asSlider.max, asSlider.invert);
   const step = Math.abs(toNumber(asSlider.step, 1)) || 1;
   const outs = asSlider.outs === "end" ? "end" : "all";
   const isVertical = toNumber(asSlider.width ?? 0, 0) < toNumber(asSlider.height ?? 0, 0);
-  const invert = Boolean(asSlider.invert);
   const isDiscrete = outs === "end";
   const forceSign = Boolean(asSlider.showSign);
   const formatter = new Intl.NumberFormat(lang || undefined);

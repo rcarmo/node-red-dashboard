@@ -14,6 +14,8 @@ export type FormField = {
   pattern?: string;
   error?: string;
   rows?: number;
+  maxlength?: number;
+  options?: Array<{ label?: string; value: string }>; // for select/radio
 };
 
 export type FormControl = UiControl & {
@@ -120,6 +122,46 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                     height: "16px",
                   }}
                 />`
+              : f.type === "select"
+              ? html`<select
+                  name=${f.name}
+                  required=${Boolean(f.required)}
+                  value=${typeof values[f.name] === "string" ? values[f.name] : ""}
+                  disabled=${isDisabled}
+                  aria-invalid=${errors[f.name] ? "true" : "false"}
+                  aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
+                  onChange=${(ev: Event) => setField(f.name, (ev.target as HTMLSelectElement).value)}
+                  style=${{
+                    padding: "8px 10px",
+                    borderRadius: "6px",
+                    border: errors[f.name]
+                      ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
+                      : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+                    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+                    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+                  }}
+                >
+                  ${(f.options || []).map((opt) => html`<option value=${opt.value}>${opt.label ?? opt.value}</option>`)}
+                </select>`
+              : f.type === "radio"
+              ? html`<div style=${{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  ${(f.options || []).map((opt) =>
+                    html`<label style=${{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
+                      <input
+                        type="radio"
+                        name=${f.name}
+                        value=${opt.value}
+                        required=${Boolean(f.required)}
+                        aria-invalid=${errors[f.name] ? "true" : "false"}
+                        aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
+                        checked=${values[f.name] === opt.value}
+                        disabled=${isDisabled}
+                        onChange=${(ev: Event) => setField(f.name, (ev.target as HTMLInputElement).value)}
+                      />
+                      <span>${opt.label ?? opt.value}</span>
+                    </label>`,
+                  )}
+                </div>`
               : html`<input
                   name=${f.name}
                   type=${type}
@@ -129,7 +171,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                   aria-invalid=${errors[f.name] ? "true" : "false"}
                   aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
                   inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
-                  maxLength=${(f as { maxlength?: number }).maxlength || undefined}
+                  maxLength=${f.maxlength || undefined}
                   onInput=${(ev: Event) => setField(f.name, (ev.target as HTMLInputElement).value)}
                   disabled=${isDisabled}
                   style=${{
@@ -142,11 +184,11 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                     color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
                   }}
                 />`}
-            ${typeof (f as { maxlength?: number }).maxlength === "number" && type !== "checkbox" && type !== "multiline"
+            ${typeof f.maxlength === "number" && type !== "checkbox" && type !== "multiline" && f.type !== "select" && f.type !== "radio"
               ? html`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
                   ${t("char_counter", "{used}/{max}", {
                     used: typeof values[f.name] === "string" ? (values[f.name] as string).length : 0,
-                    max: (f as { maxlength?: number }).maxlength ?? 0,
+                    max: f.maxlength ?? 0,
                   })}
                 </span>`
               : null}
