@@ -41,8 +41,11 @@
     "dimensions_px": "{width}×{height} px",
     "link_open": "Apri {label}",
     "audio_controls": "Controlli audio per {label}",
-    "number_value_label": "{label}: {value}"
+    "number_value_label": "{label}: {value}",
+    "slider_value_label": "{label}: {value}",
+    "date_value_label": "{label}: {value}",
     "gauge_label": "Indicatore {index}",
-    "group_label": "Gruppo {index}"
+    "group_label": "Gruppo {index}",
+    "gauge_value_label": "{label}: {value} {units}"
   }
 }

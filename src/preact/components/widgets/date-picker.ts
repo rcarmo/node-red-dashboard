@@ -3,6 +3,7 @@ import type { VNode } from "preact";
 import { useState } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
+import { formatDateInput } from "../../lib/format";
 
 export type DatePickerControl = UiControl & {
   name?: string;
@@ -60,6 +61,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
       lang=${lang}
       aria-invalid=${error ? "true" : "false"}
       aria-errormessage=${error ? `err-date-${index}` : undefined}
+      aria-valuetext=${formatDateInput(value, c.mode, lang) || undefined}
       onInput=${(e: Event) => {
         if (isDisabled) return;
         const v = (e.target as HTMLInputElement).value;

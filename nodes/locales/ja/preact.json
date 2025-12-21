@@ -41,8 +41,11 @@
     "dimensions_px": "{width}×{height} px",
     "link_open": "{label} を開く",
     "audio_controls": "{label} のオーディオ操作",
-    "number_value_label": "{label}: {value}"
+    "number_value_label": "{label}: {value}",
+    "slider_value_label": "{label}: {value}",
+    "date_value_label": "{label}: {value}",
     "gauge_label": "ゲージ {index}",
-    "group_label": "グループ {index}"
+    "group_label": "グループ {index}",
+    "gauge_value_label": "{label}: {value} {units}"
   }
 }

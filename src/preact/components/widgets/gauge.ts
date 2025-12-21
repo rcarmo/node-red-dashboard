@@ -5,6 +5,7 @@ import type { UiControl } from "../../state";
 import { GaugeChart } from "echarts/charts";
 import { registerEChartsModules, useECharts } from "../../lib/echarts";
 import { useI18n } from "../../lib/i18n";
+import { formatNumber } from "../../lib/format";
 
 registerEChartsModules([GaugeChart]);
 
@@ -75,6 +76,11 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "donut" || !asGauge.gtype;
   const isDonut = asGauge.gtype === "donut";
   const formatted = formatGaugeValue(value, asGauge.format, asGauge.units, formatter);
+  const ariaLabel = t("gauge_value_label", "{label}: {value} {units}", {
+    label,
+    value: formatNumber(value, lang),
+    units: asGauge.units ?? "",
+  });
   const reverse = Boolean(asGauge.reverse);
 
   useECharts(
@@ -143,6 +149,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
       alignItems: "center",
       justifyContent: "center",
     }}
+    aria-label=${ariaLabel}
   >
     <div style=${{ fontWeight: 600 }}>${label}</div>
     <div ref=${chartRef} style=${{ width: "100%", height: "220px" }}></div>

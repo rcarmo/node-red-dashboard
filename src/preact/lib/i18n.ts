@@ -51,6 +51,9 @@ const defaultMessages: LocaleMessages = {
   number_value_label: "{label}: {value}",
   gauge_label: "Gauge {index}",
   group_label: "Group {index}",
+  slider_value_label: "{label}: {value}",
+  date_value_label: "{label}: {value}",
+  gauge_value_label: "{label}: {value} {units}",
 };
 
 function interpolate(template: string, params?: Record<string, string | number>): string {

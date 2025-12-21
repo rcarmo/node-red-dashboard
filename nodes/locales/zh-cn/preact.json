@@ -41,8 +41,11 @@
     "dimensions_px": "{width}×{height} 像素",
     "link_open": "打开 {label}",
     "audio_controls": "{label} 的音频控件",
-    "number_value_label": "{label}: {value}"
+    "number_value_label": "{label}: {value}",
+    "slider_value_label": "{label}: {value}",
+    "date_value_label": "{label}: {value}",
     "gauge_label": "仪表 {index}",
-    "group_label": "分组 {index}"
+    "group_label": "分组 {index}",
+    "gauge_value_label": "{label}: {value} {units}"
   }
 }

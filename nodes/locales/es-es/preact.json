@@ -41,8 +41,11 @@
     "dimensions_px": "{width}×{height} px",
     "link_open": "Abrir {label}",
     "audio_controls": "Controles de audio para {label}",
-    "number_value_label": "{label}: {value}"
+    "number_value_label": "{label}: {value}",
+    "slider_value_label": "{label}: {value}",
+    "date_value_label": "{label}: {value}",
     "gauge_label": "Medidor {index}",
-    "group_label": "Grupo {index}"
+    "group_label": "Grupo {index}",
+    "gauge_value_label": "{label}: {value} {units}"
   }
 }

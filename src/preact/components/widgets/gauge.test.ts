@@ -8,6 +8,11 @@ describe("Gauge helpers", () => {
     expect(formatGaugeValue(5, "{{ value }} {{ units }}", "kPa", fmt)).toBe("5 kPa");
   });
 
+  test("formats value with locale", () => {
+    const fmt = new Intl.NumberFormat("de-DE");
+    expect(formatGaugeValue(1234.5, "{{value}}", undefined, fmt)).toBe("1.234,5");
+  });
+
   test("builds segment thresholds with defaults", () => {
     const segments = buildSegments({}, 0, 10);
     expect(segments[0][0]).toBeCloseTo(1 / 3);

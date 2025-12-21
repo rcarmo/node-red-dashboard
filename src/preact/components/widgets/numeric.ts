@@ -1,8 +1,9 @@
 import { html } from "htm/preact";
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
+import { formatNumber } from "../../lib/format";
 
 export type NumericControl = UiControl & {
   label?: string;
@@ -47,8 +48,13 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
   const min = toNumber(asNum.min, Number.MIN_SAFE_INTEGER);
   const max = toNumber(asNum.max, Number.MAX_SAFE_INTEGER);
   const step = toNumber(asNum.step, 1) || 1;
-  const [value, setValue] = useState<number>(clampValue(toNumber(asNum.min, 0), min, max, !!asNum.wrap));
+  const [value, setValue] = useState<number>(clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap));
   const formatter = useMemo(() => new Intl.NumberFormat(lang || undefined), [lang]);
+
+  useEffect(() => {
+    const next = clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap);
+    setValue(next);
+  }, [asNum.value, asNum.min, min, max, asNum.wrap]);
 
   const update = (next: number) => {
     const clamped = clampValue(next, min, max, !!asNum.wrap);
@@ -84,6 +90,7 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
         value=${value}
         title=${asNum.tooltip || undefined}
         disabled=${Boolean(disabled)}
+        aria-valuetext=${t("number_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
         onInput=${handleChange}
         style=${{
           width: "100%",

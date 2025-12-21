@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
+import { formatNumber } from "../../lib/format";
 
 export type SliderControl = UiControl & {
   label?: string;
@@ -323,6 +324,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
         value=${sliderValue}
         title=${asSlider.tooltip || undefined}
         disabled=${isDisabled}
+        aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
         onInput=${handleInput}
         onChange=${handleChange}
         onWheel=${handleWheel}
