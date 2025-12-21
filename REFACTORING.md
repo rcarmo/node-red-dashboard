@@ -29,6 +29,7 @@
 - [x] Replace npm scripts with Bun equivalents (`bun run fixfa`, `bun run fixgrid`) or inline Bun scripts.
 - [x] Scaffold `src/preact/` with TypeScript (tsconfig: ES2020, allow JS interop as needed) configured for HTM (`import { html } from "htm/preact"`; no JSX transform).
 - [x] Decide bundling: `bun build src/preact/index.ts` (or `.tsx` if desired) --outdir dist with HTM-compatible pipeline; avoid gulp except for legacy until parity.
+- [ ] Keep the Node-RED Dashboard sidebar editor fully functional while migrating runtime; prefer reuse of existing editor code and assets, only reimplementing when unavoidable.
 
 ### 1) App Shell & Routing
 - [x] Rebuild `index.html` without Angular directives; mount Preact `<App />`.
@@ -49,6 +50,7 @@
 - [ ] Implement runtime theme updates (allow temp themes vs Angular theme mode) without `less.modifyVars`.
 - [ ] Rebuild sizing logic (`sizes.js`) as Preact context/provider with resize hook; trigger on tab/group changes.
 - [ ] Decide masonry/grid approach: CSS Grid with `grid-auto-flow:dense` or interim gridstack wrapper.
+- [ ] Implementation strategy: keep the editor-side layout/ordering UI intact (Gridstack preview + `site.sizes` controls), and adapt the new runtime to consume the same saved tab/group/widget metadata. If a gap appears, reimplement only the runtime reader/adapter, not the editor UI, to preserve existing flows.
 
 ### 4) Component Migration (Angular → Preact)
 - [ ] Create `src/preact/components/` with one component per widget.

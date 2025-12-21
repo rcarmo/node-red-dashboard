@@ -12,6 +12,10 @@ export type UiGroup = {
 
 export type UiControl = Record<string, unknown>;
 
+export type UiTheme = {
+  themeState?: Record<string, { value?: string } | undefined>;
+};
+
 export type UiMenuItem = {
   id?: string | number;
   header?: string;
@@ -21,6 +25,7 @@ export type UiMenuItem = {
   target?: string;
   disabled?: boolean;
   hidden?: boolean;
+  theme?: UiTheme;
 };
 
 export type UiSite = Record<string, unknown>;
@@ -29,6 +34,7 @@ export type UiControlsPayload = {
   menu?: UiMenuItem[];
   globals?: UiControl[];
   site?: UiSite;
+  theme?: UiTheme;
   nothing?: boolean;
 };
 
@@ -40,6 +46,7 @@ export type DashboardState = {
   menu: UiMenuItem[];
   globals: UiControl[];
   site: UiSite | null;
+  theme: UiTheme | null;
   selectedTabIndex: number | null;
   replayDone: boolean;
 };
@@ -61,6 +68,7 @@ const initialState: DashboardState = {
   menu: [],
   globals: [],
   site: null,
+  theme: null,
   selectedTabIndex: null,
   replayDone: false,
 };
@@ -79,6 +87,7 @@ export function useDashboardState(): DashboardStore {
         const menu = data.menu ?? [];
         const globals = data.globals ?? [];
         const site = data.site ?? null;
+        const theme = data.theme ?? null;
         const defaultTab = getFirstVisibleTab(menu);
         setState((prev) => ({
           ...prev,
@@ -86,6 +95,7 @@ export function useDashboardState(): DashboardStore {
           menu,
           globals,
           site,
+          theme,
           selectedTabIndex: defaultTab,
         }));
       },
