@@ -36,7 +36,9 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
       --nr-dashboard-slider-thumb-shadow: 0 1px 3px rgba(0,0,0,0.35);
       --nr-dashboard-slider-focus: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+        --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+        --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.25));
+        --nr-dashboard-slider-chip-shadow: var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
     }
 
     .nr-dashboard-slider {
@@ -171,8 +173,8 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       position: absolute;
       padding: 4px 8px;
       border-radius: 12px;
-      background: var(--nr-dashboard-slider-fill);
-      color: #fff;
+        background: var(--nr-dashboard-slider-chip-bg);
+        color: var(--nr-dashboard-slider-text);
       font-size: 11px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.35);
       pointer-events: none;
