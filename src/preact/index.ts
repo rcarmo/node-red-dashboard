@@ -1,9 +1,6 @@
-import { render } from "preact";
+import { render, type VNode } from "preact";
 import { html } from "htm/preact";
-import { useEffect, useState } from "preact/hooks";
-import { createSocketBridge, UiSocketBridge } from "./socket";
-
-type ConnectionState = "disconnected" | "connecting" | "ready";
+import { useDashboardState } from "./state";
 
 const appStyles: Record<string, string> = {
   fontFamily: "'Inter', system-ui, sans-serif",
@@ -37,30 +34,11 @@ const contentStyles: Record<string, string> = {
   padding: "16px",
 };
 
-export function App() {
-  const [connState, setConnState] = useState<ConnectionState>("connecting");
-  const [socketId, setSocketId] = useState<string>("");
-  const [bridge, setBridge] = useState<UiSocketBridge | null>(null);
-
-  useEffect(() => {
-    const b = createSocketBridge({
-      onConnect: (id) => {
-        setSocketId(id);
-        setConnState("ready");
-      },
-      onControls: () => {
-        setConnState("ready");
-      },
-      onReplayDone: () => {
-        setConnState("ready");
-      },
-    });
-    setBridge(b);
-    return () => b.dispose();
-  }, []);
+export function App(): VNode {
+  const { state, selectedTab, actions } = useDashboardState();
 
   const statusLabel = (() => {
-    switch (connState) {
+    switch (state.connection) {
       case "ready":
         return "Connected";
       case "connecting":
@@ -74,26 +52,55 @@ export function App() {
     <div style=${appStyles}>
       <header style=${toolbarStyles}>
         <strong>Node-RED Dashboard v2</strong>
-        <span style=${{ fontSize: "12px", opacity: 0.7 }}>Socket: ${statusLabel}${socketId ? ` (${socketId})` : ""}</span>
+        <span style=${{ fontSize: "12px", opacity: 0.7 }}>Socket: ${statusLabel}${state.socketId ? ` (${state.socketId})` : ""}</span>
       </header>
       <section style=${layoutStyles}>
         <nav style=${navStyles}>
           <h3 style=${{ marginTop: 0 }}>Tabs</h3>
-          <ul style=${{ listStyle: "none", padding: 0, margin: 0, opacity: 0.6 }}>
-            <li>Placeholder tab list</li>
+          <ul style=${{ listStyle: "none", padding: 0, margin: 0, opacity: 0.9 }}>
+            ${state.menu.length === 0
+              ? html`<li style=${{ opacity: 0.6 }}>No tabs yet</li>`
+              : state.menu.map((tab, idx) => {
+                  const active = idx === state.selectedTabIndex;
+                  return html`<li key=${tab.id ?? tab.header ?? idx}>
+                    <button
+                      style=${{
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "8px 10px",
+                        marginBottom: "6px",
+                        borderRadius: "6px",
+                        border: active
+                          ? "1px solid rgba(255,255,255,0.35)"
+                          : "1px solid rgba(255,255,255,0.12)",
+                        background: active
+                          ? "rgba(255,255,255,0.08)"
+                          : "rgba(255,255,255,0.04)",
+                        color: "inherit",
+                        cursor: "pointer",
+                        opacity: tab.disabled || tab.hidden ? 0.4 : 1,
+                      }}
+                      disabled=${tab.disabled || tab.hidden}
+                      onClick=${() => actions.selectTab(idx)}
+                    >
+                      ${tab.header || tab.name || `Tab ${idx + 1}`}
+                    </button>
+                  </li>`;
+                })}
           </ul>
         </nav>
         <main style=${contentStyles}>
           <h2>Welcome</h2>
           <p>This is the new HTM/Preact shell running under Bun. Widgets and layout will render here.</p>
-          <p>Socket bridge ${bridge ? "is active" : "not active"}.</p>
+          <p>Connection: ${statusLabel} ${state.socketId ? `(${state.socketId})` : ""}</p>
+          <p>Tabs loaded: ${state.menu.length} ${selectedTab ? `(selected: ${selectedTab.header || selectedTab.name || "(unnamed)"})` : ""}</p>
         </main>
       </section>
     </div>
   `;
 }
 
-export function bootstrap() {
+export function bootstrap(): void {
   if (typeof document === "undefined") return;
 
   const root = document.getElementById("app") ?? (() => {

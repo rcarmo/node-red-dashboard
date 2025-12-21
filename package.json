@@ -10,6 +10,8 @@
         "copy:html": "mkdir -p dist && cp src/preact/index.html dist/index.html",
         "dev": "bun run copy:html && bun build src/preact/index.ts --outdir dist --target browser --splitting --sourcemap --watch --public-path ./",
         "build": "bun run copy:html && bun build src/preact/index.ts --outdir dist --target browser --splitting --public-path ./",
+        "lint": "eslint src/preact --ext .ts,.tsx",
+        "format": "prettier --write \"src/**/*.ts\" \"src/**/*.tsx\" \"src/**/*.html\"",
         "prepare": "bun fixfa.js",
         "postinstall": "bun fixgrid.js"
     },
@@ -101,6 +103,11 @@
         "htm": "^3.1.1"
     },
     "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^8.13.0",
+        "@typescript-eslint/parser": "^8.13.0",
+        "eslint": "^9.13.0",
+        "eslint-config-prettier": "^9.1.0",
+        "prettier": "^3.3.3",
         "angular": "~1.8.3",
         "angular-animate": "~1.8.3",
         "angular-aria": "~1.8.3",

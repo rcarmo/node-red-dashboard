@@ -32,12 +32,12 @@ export function createSocketBridge(handlers: UiSocketHandlers = {}): UiSocketBri
     handlers.onConnect?.(socket.id);
   });
 
-  const emit = (event: string, msg: Record<string, unknown> = {}) => {
+  const emit = (event: string, msg: Record<string, unknown> = {}): void => {
     const payload = { ...msg, socketid: socket.id };
     socket.emit(event, payload);
   };
 
-  const dispose = () => {
+  const dispose = (): void => {
     socket.removeAllListeners();
     socket.close();
   };
