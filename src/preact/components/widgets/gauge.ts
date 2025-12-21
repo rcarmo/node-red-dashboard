@@ -2,11 +2,10 @@ import { html } from "htm/preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
-import * as echarts from "echarts/core";
 import { GaugeChart } from "echarts/charts";
-import { CanvasRenderer } from "echarts/renderers";
+import { registerEChartsModules, useECharts } from "../../lib/echarts";
 
-echarts.use([GaugeChart, CanvasRenderer]);
+registerEChartsModules([GaugeChart]);
 
 export type GaugeControl = UiControl & {
   label?: string;
@@ -62,7 +61,6 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   const max = toNumber(asGauge.max, 10);
   const [value, setValue] = useState<number>(clamp(toNumber(asGauge.value ?? min, min), min, max));
   const chartRef = useRef<HTMLDivElement | null>(null);
-  const chartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
     setValue(clamp(toNumber(asGauge.value ?? min, min), min, max));
@@ -75,26 +73,10 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   const formatted = formatGaugeValue(value, asGauge.format, asGauge.units);
   const reverse = Boolean(asGauge.reverse);
 
-  useEffect(() => {
-    if (!chartRef.current) return;
-    const chart = echarts.init(chartRef.current);
-    chartInstance.current = chart;
-
-    const handleResize = () => chart.resize();
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      chart.dispose();
-      chartInstance.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    const chart = chartInstance.current;
-    if (!chart) return;
-
-    const option = {
+  useECharts(
+    chartRef,
+    [value, min, max, segments, showTicks, showMinMax, isDonut, formatted, label, reverse],
+    () => ({
       backgroundColor: "transparent",
       series: [
         {
@@ -138,10 +120,8 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           ],
         },
       ],
-    } as echarts.EChartsOption;
-
-    chart.setOption(option, true);
-  }, [value, min, max, segments, showTicks, showMinMax, isDonut, formatted, label, reverse]);
+    }),
+  );
 
   return html`<div
     class=${asGauge.className || ""}

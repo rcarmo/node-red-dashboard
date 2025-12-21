@@ -208,10 +208,11 @@ export function buildSliderEmit(ctrl: SliderControl, fallbackLabel: string, valu
   };
 }
 
-export function SliderWidget(props: { control: UiControl; index: number; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
-  const { control, index, onEmit } = props;
+export function SliderWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, disabled, onEmit } = props;
   const asSlider = control as SliderControl;
   const label = asSlider.label || asSlider.name || `Slider ${index + 1}`;
+  const isDisabled = Boolean(disabled);
 
   ensureSliderStyles();
 
@@ -227,6 +228,10 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
   const initial = clampSliderValue(toNumber(asSlider.value ?? min, min), min, max);
   const [value, setValue] = useState<number>(initial);
 
+  useEffect(() => {
+    setValue(clampSliderValue(toNumber(asSlider.value ?? min, min), min, max));
+  }, [asSlider.value, min, max]);
+
   const timer = useRef<number | undefined>(undefined);
   useEffect(() => () => {
     if (timer.current !== undefined) {
@@ -238,12 +243,12 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
   const fromDisplayValue = (display: number): number => (invert ? max - (display - min) : display);
 
   const emit = (next: number) => {
-    if (!onEmit) return;
+    if (!onEmit || isDisabled) return;
     onEmit("ui-control", buildSliderEmit(asSlider, label, next));
   };
 
   const scheduleEmit = (next: number) => {
-    if (!onEmit) return;
+    if (!onEmit || isDisabled) return;
     if (outs !== "all") return;
     if (timer.current !== undefined) clearTimeout(timer.current);
     timer.current = window.setTimeout(() => {
@@ -253,6 +258,7 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
   };
 
   const handleInput = (e: Event) => {
+    if (isDisabled) return;
     const target = e.target as HTMLInputElement;
     const rawDisplay = toNumber(target.value, toDisplayValue(value));
     const logical = clampSliderValue(fromDisplayValue(rawDisplay), min, max);
@@ -263,7 +269,7 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
   };
 
   const handleChange = (e: Event) => {
-    if (outs !== "end") return;
+    if (isDisabled || outs !== "end") return;
     const target = e.target as HTMLInputElement;
     const rawDisplay = toNumber(target.value, toDisplayValue(value));
     const logical = clampSliderValue(fromDisplayValue(rawDisplay), min, max);
@@ -272,7 +278,7 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
   };
 
   const handleWheel = (e: WheelEvent) => {
-    if (outs !== "all") return;
+    if (isDisabled || outs !== "all") return;
     e.preventDefault();
     const delta = e.deltaY > 0 ? step : -step;
     const next = clampSliderValue(value + delta, min, max);
@@ -313,6 +319,7 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
         step=${step}
         value=${sliderValue}
         title=${asSlider.tooltip || undefined}
+        disabled=${isDisabled}
         onInput=${handleInput}
         onChange=${handleChange}
         onWheel=${handleWheel}

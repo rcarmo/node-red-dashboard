@@ -37,8 +37,8 @@ export function buildDropdownEmit(ctrl: DropdownControl, fallbackLabel: string, 
   };
 }
 
-export function DropdownWidget(props: { control: UiControl; index: number; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
-  const { control, index, onEmit } = props;
+export function DropdownWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, disabled, onEmit } = props;
   const asDrop = control as DropdownControl;
   const label = asDrop.label || asDrop.name || `Select ${index + 1}`;
   const opts = useMemo(() => asDrop.options ?? [], [asDrop.options]);
@@ -69,6 +69,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; onEmi
       multiple=${multiple}
       class=${asDrop.className || ""}
       title=${asDrop.tooltip || undefined}
+      disabled=${Boolean(disabled)}
       onChange=${handleChange}
       style=${{
         width: "100%",

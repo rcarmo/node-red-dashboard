@@ -1,0 +1,45 @@
+import { html } from "htm/preact";
+import type { VNode } from "preact";
+import type { UiControl } from "../../state";
+
+export type LinkControl = UiControl & {
+  name?: string;
+  label?: string;
+  url?: string;
+  target?: string;
+  icon?: string;
+};
+
+export function resolveLinkHref(ctrl: LinkControl, fallback = "#"): string {
+  return ctrl.url || (ctrl as { link?: string }).link || fallback;
+}
+
+export function LinkWidget(props: { control: UiControl; index: number; disabled?: boolean }): VNode {
+  const { control, index, disabled } = props;
+  const c = control as LinkControl;
+  const href = resolveLinkHref(c);
+  const label = c.label || c.name || href || `Link ${index + 1}`;
+  const target = c.target || "_blank";
+  const icon = c.icon;
+  const isDisabled = Boolean(disabled);
+
+  return html`<div style=${{ display: "flex", gap: "8px", alignItems: "center" }}>
+    ${icon ? html`<i class=${icon} aria-hidden="true"></i>` : null}
+    <a
+      href=${isDisabled ? undefined : href}
+      target=${target}
+      rel="noreferrer noopener"
+      aria-disabled=${isDisabled}
+      tabIndex=${isDisabled ? -1 : undefined}
+      onClick=${isDisabled
+        ? (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        : undefined}
+      style=${{ color: "var(--nr-dashboard-widgetColor, #61dafb)", pointerEvents: isDisabled ? "none" : "auto" }}
+    >
+      ${label}
+    </a>
+  </div>`;
+}

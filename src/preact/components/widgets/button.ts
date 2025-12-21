@@ -29,8 +29,8 @@ export function buildButtonEmit(ctrl: ButtonControl, fallbackLabel: string): Rec
   };
 }
 
-export function ButtonWidget(props: { control: UiControl; index: number; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
-  const { control, index, onEmit } = props;
+export function ButtonWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, disabled, onEmit } = props;
   const asButton = control as ButtonControl;
   const label = asButton.label || asButton.name || `Button ${index + 1}`;
   const color = resolveButtonColor(asButton);
@@ -46,6 +46,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; onEmit?
     type="button"
     title=${asButton.tooltip || undefined}
     class=${asButton.className || ""}
+    disabled=${Boolean(disabled)}
     onClick=${onEmit ? handleClick : undefined}
     style=${{
       width: "100%",

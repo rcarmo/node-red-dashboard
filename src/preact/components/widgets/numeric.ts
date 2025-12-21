@@ -38,8 +38,8 @@ export function buildNumericEmit(ctrl: NumericControl, fallbackLabel: string, va
   };
 }
 
-export function NumericWidget(props: { control: UiControl; index: number; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
-  const { control, index, onEmit } = props;
+export function NumericWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, disabled, onEmit } = props;
   const asNum = control as NumericControl;
   const label = asNum.label || asNum.name || `Number ${index + 1}`;
   const min = toNumber(asNum.min, Number.MIN_SAFE_INTEGER);
@@ -80,6 +80,7 @@ export function NumericWidget(props: { control: UiControl; index: number; onEmit
         step=${step}
         value=${value}
         title=${asNum.tooltip || undefined}
+        disabled=${Boolean(disabled)}
         onInput=${handleChange}
         style=${{
           width: "100%",

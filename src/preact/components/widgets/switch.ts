@@ -30,8 +30,8 @@ export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next
   };
 }
 
-export function SwitchWidget(props: { control: UiControl; index: number; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
-  const { control, index, onEmit } = props;
+export function SwitchWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, disabled, onEmit } = props;
   const asSwitch = control as SwitchControl;
   const label = asSwitch.label || asSwitch.name || `Switch ${index + 1}`;
   const initial = Boolean(asSwitch.value ?? asSwitch.state);
@@ -39,6 +39,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; onEmit?
   const [ref, size] = useElementSize<HTMLLabelElement>();
 
   const toggle = () => {
+    if (disabled) return;
     const next = !checked;
     setChecked(next);
     if (onEmit) {
@@ -56,8 +57,9 @@ export function SwitchWidget(props: { control: UiControl; index: number; onEmit?
       display: "flex",
       alignItems: "center",
       gap: "10px",
-      cursor: onEmit ? "pointer" : "default",
+      cursor: !disabled && onEmit ? "pointer" : "default",
       userSelect: "none",
+      opacity: disabled ? 0.55 : 1,
     }}
   >
     <div

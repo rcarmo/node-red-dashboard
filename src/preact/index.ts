@@ -42,7 +42,7 @@ const toolbarStyles: Record<string, string> = {
   alignItems: "center",
   gap: "12px",
   padding: "0 16px",
-  borderBottom: "1px solid rgba(255,255,255,0.08)",
+  borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
 };
 
 const layoutStyles: Record<string, string> = {
@@ -52,7 +52,7 @@ const layoutStyles: Record<string, string> = {
 };
 
 const navStyles: Record<string, string> = {
-  borderRight: "1px solid rgba(255,255,255,0.08)",
+  borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
   padding: "16px",
   color: "var(--nr-dashboard-sidebarTextColor, inherit)",
 };
@@ -152,7 +152,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
     if (state.connection !== "ready") return;
     const target = findFirstFocusable(mainRef.current);
     if (target && typeof target.focus === "function") {
-      target.focus({ preventScroll: true } as FocusOptions);
+      const focusOptions: { preventScroll?: boolean } = { preventScroll: true };
+      target.focus(focusOptions);
     }
   }, [selectedTab, state.connection]);
 

@@ -49,21 +49,20 @@
 - [ ] Maintain `ui-collapse`, tab/group hide/show, `ui-control` messages semantics.
 
 ### 3) Theme & Layout System
-- [ ] Replace Less runtime with CSS variables derived from theme object (map `page-backgroundColor`, `widget-textColor`, etc.).
+- [ ] Replace Less runtime with CSS variables derived from theme object (map `page-backgroundColor`, `widget-textColor`, etc.) — CSS vars mapped/applied to layout/widget frame; finish mapping remaining tokens and legacy fallbacks.
 - [x] Implement runtime theme updates (CSS vars) without `less.modifyVars`; `applyThemeToRoot` in place.
-- [ ] Rebuild sizing logic (`sizes.js`) as Preact context/provider with resize hook; trigger on tab/group changes (current: size tokens applied to root only).
-- [x] Decide masonry/grid approach: initial CSS Grid groups; `grid-auto-flow:dense` still pending if needed for dense pack.
+- [x] Rebuild sizing logic (`sizes.js`) as Preact context/provider with resize hook; trigger on tab/group changes; dense grid toggle added.
+- [x] Decide masonry/grid approach: CSS Grid groups with optional `grid-auto-flow:dense` for packing.
 - [ ] Implementation strategy: keep the editor-side layout/ordering UI intact (Gridstack preview + `site.sizes` controls), and adapt the new runtime to consume the same saved tab/group/widget metadata. If a gap appears, reimplement only the runtime reader/adapter, not the editor UI, to preserve existing flows.
 
-### 4) Component Migration (Angular → Preact)
 - [x] Create `src/preact/components/` with widgets for text, button, switch, text-input, numeric, dropdown, slider, gauge.
 - [ ] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`.
 - [x] Build `Gauge` using ECharts gauge/donut to replace JustGage (wave/compass pending).
 - [ ] Build remaining core widgets: Form, Date/Colour picker, Audio, Toast, Link, Template.
-- [ ] Add shared `WidgetFrame` for labels, disabled state, sizing units, `className`.
+- [x] Add shared `WidgetFrame` for labels, disabled state, sizing units, `className`.
 
 ### 5) Charts with Apache ECharts
-- [ ] Add shared ECharts loader (lazy, theme-aware) and resize hook (currently direct init in gauge only).
+- [x] Add shared ECharts loader (resize hook) and use it in gauge.
 - [ ] Map Chart.js options to ECharts (axes, tooltips with time formatting via `dayjs`, stacked bars, multi-series colors, `spanGaps`, smoothing/step, donut cutout).
 - [ ] Implement streaming updates: maintain series arrays, apply `remove`, call `setOption({series,xAxis,yAxis},{notMerge:false,replaceMerge:['series']}).
 
@@ -104,7 +103,7 @@
 
 ## Immediate Next Steps
 - [ ] Implement chart panel on ECharts (line/bar/etc.) and streaming adapter.
-- [ ] Add theme variable application for groups/widgets (replace Less runtime fully) and size context beyond root vars.
+- [ ] Finish theme variable coverage (legacy Less tokens) and apply to remaining widgets.
 - [ ] Implement remaining widgets (form, date/colour picker, audio, toast, link, template) and `ui-control` contracts.
-- [ ] Add shared ECharts loader/resizer + widget frame.
-- [ ] Begin README update to document Preact/ECharts fork and Bun tooling.
+- [ ] Add streaming helpers + option mapping for charts (after loader in place).
+- [ ] Remove gulp/legacy build once parity is acceptable; point Node-RED runtime to `dist/` by default.

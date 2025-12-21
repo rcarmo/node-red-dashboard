@@ -1,0 +1,47 @@
+import { html } from "htm/preact";
+import type { VNode } from "preact";
+import { useState } from "preact/hooks";
+import type { UiControl } from "../../state";
+
+export type ColourPickerControl = UiControl & {
+  name?: string;
+  label?: string;
+  value?: string;
+  className?: string;
+};
+
+export function resolveColourValue(value?: string, fallback = "#ff0000"): string {
+  if (typeof value === "string" && value.trim().length > 0) return value;
+  return fallback;
+}
+
+export function ColourPickerWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, disabled, onEmit } = props;
+  const c = control as ColourPickerControl;
+  const label = c.label || c.name || `Colour ${index + 1}`;
+  const [value, setValue] = useState<string>(resolveColourValue(c.value));
+  const isDisabled = Boolean(disabled);
+
+  return html`<label style=${{ display: "grid", gap: "6px" }}>
+    <span style=${{ fontSize: "12px", opacity: 0.8 }}>${label}</span>
+    <input
+      class=${c.className || ""}
+      type="color"
+      value=${value}
+      disabled=${isDisabled}
+      onInput=${(e: Event) => {
+        if (isDisabled) return;
+        const v = (e.target as HTMLInputElement).value;
+        setValue(v);
+        onEmit?.("ui-change", { payload: v });
+      }}
+      style=${{
+        width: "100%",
+        minHeight: "38px",
+        padding: "0",
+        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+        background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+      }}
+    />
+  </label>`;
+}

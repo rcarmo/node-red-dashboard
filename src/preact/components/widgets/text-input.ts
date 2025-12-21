@@ -33,8 +33,8 @@ export function buildTextEmit(ctrl: TextInputControl, fallbackLabel: string, val
   };
 }
 
-export function TextInputWidget(props: { control: UiControl; index: number; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
-  const { control, index, onEmit } = props;
+export function TextInputWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
+  const { control, index, disabled, onEmit } = props;
   const asInput = control as TextInputControl;
   const label = asInput.label || asInput.name || `Input ${index + 1}`;
   const [value, setValue] = useState<string>((asInput.value as string) ?? "");
@@ -90,6 +90,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; onEm
       type=${type}
       value=${value}
       title=${asInput.tooltip || undefined}
+      disabled=${Boolean(disabled)}
       onInput=${handleChange}
       onKeyDown=${handleKeyDown}
       onBlur=${handleBlur}

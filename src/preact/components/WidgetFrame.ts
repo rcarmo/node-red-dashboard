@@ -5,13 +5,17 @@ import { useSizes } from "../hooks/useSizes";
 
 type WidgetFrameProps = {
   control: UiControl;
+  disabled?: boolean;
   children: VNode;
 };
 
-export function WidgetFrame({ control, children }: WidgetFrameProps): VNode {
+export function WidgetFrame({ control, disabled, children }: WidgetFrameProps): VNode {
   const sizes = useSizes();
   const padding = Math.max(8, (sizes.py ?? 0) + 4);
   const gap = Math.max(4, sizes.cx ?? 6);
+  const controlDisabled = (control as { disabled?: boolean }).disabled === true;
+  const controlEnabled = (control as { enabled?: boolean }).enabled;
+  const isDisabled = Boolean((disabled ?? controlDisabled) || controlEnabled === false);
 
   return html`<div
     class=${`nr-dashboard-widget-frame ${((control as { className?: string }).className ?? "").trim()}`.trim()}
@@ -24,7 +28,10 @@ export function WidgetFrame({ control, children }: WidgetFrameProps): VNode {
       flexDirection: "column",
       gap: `${gap}px`,
       color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+      opacity: isDisabled ? 0.55 : 1,
+      pointerEvents: isDisabled ? "none" : "auto",
     }}
+    aria-disabled=${isDisabled}
   >
     ${children}
   </div>`;
