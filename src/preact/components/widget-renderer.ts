@@ -8,6 +8,7 @@ import { TextInputWidget } from "./widgets/text-input";
 import { NumericWidget } from "./widgets/numeric";
 import { DropdownWidget } from "./widgets/dropdown";
 import { SliderWidget } from "./widgets/slider";
+import { GaugeWidget } from "./widgets/gauge";
 import { WidgetPreview } from "./widget-preview";
 
 function getControlType(control: UiControl): string {
@@ -45,6 +46,10 @@ export function WidgetRenderer(props: { control: UiControl; index: number; onEmi
 
   if (type === "switch" || type === "ui_switch") {
     return html`<${SwitchWidget} control=${control} index=${index} onEmit=${onEmit} />`;
+  }
+
+  if (type === "gauge" || type === "ui_gauge") {
+    return html`<${GaugeWidget} control=${control} index=${index} />`;
   }
 
   return html`<${WidgetPreview} control=${control} index=${index} />`;
