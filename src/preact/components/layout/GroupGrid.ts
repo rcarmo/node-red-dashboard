@@ -10,8 +10,9 @@ export function GroupGrid(props: {
   groups: UiGroup[];
   sizes: Pick<SiteSizes, "columns" | "gx" | "gy" | "px" | "py" | "cy" | "cx" | "dense">;
   onEmit?: (event: string, msg?: Record<string, unknown>) => void;
+  tabName?: string;
 }): VNode {
-  const { groups, sizes, onEmit } = props;
+  const { groups, sizes, onEmit, tabName } = props;
   ensureLayoutStyles();
 
   const visible = groups.filter((group) => {
@@ -47,6 +48,7 @@ export function GroupGrid(props: {
         padding=${{ x: paddingX, y: paddingY }}
         sizes=${{ cy: itemGapY, cx: itemGapX }}
         onEmit=${onEmit}
+        tabName=${tabName}
       />`;
     })}
   </div>`;

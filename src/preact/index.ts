@@ -247,6 +247,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                       ),
                   }}
                   onEmit=${actions.emit ?? undefined}
+                  tabName=${selectedTab.header ?? selectedTab.name ?? ""}
                 />`;
               })()}
         </main>

@@ -70,4 +70,88 @@ describe("Visibility persistence", () => {
     __test.persistGroupVisibility("Tab_A_Group_A", false);
     expect(store[__test.groupHiddenKey("Tab_A_Group_A")]).toBeUndefined();
   });
+
+  test("applies group collapse/expand", () => {
+    const menu = [
+      {
+        header: "TabA",
+        items: [
+          {
+            header: { name: "GroupA", config: { hidden: false, collapsed: false } },
+            items: [],
+          },
+        ],
+      },
+    ];
+
+    const updated = __test.applyGroupVisibility(menu, {
+      collapse: ["TabA_GroupA"],
+    });
+
+    expect(updated[0].items?.[0].header?.config?.collapsed).toBe(true);
+
+    const expanded = __test.applyGroupVisibility(menu, {
+      expand: ["TabA_GroupA"],
+    });
+
+    expect(expanded[0].items?.[0].header?.config?.collapsed).toBe(false);
+  });
+});
+
+describe("ui-control handler", () => {
+  test("updates tabs and selects first visible", () => {
+    const prev = {
+      connection: "ready",
+      socketId: "abc",
+      menu: [
+        { header: "A", hidden: true },
+        { header: "B", disabled: true },
+        { header: "C" },
+      ],
+      globals: [],
+      site: null,
+      theme: null,
+      selectedTabIndex: 0,
+      replayDone: true,
+      toasts: [],
+    } as const;
+
+    const next = __test.handleUiControl(prev, {
+      tabs: { show: ["A"], hide: ["B"] },
+    });
+
+    expect(next.selectedTabIndex).toBe(0);
+    expect(next.menu[0].hidden).toBe(false);
+    expect(next.menu[1].hidden).toBe(true);
+  });
+
+  test("applies group collapse via ui-control payload", () => {
+    const prev = {
+      connection: "ready",
+      socketId: "abc",
+      menu: [
+        {
+          header: "A",
+          items: [
+            {
+              header: { name: "G1", config: { collapsed: false } },
+              items: [],
+            },
+          ],
+        },
+      ],
+      globals: [],
+      site: null,
+      theme: null,
+      selectedTabIndex: 0,
+      replayDone: true,
+      toasts: [],
+    } as const;
+
+    const next = __test.handleUiControl(prev, {
+      group: { collapse: ["A_G1"] },
+    });
+
+    expect(next.menu[0].items?.[0].header?.config?.collapsed).toBe(true);
+  });
 });

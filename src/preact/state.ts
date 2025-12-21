@@ -77,6 +77,7 @@ export type DashboardStore = {
 const tabHiddenKey = (idx: number, name: string) => `th${idx}${name}`;
 const tabDisabledKey = (idx: number, name: string) => `td${idx}${name}`;
 const groupHiddenKey = (key: string) => `g${key}`;
+const groupCollapsedKey = (key: string) => `gc${key}`;
 
 function persistTabVisibility(idx: number, name: string, hidden?: boolean, disabled?: boolean): void {
   if (typeof window === "undefined" || !name) return;
@@ -99,6 +100,15 @@ function persistGroupVisibility(key: string, hidden?: boolean): void {
     window.localStorage.setItem(groupHiddenKey(key), "true");
   } else if (hidden === false) {
     window.localStorage.removeItem(groupHiddenKey(key));
+  }
+}
+
+function persistGroupCollapse(key: string, collapsed?: boolean): void {
+  if (typeof window === "undefined" || !key) return;
+  if (collapsed === true) {
+    window.localStorage.setItem(groupCollapsedKey(key), "true");
+  } else if (collapsed === false) {
+    window.localStorage.removeItem(groupCollapsedKey(key));
   }
 }
 
@@ -246,19 +256,32 @@ function applyTabVisibility(menu: UiMenuItem[], tabsMsg: Record<string, unknown>
 function applyGroupVisibility(menu: UiMenuItem[], groupMsg: Record<string, unknown>): UiMenuItem[] {
   const show: string[] = Array.isArray((groupMsg as { show?: unknown }).show) ? (groupMsg as { show: string[] }).show : [];
   const hide: string[] = Array.isArray((groupMsg as { hide?: unknown }).hide) ? (groupMsg as { hide: string[] }).hide : [];
+  const collapse = Array.isArray((groupMsg as { collapse?: unknown }).collapse)
+    ? (groupMsg as { collapse: string[] }).collapse
+    : [];
+  const expand = Array.isArray((groupMsg as { expand?: unknown }).expand) ? (groupMsg as { expand: string[] }).expand : [];
   return menu.map((tab) => {
     const items = (tab.items ?? []).map((group) => {
       const key = `${tab.header ?? tab.name ?? ""} ${group.header?.name ?? ""}`.replace(/ /g, "_");
       const nextHeader = { ...(group.header ?? {}), config: { ...(group.header?.config ?? {}) } };
       const willShow = show.includes(key);
       const willHide = hide.includes(key);
+      const willCollapse = collapse.includes(key);
+      const willExpand = expand.includes(key);
       if (willShow) {
         nextHeader.config.hidden = false;
       }
       if (willHide) {
         nextHeader.config.hidden = true;
       }
+      if (willCollapse) {
+        nextHeader.config.collapsed = true;
+      }
+      if (willExpand) {
+        nextHeader.config.collapsed = false;
+      }
       persistGroupVisibility(key, willHide ? true : willShow ? false : undefined);
+      persistGroupCollapse(key, willCollapse ? true : willExpand ? false : undefined);
       return { ...group, header: nextHeader };
     });
     return { ...tab, items };
@@ -345,6 +368,11 @@ export const __test = {
   tabHiddenKey,
   tabDisabledKey,
   groupHiddenKey,
+  groupCollapsedKey,
   persistTabVisibility,
   persistGroupVisibility,
+  persistGroupCollapse,
+  applyGroupVisibility,
+  applyTabVisibility,
+  handleUiControl,
 };
