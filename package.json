@@ -7,8 +7,9 @@
     ],
     "scripts": {
         "test": "bun test",
-        "dev": "bun build src/preact/index.html --outdir dist --target browser --public-path ./ --watch",
-        "build": "bun build src/preact/index.html --outdir dist --target browser --public-path ./",
+        "copy:html": "mkdir -p dist && cp src/preact/index.html dist/index.html",
+        "dev": "bun run copy:html && bun build src/preact/index.ts --outdir dist --target browser --splitting --sourcemap --watch --public-path ./",
+        "build": "bun run copy:html && bun build src/preact/index.ts --outdir dist --target browser --splitting --public-path ./",
         "prepare": "bun fixfa.js",
         "postinstall": "bun fixgrid.js"
     },
