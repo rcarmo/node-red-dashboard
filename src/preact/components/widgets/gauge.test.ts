@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildSegments, formatGaugeValue } from "./gauge";
+import { buildSegments, formatGaugeDetail, formatGaugeValue } from "./gauge";
 
 describe("Gauge helpers", () => {
   test("formats value with fallback template", () => {
@@ -18,5 +18,12 @@ describe("Gauge helpers", () => {
     expect(segments[0][0]).toBeCloseTo(1 / 3);
     expect(segments[1][0]).toBeCloseTo(2 / 3);
     expect(segments[2][0]).toBe(1);
+  });
+
+  test("formats diff detail with sign", () => {
+    const fmt = new Intl.NumberFormat("en-US");
+    expect(formatGaugeDetail(10, 2, "{{value}}", "V", fmt)).toBe("10 (+2)");
+    expect(formatGaugeDetail(8, -1.5, "{{value}}", "V", fmt)).toBe("8 (-1.5)");
+    expect(formatGaugeDetail(5, 0, "{{value}}", "V", fmt)).toBe("5 (0)");
   });
 });

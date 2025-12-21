@@ -81,4 +81,45 @@ describe("Dropdown ui_control updates", () => {
     expect(payload[0]).toBe(1); // number coerced
     expect(payload[1]).toEqual({ a: 1 });
   });
+
+  test("parses comma-separated initial multi values", () => {
+    const { container } = render(
+      h(DropdownWidget, {
+        control: {
+          label: "Roles",
+          multiple: true,
+          value: "admin,user",
+          options: [
+            { label: "Admin", value: "admin" },
+            { label: "User", value: "user" },
+          ],
+        },
+        index: 0,
+      }),
+    );
+
+    const select = container.querySelector("select") as HTMLSelectElement;
+    const selected = Array.from(select.selectedOptions).map((o) => o.value);
+    expect(selected).toEqual(["admin", "user"]);
+  });
+
+  test("placeholder shown when value is empty", () => {
+    const { getByText, container } = render(
+      h(DropdownWidget, {
+        control: {
+          label: "Choose",
+          place: "Pick one",
+          options: [
+            { label: "One", value: "1" },
+            { label: "Two", value: "2" },
+          ],
+        },
+        index: 0,
+      }),
+    );
+
+    const select = container.querySelector("select") as HTMLSelectElement;
+    expect(select.value).toBe("");
+    expect(getByText("Pick one")).toBeTruthy();
+  });
 });

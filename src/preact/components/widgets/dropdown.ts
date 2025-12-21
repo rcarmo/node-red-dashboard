@@ -37,6 +37,47 @@ function parseOptionValue(val: string, type?: string): unknown {
   }
 }
 
+function serializeOptionValue(val: unknown): string {
+  if (val === null || val === undefined) return "";
+  if (typeof val === "string") return val;
+  try {
+    return JSON.stringify(val);
+  } catch {
+    return String(val);
+  }
+}
+
+function inferType(opt?: DropdownOption): string | undefined {
+  if (!opt) return undefined;
+  if (opt.type) return opt.type;
+  if (typeof opt.value === "number") return "number";
+  if (typeof opt.value === "string") return "string";
+  return "json";
+}
+
+function parseWithOptions(raw: string, opts: DropdownOption[]): unknown {
+  const matched = opts.find((o) => serializeOptionValue(o.value) === raw);
+  return parseOptionValue(raw, inferType(matched));
+}
+
+function normalizeValue(value: unknown, opts: DropdownOption[], multiple: boolean): unknown {
+  if (multiple) {
+    if (Array.isArray(value)) return value;
+    if (value === null || value === undefined || value === "") return [];
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean)
+        .map((v) => parseWithOptions(v, opts));
+    }
+    return [value];
+  }
+  if (value === undefined) return null;
+  if (value === "") return null;
+  return value as unknown;
+}
+
 export function buildDropdownEmit(ctrl: DropdownControl, fallbackLabel: string, value: unknown): Record<string, unknown> {
   return {
     payload: value,
@@ -52,10 +93,10 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const label = asDrop.label || asDrop.name || t("dropdown_label", "Select {index}", { index: index + 1 });
   const opts = useMemo(() => asDrop.options ?? [], [asDrop.options]);
   const multiple = Boolean(asDrop.multiple);
-  const [value, setValue] = useState<unknown>(asDrop.value ?? (multiple ? [] : null));
+  const [value, setValue] = useState<unknown>(normalizeValue(asDrop.value, opts, multiple));
 
   useEffect(() => {
-    setValue(asDrop.value ?? (multiple ? [] : null));
+    setValue(normalizeValue(asDrop.value, opts, multiple));
   }, [asDrop.value, multiple, opts]);
 
   const handleChange = (e: Event) => {
@@ -83,6 +124,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
       class=${asDrop.className || ""}
       title=${asDrop.tooltip || undefined}
       disabled=${Boolean(disabled)}
+      value=${!multiple ? serializeOptionValue(value) : undefined}
       onChange=${handleChange}
       style=${{
         width: "100%",

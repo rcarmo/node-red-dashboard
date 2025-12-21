@@ -42,6 +42,14 @@ export function formatGaugeValue(value: number, format: string | undefined, unit
   return tpl.replace(/{{\s*value\s*}}/g, formattedValue).replace(/{{\s*units\s*}}/g, units ?? "");
 }
 
+export function formatGaugeDetail(value: number, delta: number | undefined, format: string | undefined, units: string | undefined, formatter: Intl.NumberFormat): string {
+  const base = formatGaugeValue(value, format, units, formatter);
+  if (delta === undefined) return base;
+  const deltaFormatted = formatter.format(delta);
+  const sign = delta > 0 ? "+" : "";
+  return `${base} ${delta === 0 ? "(0)" : `(${sign}${deltaFormatted})`}`;
+}
+
 export function buildSegments(ctrl: GaugeControl, min: number, max: number): Array<[number, string]> {
   const colors = ctrl.colors && ctrl.colors.length >= 3 ? ctrl.colors : ["#00B500", "#E6E600", "#CA3838"];
   const seg1 = toNumber(ctrl.seg1, (min + max) / 3);
@@ -66,6 +74,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   const [value, setValue] = useState<number>(clamp(toNumber(asGauge.value ?? min, min), min, max));
   const formatter = useMemo(() => new Intl.NumberFormat(lang || undefined), [lang]);
   const chartRef = useRef<HTMLDivElement | null>(null);
+  const prevValue = useRef<number>(value);
 
   useEffect(() => {
     setValue(clamp(toNumber(asGauge.value ?? min, min), min, max));
@@ -74,8 +83,13 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   const segments = useMemo(() => buildSegments(asGauge, min, max), [asGauge, min, max]);
   const showMinMax = !asGauge.hideMinMax;
   const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "donut" || !asGauge.gtype;
-  const isDonut = asGauge.gtype === "donut";
-  const formatted = formatGaugeValue(value, asGauge.format, asGauge.units, formatter);
+  const gtype = (asGauge.gtype || "gage").toString().toLowerCase();
+  const isDonut = gtype === "donut";
+  const isWave = gtype === "wave";
+  const isCompass = gtype === "compass";
+  const diffEnabled = Boolean(asGauge.diff);
+  const delta = diffEnabled ? value - prevValue.current : undefined;
+  const formatted = formatGaugeDetail(value, delta, asGauge.format, asGauge.units, formatter);
   const ariaLabel = t("gauge_value_label", "{label}: {value} {units}", {
     label,
     value: formatNumber(value, lang),
@@ -83,9 +97,13 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   });
   const reverse = Boolean(asGauge.reverse);
 
+  useEffect(() => {
+    prevValue.current = value;
+  }, [value]);
+
   useECharts(
     chartRef,
-    [value, min, max, segments, showTicks, showMinMax, isDonut, formatted, label, reverse, formatter],
+    [value, min, max, segments, showTicks, showMinMax, isDonut, isWave, isCompass, formatted, label, reverse, formatter],
     () => ({
       backgroundColor: "transparent",
       series: [
@@ -93,12 +111,12 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           type: "gauge",
           min,
           max,
-          startAngle: reverse ? 45 : 225,
-          endAngle: reverse ? -225 : -45,
+          startAngle: isCompass ? 90 : reverse ? 45 : 225,
+          endAngle: isCompass ? -270 : reverse ? -225 : -45,
           splitNumber: showTicks ? 10 : 0,
           progress: {
             show: true,
-            width: isDonut ? 16 : 10,
+            width: isDonut || isWave ? 16 : 10,
             roundCap: true,
             itemStyle: {
               color: segments[segments.length - 1][1],
@@ -118,14 +136,14 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
             color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
             formatter: (val: number) => formatter.format(val),
           },
-          pointer: { show: !isDonut, width: 4, itemStyle: { color: "#fff" } },
-          anchor: { show: !isDonut, showAbove: true, size: 10, itemStyle: { color: "#fff" } },
+          pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "#fff" } },
+          anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "#fff" } },
           detail: {
             valueAnimation: true,
             formatter: () => formatted,
             color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
             fontSize: 16,
-            offsetCenter: [0, "60%"],
+            offsetCenter: isWave ? [0, "40%"] : [0, "60%"],
           },
           data: [
             {
