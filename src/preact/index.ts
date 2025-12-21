@@ -1,5 +1,6 @@
 import { render, type VNode } from "preact";
 import { html } from "htm/preact";
+import { useEffect } from "preact/hooks";
 import { useDashboardState } from "./state";
 
 const appStyles: Record<string, string> = {
@@ -37,6 +38,24 @@ const contentStyles: Record<string, string> = {
 export function App(): VNode {
   const { state, selectedTab, actions } = useDashboardState();
 
+  // Hash-based routing to mirror legacy /<tabIndex>
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const applyHash = () => {
+      const match = window.location.hash.match(/#\/(\d+)/);
+      if (!match) return;
+      const idx = Number(match[1]);
+      if (!Number.isNaN(idx) && idx >= 0 && idx < state.menu.length) {
+        actions.selectTab(idx);
+      }
+    };
+
+    window.addEventListener("hashchange", applyHash);
+    applyHash();
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, [state.menu.length]);
+
   const statusLabel = (() => {
     switch (state.connection) {
       case "ready":
@@ -50,6 +69,16 @@ export function App(): VNode {
 
   return html`
     <div style=${appStyles}>
+      ${state.connection !== "ready"
+        ? html`<div style=${{
+              padding: "12px 16px",
+              background: "rgba(255,255,255,0.06)",
+              borderBottom: "1px solid rgba(255,255,255,0.1)",
+              fontSize: "13px",
+            }}>
+            Loading dashboard…
+          </div>`
+        : null}
       <header style=${toolbarStyles}>
         <strong>Node-RED Dashboard v2</strong>
         <span style=${{ fontSize: "12px", opacity: 0.7 }}>Socket: ${statusLabel}${state.socketId ? ` (${state.socketId})` : ""}</span>
@@ -81,7 +110,12 @@ export function App(): VNode {
                         opacity: tab.disabled || tab.hidden ? 0.4 : 1,
                       }}
                       disabled=${tab.disabled || tab.hidden}
-                      onClick=${() => actions.selectTab(idx)}
+                      onClick=${() => {
+                        if (typeof window !== "undefined") {
+                          window.location.hash = `#/${idx}`;
+                        }
+                        actions.selectTab(idx);
+                      }}
                     >
                       ${tab.header || tab.name || `Tab ${idx + 1}`}
                     </button>
@@ -90,10 +124,17 @@ export function App(): VNode {
           </ul>
         </nav>
         <main style=${contentStyles}>
-          <h2>Welcome</h2>
-          <p>This is the new HTM/Preact shell running under Bun. Widgets and layout will render here.</p>
-          <p>Connection: ${statusLabel} ${state.socketId ? `(${state.socketId})` : ""}</p>
-          <p>Tabs loaded: ${state.menu.length} ${selectedTab ? `(selected: ${selectedTab.header || selectedTab.name || "(unnamed)"})` : ""}</p>
+          ${state.menu.length === 0
+            ? html`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
+                <p style=${{ margin: "0 0 8px" }}>No tabs defined yet.</p>
+                <p style=${{ margin: 0 }}>Add UI nodes in Node-RED and deploy to see them here.</p>
+              </div>`
+            : html`<>
+                <h2>Welcome</h2>
+                <p>This is the new HTM/Preact shell running under Bun. Widgets and layout will render here.</p>
+                <p>Connection: ${statusLabel} ${state.socketId ? `(${state.socketId})` : ""}</p>
+                <p>Tabs loaded: ${state.menu.length} ${selectedTab ? `(selected: ${selectedTab.header || selectedTab.name || "(unnamed)"})` : ""}</p>
+              </>`}
         </main>
       </section>
     </div>

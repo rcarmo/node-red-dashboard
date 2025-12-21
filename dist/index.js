@@ -418,6 +418,10 @@ function y2(n3, u3) {
   var i3 = p2(t3++, 3);
   !c2.__s && C2(i3.__H, u3) && (i3.__ = n3, i3.u = u3, r2.__H.__h.push(i3));
 }
+function T2(n3, r3) {
+  var u3 = p2(t3++, 7);
+  return C2(u3.__H, r3) && (u3.__ = n3(), u3.__H = r3, u3.__h = n3), u3.__;
+}
 function j2() {
   for (var n3;n3 = f2.shift(); )
     if (n3.__P && n3.__H)
@@ -3101,6 +3105,74 @@ function createSocketBridge(handlers = {}) {
   return { socket, emit, dispose };
 }
 
+// src/preact/state.ts
+var initialState = {
+  connection: "connecting",
+  socketId: "",
+  menu: [],
+  globals: [],
+  site: null,
+  selectedTabIndex: null,
+  replayDone: false
+};
+function useDashboardState() {
+  const [state, setState] = d2(initialState);
+  const [bridge, setBridge] = d2(null);
+  y2(() => {
+    const b = createSocketBridge({
+      onConnect: (id) => {
+        setState((prev) => ({ ...prev, connection: "ready", socketId: id }));
+      },
+      onControls: (payload) => {
+        const data = payload || {};
+        const menu = data.menu ?? [];
+        const globals = data.globals ?? [];
+        const site = data.site ?? null;
+        const defaultTab = getFirstVisibleTab(menu);
+        setState((prev) => ({
+          ...prev,
+          connection: "ready",
+          menu,
+          globals,
+          site,
+          selectedTabIndex: defaultTab
+        }));
+      },
+      onReplayDone: () => {
+        setState((prev) => ({ ...prev, replayDone: true, connection: "ready" }));
+      }
+    });
+    setBridge(b);
+    return () => b.dispose();
+  }, []);
+  const selectedTab = T2(() => {
+    if (state.selectedTabIndex == null)
+      return null;
+    return state.menu[state.selectedTabIndex] ?? null;
+  }, [state.menu, state.selectedTabIndex]);
+  const selectTab = (index) => {
+    setState((prev) => ({ ...prev, selectedTabIndex: index }));
+    bridge?.emit("ui-change", { tab: index });
+  };
+  return {
+    state,
+    selectedTab,
+    actions: {
+      selectTab,
+      emit: bridge?.emit ?? null
+    }
+  };
+}
+function getFirstVisibleTab(menu) {
+  for (let i3 = 0;i3 < menu.length; i3 += 1) {
+    const tab = menu[i3];
+    if (tab && !tab.hidden && !tab.disabled) {
+      return i3;
+    }
+  }
+  return menu.length > 0 ? 0 : null;
+}
+
 // src/preact/index.ts
 var appStyles = {
   fontFamily: "'Inter', system-ui, sans-serif",
@@ -3130,27 +3202,25 @@ var contentStyles = {
   padding: "16px"
 };
 function App() {
-  const [connState, setConnState] = d2("connecting");
-  const [socketId, setSocketId] = d2("");
-  const [bridge, setBridge] = d2(null);
+  const { state, selectedTab, actions } = useDashboardState();
   y2(() => {
-    const b = createSocketBridge({
-      onConnect: (id) => {
-        setSocketId(id);
-        setConnState("ready");
-      },
-      onControls: () => {
-        setConnState("ready");
-      },
-      onReplayDone: () => {
-        setConnState("ready");
+    if (typeof window === "undefined")
+      return;
+    const applyHash = () => {
+      const match = window.location.hash.match(/#\/(\d+)/);
+      if (!match)
+        return;
+      const idx = Number(match[1]);
+      if (!Number.isNaN(idx) && idx >= 0 && idx < state.menu.length) {
+        actions.selectTab(idx);
       }
-    });
-    setBridge(b);
-    return () => b.dispose();
-  }, []);
+    };
+    window.addEventListener("hashchange", applyHash);
+    applyHash();
+    return () => window.removeEventListener("hashchange", applyHash);
+  }, [state.menu.length]);
   const statusLabel = (() => {
-    switch (connState) {
+    switch (state.connection) {
       case "ready":
         return "Connected";
       case "connecting":
@@ -3161,21 +3231,62 @@ function App() {
   })();
   return m2`
     <div style=${appStyles}>
+      ${state.connection !== "ready" ? m2`<div style=${{
+    padding: "12px 16px",
+    background: "rgba(255,255,255,0.06)",
+    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    fontSize: "13px"
+  }}>
+            Loading dashboard…
+          </div>` : null}
       <header style=${toolbarStyles}>
         <strong>Node-RED Dashboard v2</strong>
-        <span style=${{ fontSize: "12px", opacity: 0.7 }}>Socket: ${statusLabel}${socketId ? ` (${socketId})` : ""}</span>
+        <span style=${{ fontSize: "12px", opacity: 0.7 }}>Socket: ${statusLabel}${state.socketId ? ` (${state.socketId})` : ""}</span>
       </header>
       <section style=${layoutStyles}>
         <nav style=${navStyles}>
           <h3 style=${{ marginTop: 0 }}>Tabs</h3>
-          <ul style=${{ listStyle: "none", padding: 0, margin: 0, opacity: 0.6 }}>
-            <li>Placeholder tab list</li>
+          <ul style=${{ listStyle: "none", padding: 0, margin: 0, opacity: 0.9 }}>
+            ${state.menu.length === 0 ? m2`<li style=${{ opacity: 0.6 }}>No tabs yet</li>` : state.menu.map((tab, idx) => {
+    const active = idx === state.selectedTabIndex;
+    return m2`<li key=${tab.id ?? tab.header ?? idx}>
+                    <button
+                      style=${{
+      width: "100%",
+      textAlign: "left",
+      padding: "8px 10px",
+      marginBottom: "6px",
+      borderRadius: "6px",
+      border: active ? "1px solid rgba(255,255,255,0.35)" : "1px solid rgba(255,255,255,0.12)",
+      background: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
+      color: "inherit",
+      cursor: "pointer",
+      opacity: tab.disabled || tab.hidden ? 0.4 : 1
+    }}
+                      disabled=${tab.disabled || tab.hidden}
+                      onClick=${() => {
+      if (typeof window !== "undefined") {
+        window.location.hash = `#/${idx}`;
+      }
+      actions.selectTab(idx);
+    }}
+                    >
+                      ${tab.header || tab.name || `Tab ${idx + 1}`}
+                    </button>
+                  </li>`;
+  })}
           </ul>
         </nav>
         <main style=${contentStyles}>
-          <h2>Welcome</h2>
-          <p>This is the new HTM/Preact shell running under Bun. Widgets and layout will render here.</p>
-          <p>Socket bridge ${bridge ? "is active" : "not active"}.</p>
+          ${state.menu.length === 0 ? m2`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
+                <p style=${{ margin: "0 0 8px" }}>No tabs defined yet.</p>
+                <p style=${{ margin: 0 }}>Add UI nodes in Node-RED and deploy to see them here.</p>
+              </div>` : m2`<>
+                <h2>Welcome</h2>
+                <p>This is the new HTM/Preact shell running under Bun. Widgets and layout will render here.</p>
+                <p>Connection: ${statusLabel} ${state.socketId ? `(${state.socketId})` : ""}</p>
+                <p>Tabs loaded: ${state.menu.length} ${selectedTab ? `(selected: ${selectedTab.header || selectedTab.name || "(unnamed)"})` : ""}</p>
+              </>`}
         </main>
       </section>
     </div>
