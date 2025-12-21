@@ -52,8 +52,37 @@ describe("Chart adapter", () => {
         },
       ],
       start,
+      { removeOlderMs: 0, removeOlderPoints: 0 },
     );
     expect(after.series[0].data).toEqual([[2, 5]]);
+  });
+
+  test("prunes old points with removeOlder window", () => {
+    const start = applyChartPayload(
+      "line",
+      [
+        {
+          values: {
+            series: ["s1"],
+            labels: ["l1"],
+            data: [[{ x: 1000, y: 1 }]],
+          },
+        },
+      ],
+      { labels: [], series: [], isTimeSeries: false },
+    );
+    const after = applyChartPayload(
+      "line",
+      [
+        {
+          update: true,
+          values: { series: "s1", data: { x: 7000, y: 3 } },
+        },
+      ],
+      start,
+      { removeOlderMs: 4000, removeOlderPoints: undefined },
+    );
+    expect(after.series[0].data).toEqual([[7000, 3]]);
   });
 
   test("builds line option with smoothing and span gaps", () => {
@@ -96,6 +125,66 @@ describe("Chart adapter", () => {
     const series = option.series as Array<{ data: Array<{ name: string; value: number }> }>;
     expect(series[0].data[0]).toEqual({ name: "X", value: 5 });
     expect(series[0].data[1]).toEqual({ name: "Y", value: 10 });
+  });
+
+  test("marks stacked series", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [{ name: "S", data: [1, 2] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "bar", stacked: true }, data, "en", t);
+    const series = option.series as Array<{ stack?: string }>;
+    expect(series[0].stack).toBe("stack");
+  });
+
+  test("applies custom stack key and shadow pointer", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [{ name: "S", data: [1, 2] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "bar", stacked: true, stackKey: "k" }, data, "en", t);
+    const series = option.series as Array<{ stack?: string }>;
+    expect(series[0].stack).toBe("k");
+    const tooltip = option.tooltip as { axisPointer?: { type?: string } };
+    expect(tooltip.axisPointer?.type).toBe("shadow");
+  });
+
+  test("sets pie start angle", () => {
+    const data: ChartData = {
+      labels: ["X", "Y"],
+      series: [{ name: "S", data: [5, 10] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "pie", startAngle: 90 }, data, "en", t);
+    const series = option.series as Array<{ startAngle?: number }>;
+    expect(series[0].startAngle).toBe(90);
+  });
+
+  test("applies radar angles and splits", () => {
+    const data: ChartData = {
+      labels: ["a", "b", "c"],
+      series: [{ name: "R", data: [1, 2, 3] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "radar", radarStartAngle: 45, radarSplitNumber: 6, radarShape: "circle" }, data, "en", t);
+    const radar = option.radar as { startAngle?: number; splitNumber?: number; shape?: string };
+    expect(radar.startAngle).toBe(45);
+    expect(radar.splitNumber).toBe(6);
+    expect(radar.shape).toBe("circle");
+  });
+
+  test("legend hidden state is preserved", () => {
+    const data: ChartData = {
+      labels: ["A"],
+      series: [{ name: "S", data: [1] }],
+      isTimeSeries: false,
+    };
+    const hidden = new Set(["S"]);
+    const option = buildChartOption({ look: "bar", legend: true }, data, "en", t, hidden);
+    const legend = option.legend as { selected?: Record<string, boolean> };
+    expect(legend.selected?.S).toBe(false);
   });
 
   test("normalizes look", () => {

@@ -41,6 +41,8 @@ export type ChartControl = UiControl & {
   name?: string;
   look?: ChartLook | string;
   legend?: boolean;
+  stacked?: boolean;
+  stackKey?: string;
   interpolate?: "cubic" | "monotone" | "linear" | "bezier" | "step" | string;
   nodata?: boolean;
   width?: number | string;
@@ -50,12 +52,19 @@ export type ChartControl = UiControl & {
   dot?: boolean;
   xformat?: string;
   cutout?: number | string;
+  startAngle?: number | string;
+  radarStartAngle?: number | string;
+  radarSplitNumber?: number | string;
+  radarShape?: "polygon" | "circle" | string;
   colors?: string[];
   useOneColor?: boolean;
   useDifferentColor?: boolean;
   useUTC?: boolean;
   animation?: boolean;
   spanGaps?: boolean;
+  removeOlder?: number | string;
+  removeOlderUnit?: number | string;
+  removeOlderPoints?: number | string;
   className?: string;
   value?: unknown;
 };
@@ -69,6 +78,11 @@ export type ChartData = {
   labels: string[];
   series: ChartSeries[];
   isTimeSeries: boolean;
+};
+
+type Windowing = {
+  removeOlderMs?: number;
+  removeOlderPoints?: number;
 };
 
 const DEFAULT_COLORS = [
@@ -104,6 +118,16 @@ function toNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function toPositiveNumber(value: unknown): number | undefined {
+  const n = toNumber(value);
+  return n != null && Number.isFinite(n) ? n : undefined;
+}
+
+function toOptionalNumber(value: unknown): number | undefined {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+}
+
 function cloneData(data: ChartData): ChartData {
   return {
     labels: [...data.labels],
@@ -120,7 +144,7 @@ function findSeries(data: ChartData, name: string): ChartSeries {
   return created;
 }
 
-export function applyChartPayload(look: ChartLook, payload: unknown, prev: ChartData): ChartData {
+export function applyChartPayload(look: ChartLook, payload: unknown, prev: ChartData, windowing?: Windowing): ChartData {
   if (!Array.isArray(payload) || payload.length === 0) {
     return { labels: [], series: [], isTimeSeries: false };
   }
@@ -142,6 +166,16 @@ export function applyChartPayload(look: ChartLook, payload: unknown, prev: Chart
       const remove = Number((entry as { remove?: number }).remove ?? 0);
       if (Number.isFinite(remove) && remove > 0) {
         s.data.splice(0, remove);
+      }
+      const cutoff = windowing?.removeOlderMs;
+      if (cutoff && cutoff > 0) {
+        const latestTs = Number(point.x);
+        const threshold = latestTs - cutoff;
+        s.data = s.data.filter((p) => Array.isArray(p) && (p[0] as number) >= threshold);
+      }
+      const maxPoints = windowing?.removeOlderPoints;
+      if (maxPoints && maxPoints > 0 && s.data.length > maxPoints) {
+        s.data.splice(0, s.data.length - maxPoints);
       }
     }
     return next;
@@ -173,6 +207,8 @@ function buildLineSeries(control: ChartControl, data: ChartData): EChartsOption[
   const interpolate = (control.interpolate || "").toString();
   const dot = Boolean(control.dot);
   const spanGaps = Boolean(control.spanGaps);
+  const stacked = Boolean(control.stacked);
+  const stackName = control.stackKey || (stacked ? "stack" : undefined);
 
   return data.series.map((s) => {
     const series: Record<string, unknown> = {
@@ -183,6 +219,7 @@ function buildLineSeries(control: ChartControl, data: ChartData): EChartsOption[
       smooth: interpolate === "cubic" || interpolate === "bezier" || interpolate === "monotone",
       connectNulls: spanGaps,
     };
+    if (stackName) series.stack = stackName;
     if (interpolate === "monotone") {
       series.smoothMonotone = "x";
     }
@@ -194,7 +231,8 @@ function buildLineSeries(control: ChartControl, data: ChartData): EChartsOption[
   });
 }
 
-function buildBarSeries(look: ChartLook, data: ChartData): EChartsOption["series"] {
+function buildBarSeries(look: ChartLook, data: ChartData, stacked: boolean, stackKey?: string): EChartsOption["series"] {
+  const stackName = stackKey || (stacked ? "stack" : undefined);
   return data.series.map((s) => {
     const series: Record<string, unknown> = {
       type: "bar",
@@ -205,6 +243,7 @@ function buildBarSeries(look: ChartLook, data: ChartData): EChartsOption["series
     if (look === "horizontalBar") {
       series.type = "bar";
     }
+    if (stackName) series.stack = stackName;
     return series;
   });
 }
@@ -213,6 +252,7 @@ function buildPieSeries(look: ChartLook, control: ChartControl, data: ChartData)
   const radiusInner = Math.max(0, Number(control.cutout ?? 0));
   const hasMultiple = data.series.length > 1;
   const radiusBase = radiusInner > 0 ? [radiusInner, "70%"] : [0, "70%"];
+  const startAngle = toPositiveNumber(control.startAngle);
 
   return data.series.map((s, idx) => {
     const radius = hasMultiple ? [radiusInner, `${50 + idx * 15}%`] : radiusBase;
@@ -220,6 +260,7 @@ function buildPieSeries(look: ChartLook, control: ChartControl, data: ChartData)
       type: "pie",
       name: s.name,
       radius,
+      startAngle,
       roseType: look === "polar-area" ? "area" : undefined,
       data: data.labels.map((label, i) => ({ name: label, value: (s.data[i] as number) ?? 0 })),
       label: { show: true },
@@ -235,25 +276,57 @@ function buildRadarSeries(data: ChartData): EChartsOption["series"] {
   }));
 }
 
-export function buildChartOption(control: ChartControl, data: ChartData, lang: string | null, t: (k: string, dflt: string, vars?: Record<string, unknown>) => string): EChartsOption {
+export function buildChartOption(
+  control: ChartControl,
+  data: ChartData,
+  lang: string | null,
+  t: (k: string, dflt: string, vars?: Record<string, unknown>) => string,
+  hiddenSeries?: Set<string>,
+): EChartsOption {
   const look = normalizeLook(control.look);
   const colors = control.colors && control.colors.length > 0 ? control.colors : DEFAULT_COLORS;
   const useUTC = Boolean(control.useUTC);
   const animation = control.animation !== false;
+  const stacked = Boolean(control.stacked);
+  const stackKey = control.stackKey;
 
   const option: EChartsOption = {
     color: colors,
     animation,
     useUTC,
     textStyle: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
-    tooltip: { trigger: look === "pie" || look === "polar-area" ? "item" : "axis" },
-    legend: control.legend ? {} : { show: false },
+    tooltip: {
+      trigger: look === "pie" || look === "polar-area" ? "item" : "axis",
+      axisPointer: stacked && (look === "bar" || look === "horizontalBar") ? { type: "shadow" } : undefined,
+    },
+    legend: control.legend
+      ? {
+          selected: hiddenSeries
+            ? Array.from(hiddenSeries).reduce<Record<string, boolean>>((acc, name) => {
+                acc[name] = false;
+                return acc;
+              }, {} )
+            : undefined,
+        }
+      : { show: false },
   };
 
   const valueFormatter = (v: number) => formatNumber(v, lang ?? undefined);
   const timeFormatter = (ts: number) => {
     const d = useUTC ? dayjs.utc(ts) : dayjs(ts);
-    const fmt = control.xformat || "HH:mm:ss";
+    const fmt = control.xformat;
+    if (!fmt || fmt === "auto") {
+      return d.isValid()
+        ? d.calendar(undefined, {
+            sameDay: "HH:mm:ss",
+            lastDay: "MMM D HH:mm",
+            lastWeek: "MMM D HH:mm",
+            sameElse: "lll",
+            nextDay: "HH:mm",
+            nextWeek: "MMM D HH:mm",
+          })
+        : String(ts);
+    }
     return d.isValid() ? d.format(fmt) : String(ts);
   };
 
@@ -265,6 +338,7 @@ export function buildChartOption(control: ChartControl, data: ChartData, lang: s
         formatter: data.isTimeSeries ? (val: number) => timeFormatter(val) : (val: unknown) => String(val ?? ""),
         color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
       },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
     };
 
     const valueAxis = {
@@ -276,6 +350,7 @@ export function buildChartOption(control: ChartControl, data: ChartData, lang: s
         color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
       },
       splitLine: { lineStyle: { color: "rgba(255,255,255,0.1)" } },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
     };
 
     if (look === "horizontalBar") {
@@ -287,12 +362,18 @@ export function buildChartOption(control: ChartControl, data: ChartData, lang: s
     }
 
     option.grid = { left: 10, right: 10, top: 24, bottom: 20, containLabel: true };
-    option.series = look === "line" ? buildLineSeries(control, data) : buildBarSeries(look, data);
+    option.series = look === "line" ? buildLineSeries(control, data) : buildBarSeries(look, data, stacked, stackKey);
   } else if (look === "pie" || look === "polar-area") {
     option.series = buildPieSeries(look, control, data);
   } else if (look === "radar") {
+    const radarStartAngle = toOptionalNumber(control.radarStartAngle);
+    const radarSplitNumber = toOptionalNumber(control.radarSplitNumber);
+    const radarShape = control.radarShape === "circle" ? "circle" : control.radarShape === "polygon" ? "polygon" : undefined;
     option.radar = {
       indicator: data.labels.map((l) => ({ name: l })),
+      startAngle: radarStartAngle,
+      splitNumber: radarSplitNumber,
+      shape: radarShape,
       axisName: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
       splitLine: { lineStyle: { color: "rgba(255,255,255,0.15)" } },
       splitArea: { areaStyle: { color: "transparent" } },
@@ -315,16 +396,54 @@ export function ChartWidget(props: { control: UiControl; index: number; disabled
   const { t, lang } = useI18n();
   const look = normalizeLook(c.look);
   const [data, setData] = useState<ChartData>({ labels: [], series: [], isTimeSeries: false });
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
   const chartRef = useRef<HTMLDivElement | null>(null);
   const label = c.label || c.name || t("chart_label_index", "Chart {index}", { index: index + 1 });
 
+  const removeOlderMs = useMemo(() => {
+    const base = Number(c.removeOlder);
+    const unit = Number(c.removeOlderUnit ?? 1);
+    if (!Number.isFinite(base) || base <= 0) return undefined;
+    return base * unit * 1000;
+  }, [c.removeOlder, c.removeOlderUnit]);
+
+  const removeOlderPoints = useMemo(() => {
+    const n = Number(c.removeOlderPoints);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
+  }, [c.removeOlderPoints]);
+
   useEffect(() => {
-    setData((prev) => applyChartPayload(look, c.value, prev));
-  }, [c.value, look]);
+    setData((prev) => applyChartPayload(look, c.value, prev, { removeOlderMs, removeOlderPoints }));
+  }, [c.value, look, removeOlderMs, removeOlderPoints]);
 
-  const option = useMemo(() => buildChartOption({ ...c, label }, data, lang, t), [c, data, label, lang, t]);
+  useEffect(() => {
+    setHidden((prev) => {
+      const next = new Set<string>();
+      prev.forEach((name) => {
+        if (data.series.some((s) => s.name === name)) next.add(name);
+      });
+      return next;
+    });
+  }, [data.series]);
 
-  useECharts(chartRef, [option], () => option);
+  const option = useMemo(
+    () => buildChartOption({ ...c, label }, data, lang, t, hidden),
+    [c, data, label, lang, t, hidden],
+  );
+
+  const { instance } = useECharts(chartRef, [option], () => option, (chart) => {
+    chart.off("legendselectchanged");
+    chart.on("legendselectchanged", (ev) => {
+      const selected = (ev as { selected?: Record<string, boolean> }).selected;
+      if (!selected) return;
+      setHidden(new Set(Object.entries(selected).filter(([, v]) => v === false).map(([name]) => name)));
+    });
+  });
+
+  useEffect(() => {
+    if (!instance) return;
+    instance.setOption(option, { replaceMerge: ["series", "legend"] });
+  }, [instance, option]);
 
   return html`<div
     class=${c.className || ""}

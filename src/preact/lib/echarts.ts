@@ -25,6 +25,7 @@ export function useECharts(
   ref: { current: HTMLDivElement | null },
   deps: unknown[],
   buildOption: () => echarts.EChartsOption,
+  onInit?: (chart: EChartsInstance) => void,
 ): { instance: EChartsInstance | null } {
   const instanceRef = useRef<EChartsInstance | null>(null);
 
@@ -33,6 +34,7 @@ export function useECharts(
     if (!ref.current) return undefined;
     const chart = echarts.init(ref.current, undefined, { renderer: "canvas" });
     instanceRef.current = chart;
+    if (onInit) onInit(chart);
 
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
