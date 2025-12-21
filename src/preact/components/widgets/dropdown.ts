@@ -15,6 +15,7 @@ export type DropdownControl = UiControl & {
   className?: string;
   topic?: string;
   value?: unknown;
+  resetSelection?: boolean;
 };
 
 function parseOptionValue(val: string, type?: string): unknown {
@@ -109,7 +110,13 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
       const exists = opts.some((o) => serializeOptionValue(o.value) === serializeOptionValue(normalized));
       setValue(exists ? normalized : null);
     }
-  }, [asDrop.value, multiple, opts]);
+  }, [asDrop.value, asDrop.resetSelection, multiple, opts]);
+
+  useEffect(() => {
+    if (asDrop.resetSelection) {
+      setValue(multiple ? [] : null);
+    }
+  }, [asDrop.resetSelection, multiple]);
 
   const handleChange = (e: Event) => {
     const target = e.target as HTMLSelectElement;

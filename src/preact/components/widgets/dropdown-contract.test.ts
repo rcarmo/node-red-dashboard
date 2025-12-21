@@ -154,4 +154,40 @@ describe("Dropdown ui_control updates", () => {
 
     expect(select.value).toBe("");
   });
+
+  test("clears selection when resetSelection is true", () => {
+    const { container, rerender } = render(
+      h(DropdownWidget, {
+        control: {
+          label: "Choose",
+          options: [
+            { label: "One", value: "1" },
+            { label: "Two", value: "2" },
+          ],
+          value: "2",
+        },
+        index: 0,
+      }),
+    );
+
+    const select = container.querySelector("select") as HTMLSelectElement;
+    expect(select.value).toBe("2");
+
+    rerender(
+      h(DropdownWidget, {
+        control: {
+          label: "Choose",
+          options: [
+            { label: "One", value: "1" },
+            { label: "Two", value: "2" },
+          ],
+          value: "2",
+          resetSelection: true,
+        },
+        index: 0,
+      }),
+    );
+
+    expect(select.value).toBe("");
+  });
 });

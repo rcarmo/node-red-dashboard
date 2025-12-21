@@ -90,7 +90,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
 
   const segments = useMemo(() => buildSegments(asGauge, min, max), [asGauge, min, max]);
   const showMinMax = !asGauge.hideMinMax;
-  const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "donut" || !asGauge.gtype;
+  const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "donut" || asGauge.gtype === "compass" || !asGauge.gtype;
   const gtype = (asGauge.gtype || "gage").toString().toLowerCase();
   const isDonut = gtype === "donut";
   const isWave = gtype === "wave";
@@ -122,7 +122,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           max,
           startAngle: isCompass ? 90 : reverse ? 45 : 225,
           endAngle: isCompass ? -270 : reverse ? -225 : -45,
-          splitNumber: showTicks ? 10 : 0,
+          splitNumber: isCompass ? 8 : showTicks ? 10 : 0,
           progress: {
             show: true,
             width: isDonut || isWave ? 16 : 10,
@@ -140,10 +140,15 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           axisTick: { show: showTicks, distance: -12, length: 6 },
           splitLine: { show: showTicks, length: 10, distance: -14 },
           axisLabel: {
-            show: showMinMax,
-            distance: 16,
+            show: showMinMax || isCompass,
+            distance: isCompass ? 22 : 16,
             color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-            formatter: (val: number) => formatter.format(val),
+            formatter: (val: number) => {
+              if (!isCompass) return formatter.format(val);
+              const dirs = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+              const idx = Math.round(((val % 360) / 45)) % 8;
+              return dirs[idx];
+            },
           },
           pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "#fff" } },
           anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "#fff" } },
