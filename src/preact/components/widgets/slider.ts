@@ -16,6 +16,7 @@ export type SliderControl = UiControl & {
   className?: string;
   width?: number | string;
   height?: number | string;
+  showSign?: boolean;
 };
 
 const DEFAULT_THROTTLE_MS = 10;
@@ -97,6 +98,20 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       box-shadow: 0 0 0 6px color-mix(in srgb, var(--nr-dashboard-slider-focus) 40%, transparent);
     }
 
+    .nr-dashboard-slider__track {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .nr-dashboard-slider__track.is-vertical {
+      flex-direction: column;
+      height: 160px;
+      width: 48px;
+    }
+
     .nr-dashboard-slider__range::-moz-range-track {
       height: 6px;
       border-radius: 999px;
@@ -163,7 +178,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     }
 
     .nr-dashboard-slider__sign.is-vertical {
-      left: 50%;
+      left: calc(50% + 14px);
       transform: translate(-50%, -50%);
     }
 
@@ -207,6 +222,7 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
   const isVertical = toNumber(asSlider.width ?? 0, 0) < toNumber(asSlider.height ?? 0, 0);
   const invert = Boolean(asSlider.invert);
   const isDiscrete = outs === "end";
+  const forceSign = Boolean(asSlider.showSign);
 
   const initial = clampSliderValue(toNumber(asSlider.value ?? min, min), min, max);
   const [value, setValue] = useState<number>(initial);
@@ -269,6 +285,7 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
   const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
   const showTicks = isDiscrete && stepCount > 0 && stepCount <= 200;
+  const showSign = forceSign || showTicks;
 
   const sliderStyle = isVertical
     ? {
@@ -287,44 +304,48 @@ export function SliderWidget(props: { control: UiControl; index: number; onEmit?
 
   return html`<div class=${containerClass}>
     ${!isVertical ? html`<span class="nr-dashboard-slider__label">${label}</span>` : null}
-    <input
-      class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
-      type="range"
-      min=${min}
-      max=${max}
-      step=${step}
-      value=${sliderValue}
-      title=${asSlider.tooltip || undefined}
-      onInput=${handleInput}
-      onChange=${handleChange}
-      onWheel=${handleWheel}
-      style=${{
-        ...sliderStyle,
-        transform: isVertical && invert ? "rotate(180deg)" : undefined,
-      }}
-    />
-    ${isVertical ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
-    ${showTicks
-      ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-          ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
-            const pos = (idx / stepCount) * 100;
-            const active = percent * 100 >= pos;
-            const style = isVertical
-              ? { top: `${100 - pos}%`, left: "0" }
-              : { left: `${pos}%`, top: "0" };
-            return html`<span
-              class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
-              style=${style}
-            ></span>`;
-          })}
-          <span
+    <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
+      <input
+        class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+        type="range"
+        min=${min}
+        max=${max}
+        step=${step}
+        value=${sliderValue}
+        title=${asSlider.tooltip || undefined}
+        onInput=${handleInput}
+        onChange=${handleChange}
+        onWheel=${handleWheel}
+        style=${{
+          ...sliderStyle,
+          transform: isVertical && invert ? "rotate(180deg)" : undefined,
+        }}
+      />
+      ${showTicks
+        ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
+            ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
+              const pos = (idx / stepCount) * 100;
+              const active = percent * 100 >= pos;
+              const style = isVertical
+                ? { top: `${100 - pos}%`, left: "0" }
+                : { left: `${pos}%`, top: "0" };
+              return html`<span
+                class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
+                style=${style}
+              ></span>`;
+            })}
+          </div>`
+        : null}
+      ${showSign
+        ? html`<span
             class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
             style=${isVertical
               ? { top: `${100 - percent * 100}%` }
-              : { left: `${percent * 100}%`, transform: "translate(-50%, 0)" }}
-          >${value}</span>
-        </div>`
-      : null}
+              : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
+          >${value}</span>`
+        : null}
+    </div>
+    ${isVertical ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
     <span class="nr-dashboard-slider__value">${value}</span>
   </div>`;
 }
