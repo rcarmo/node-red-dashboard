@@ -1,6 +1,6 @@
 import { render, type VNode } from "preact";
 import { html } from "htm/preact";
-import { useEffect, useMemo, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { DashboardActions, DashboardState, UiGroup, UiMenuItem, UiTheme } from "./state";
 import { useDashboardState } from "./state";
 import { TabNav } from "./components/layout/TabNav";
@@ -226,6 +226,16 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const sizes = useSizes();
   const { t } = useI18n();
   const mainRef = useRef<HTMLElement | null>(null);
+  const site = (state.site as { lockMenu?: string | boolean; allowSwipe?: string | boolean } | null) ?? null;
+  const lockModeRaw = site?.lockMenu;
+  const lockMode = typeof lockModeRaw === "boolean" ? (lockModeRaw ? "true" : "false") : typeof lockModeRaw === "string" ? lockModeRaw : "false";
+  const allowSwipeRaw = site?.allowSwipe;
+  const allowSwipe = typeof allowSwipeRaw === "boolean" ? (allowSwipeRaw ? "true" : "false") : typeof allowSwipeRaw === "string" ? allowSwipeRaw : "false";
+  const isLocked = lockMode === "true";
+  const isIconOnly = lockMode === "icon";
+  const isSlide = lockMode === "false";
+  const [navOpen, setNavOpen] = useState<boolean>(isLocked || isIconOnly);
+
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
 
   useEffect(() => {
@@ -236,6 +246,10 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
       target.focus(focusOptions);
     }
   }, [selectedTab, state.connection]);
+
+  useEffect(() => {
+    setNavOpen(isLocked || isIconOnly || lockMode === "true");
+  }, [isLocked, isIconOnly, lockMode]);
 
   const statusLabel = (() => {
     switch (state.connection) {
@@ -250,49 +264,99 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 
   return html`
     <div style=${appStyles}>
-      ${shouldShowLoading(state.connection)
-        ? html`<div style=${{
-              padding: "12px 16px",
-              background: "rgba(255,255,255,0.06)",
-              borderBottom: "1px solid rgba(255,255,255,0.1)",
-              fontSize: "13px",
-            }}>
-            ${t("loading", "Loading dashboard...")}
-          </div>`
-        : null}
       <header style=${toolbarStyles}>
+        ${isSlide
+          ? html`<button
+              type="button"
+              aria-label=${t("toggle_menu", "Toggle menu")}
+              onClick=${() => setNavOpen((v) => !v)}
+              style=${{
+                border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+                background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+                color: "inherit",
+                borderRadius: "8px",
+                padding: "6px 10px",
+                cursor: "pointer",
+              }}
+            >${navOpen ? "✕" : "☰"}</button>`
+          : null}
         <strong>${t("app_title", "Node-RED Dashboard v2")}</strong>
-        <span style=${{ fontSize: "12px", opacity: 0.7 }}>
-          ${state.socketId
-            ? t("socket_status_with_id", "Socket: {status} ({id})", { status: statusLabel, id: state.socketId })
-            : t("socket_status", "Socket: {status}", { status: statusLabel })}
+        <span
+          style=${{
+            marginLeft: "auto",
+            fontSize: "13px",
+            opacity: 0.8,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <span
+            aria-hidden="true"
+            style=${{
+              width: "10px",
+              height: "10px",
+              borderRadius: "50%",
+              background:
+                state.connection === "ready"
+                  ? "#46e18a"
+                  : state.connection === "connecting"
+                  ? "#f5c74f"
+                  : "#f26b6b",
+            }}
+          ></span>
+          ${statusLabel}
         </span>
       </header>
-      <section style=${layoutStyles}>
-        <nav style=${navStyles}>
-          <h3 style=${{ marginTop: 0 }}>${t("tabs_label", "Tabs")}</h3>
-          <${TabNav}
-            menu=${state.menu}
-            selectedIndex=${state.selectedTabIndex}
-            onSelect=${(idx: number) => {
-              if (typeof window !== "undefined") {
-                window.location.hash = `#/${idx}`;
-              }
-              actions.selectTab(idx);
-            }}
-          />
-        </nav>
+      <section
+        style=${{
+          ...layoutStyles,
+          gridTemplateColumns: navOpen || isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr",
+        }}
+      >
+        ${navOpen || isLocked || isIconOnly
+          ? html`<nav
+              style=${{
+                ...navStyles,
+                padding: isIconOnly ? "12px 10px" : navStyles.padding,
+                width: isIconOnly ? "72px" : "100%",
+                background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
+              }}
+            >
+              ${isIconOnly ? null : html`<h3 style=${{ marginTop: 0 }}>${t("tabs_label", "Tabs")}</h3>`}
+              <${TabNav}
+                menu=${state.menu}
+                selectedIndex=${state.selectedTabIndex}
+                variant=${isIconOnly ? "icon" : "full"}
+                onSelect=${(idx: number) => {
+                  if (typeof window !== "undefined") {
+                    window.location.hash = `#/${idx}`;
+                  }
+                  actions.selectTab(idx);
+                  if (isSlide && allowSwipe !== "true" && allowSwipe !== "mouse" && allowSwipe !== "menu") {
+                    setNavOpen(false);
+                  }
+                }}
+              />
+            </nav>`
+          : null}
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
           ${shouldShowLoading(state.connection)
             ? html`<${LoadingSkeleton} columns=${sizes.columns} />`
             : state.menu.length === 0
             ? html`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
                 <p style=${{ margin: "0 0 8px" }}>${t("no_tabs_defined_title", "No tabs defined yet.")}</p>
-                <p style=${{ margin: 0 }}>${t("no_tabs_defined_body", "Add UI nodes in Node-RED and deploy to see them here.")}</p>
+                <p style=${{ margin: 0 }}>${t(
+                  "no_tabs_defined_body",
+                  "Add UI nodes in Node-RED and deploy to see them here.",
+                )}</p>
               </div>`
             : (() => {
                 if (!selectedTab) {
-                  return html`<div style=${{ opacity: 0.7 }}>${t("select_tab_prompt", "Select a tab to view its content.")}</div>`;
+                  return html`<div style=${{ opacity: 0.7 }}>${t(
+                    "select_tab_prompt",
+                    "Select a tab to view its content.",
+                  )}</div>`;
                 }
 
                 if (selectedTab.link) {

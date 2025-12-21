@@ -33,6 +33,29 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       cursor: pointer;
     }
 
+    .nr-dashboard-tabs__btn.is-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px;
+    }
+
+    .nr-dashboard-tabs__icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--nr-dashboard-nav-border);
+    }
+
+    .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
+      display: none;
+    }
+
     .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);

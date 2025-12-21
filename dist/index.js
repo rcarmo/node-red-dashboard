@@ -3880,6 +3880,29 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       cursor: pointer;
     }
 
+    .nr-dashboard-tabs__btn.is-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px;
+    }
+
+    .nr-dashboard-tabs__icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--nr-dashboard-nav-border);
+    }
+
+    .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
+      display: none;
+    }
+
     .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);
@@ -4039,19 +4062,27 @@ function hydrateLocales() {
 
 // src/preact/components/layout/TabNav.ts
 function TabNav(props) {
-  const { menu, selectedIndex, onSelect } = props;
+  const { menu, selectedIndex, onSelect, variant = "full" } = props;
   ensureLayoutStyles();
   const { t: t4 } = useI18n();
-  return m2`<ul class="nr-dashboard-tabs">
+  const iconOnly = variant === "icon";
+  const renderIcon = (tab, idx) => {
+    const raw = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
+    const trimmed = raw.trim();
+    if (trimmed.length === 0)
+      return "?";
+    return trimmed[0].toUpperCase();
+  };
+  return m2`<ul class=${`nr-dashboard-tabs ${iconOnly ? "nr-dashboard-tabs--icon" : ""}`.trim()}>
     ${menu.length === 0 ? m2`<li style=${{ opacity: 0.6 }}>${t4("no_tabs", "No tabs yet")}</li>` : menu.map((tab, idx) => {
     const active = idx === selectedIndex;
     return m2`<li key=${tab.id ?? tab.header ?? idx}>
             <button
-              class=${`nr-dashboard-tabs__btn ${active ? "is-active" : ""}`.trim()}
+              class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active" : ""}`.trim()}
               disabled=${tab.disabled || tab.hidden}
               onClick=${() => onSelect(idx)}
             >
-              ${tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 })}
+              ${iconOnly ? m2`<span class="nr-dashboard-tabs__icon">${renderIcon(tab, idx)}</span><span class="nr-dashboard-tabs__label">${tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 })}</span>` : tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 })}
             </button>
           </li>`;
   })}
@@ -46480,6 +46511,15 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const sizes = useSizes();
   const { t: t4 } = useI18n();
   const mainRef = A2(null);
+  const site = state.site ?? null;
+  const lockModeRaw = site?.lockMenu;
+  const lockMode = typeof lockModeRaw === "boolean" ? lockModeRaw ? "true" : "false" : typeof lockModeRaw === "string" ? lockModeRaw : "false";
+  const allowSwipeRaw = site?.allowSwipe;
+  const allowSwipe = typeof allowSwipeRaw === "boolean" ? allowSwipeRaw ? "true" : "false" : typeof allowSwipeRaw === "string" ? allowSwipeRaw : "false";
+  const isLocked = lockMode === "true";
+  const isIconOnly = lockMode === "icon";
+  const isSlide = lockMode === "false";
+  const [navOpen, setNavOpen] = d2(isLocked || isIconOnly);
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
   y2(() => {
     if (state.connection !== "ready")
@@ -46490,6 +46530,9 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       target.focus(focusOptions);
     }
   }, [selectedTab, state.connection]);
+  y2(() => {
+    setNavOpen(isLocked || isIconOnly || lockMode === "true");
+  }, [isLocked, isIconOnly, lockMode]);
   const statusLabel = (() => {
     switch (state.connection) {
       case "ready":
@@ -46502,34 +46545,73 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   })();
   return m2`
     <div style=${appStyles}>
-      ${shouldShowLoading(state.connection) ? m2`<div style=${{
-    padding: "12px 16px",
-    background: "rgba(255,255,255,0.06)",
-    borderBottom: "1px solid rgba(255,255,255,0.1)",
-    fontSize: "13px"
-  }}>
-            ${t4("loading", "Loading dashboard...")}
-          </div>` : null}
       <header style=${toolbarStyles}>
+        ${isSlide ? m2`<button
+              type="button"
+              aria-label=${t4("toggle_menu", "Toggle menu")}
+              onClick=${() => setNavOpen((v3) => !v3)}
+              style=${{
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+    color: "inherit",
+    borderRadius: "8px",
+    padding: "6px 10px",
+    cursor: "pointer"
+  }}
+            >${navOpen ? "✕" : "☰"}</button>` : null}
         <strong>${t4("app_title", "Node-RED Dashboard v2")}</strong>
-        <span style=${{ fontSize: "12px", opacity: 0.7 }}>
-          ${state.socketId ? t4("socket_status_with_id", "Socket: {status} ({id})", { status: statusLabel, id: state.socketId }) : t4("socket_status", "Socket: {status}", { status: statusLabel })}
+        <span
+          style=${{
+    marginLeft: "auto",
+    fontSize: "13px",
+    opacity: 0.8,
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px"
+  }}
+        >
+          <span
+            aria-hidden="true"
+            style=${{
+    width: "10px",
+    height: "10px",
+    borderRadius: "50%",
+    background: state.connection === "ready" ? "#46e18a" : state.connection === "connecting" ? "#f5c74f" : "#f26b6b"
+  }}
+          ></span>
+          ${statusLabel}
         </span>
       </header>
-      <section style=${layoutStyles2}>
-        <nav style=${navStyles}>
-          <h3 style=${{ marginTop: 0 }}>${t4("tabs_label", "Tabs")}</h3>
-          <${TabNav}
-            menu=${state.menu}
-            selectedIndex=${state.selectedTabIndex}
-            onSelect=${(idx) => {
+      <section
+        style=${{
+    ...layoutStyles2,
+    gridTemplateColumns: navOpen || isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr"
+  }}
+      >
+        ${navOpen || isLocked || isIconOnly ? m2`<nav
+              style=${{
+    ...navStyles,
+    padding: isIconOnly ? "12px 10px" : navStyles.padding,
+    width: isIconOnly ? "72px" : "100%",
+    background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)"
+  }}
+            >
+              ${isIconOnly ? null : m2`<h3 style=${{ marginTop: 0 }}>${t4("tabs_label", "Tabs")}</h3>`}
+              <${TabNav}
+                menu=${state.menu}
+                selectedIndex=${state.selectedTabIndex}
+                variant=${isIconOnly ? "icon" : "full"}
+                onSelect=${(idx) => {
     if (typeof window !== "undefined") {
       window.location.hash = `#/${idx}`;
     }
     actions2.selectTab(idx);
+    if (isSlide && allowSwipe !== "true" && allowSwipe !== "mouse" && allowSwipe !== "menu") {
+      setNavOpen(false);
+    }
   }}
-          />
-        </nav>
+              />
+            </nav>` : null}
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
           ${shouldShowLoading(state.connection) ? m2`<${LoadingSkeleton} columns=${sizes.columns} />` : state.menu.length === 0 ? m2`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
                 <p style=${{ margin: "0 0 8px" }}>${t4("no_tabs_defined_title", "No tabs defined yet.")}</p>
