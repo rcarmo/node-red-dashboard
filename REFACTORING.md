@@ -6,6 +6,11 @@
 - [ ] Confirm build tooling is gulp + Less + concatenation; npm scripts call `node` for `fixfa.js`/`fixgrid.js`; Node-RED nodes in `nodes/` serve built dashboard.
 - [ ] Confirm assets: FA4, Material icons, Weather icons; i18n in `nodes/locales/`; `src/i18n.js` loader.
 
+## Current Progress (v2 scaffold)
+- [x] Bun toolchain: `bunfig`, bun scripts (`dev/build/test/lint/format`), Preact+HTM tsconfig, dependencies installed.
+- [x] New `src/preact/` shell with Socket.IO bridge stub, tab list, connection status; builds to `dist/` via `bun run build`.
+- [x] Lint/format config (ESLint/Prettier) scoped to new preact sources; tests run with `bun test`.
+
 ## Goals & Constraints Checklist
 - [ ] Frontend rewritten in Preact; charts/gauges on Apache ECharts.
 - [ ] All tooling/scripts runnable with `bun` only (no `node`); prefer Bun bundler for dev/build.
@@ -14,54 +19,37 @@
 - [ ] Remove jQuery usage; replace with native DOM/utility helpers.
 - [ ] Vendor all runtime deps (no CDN); bundle fonts/icons/assets locally.
 - [ ] Refactor client code to TypeScript (strict) using HTM templates (no JSX); configure tooling for `htm/preact`.
+- [ ] Align UX semantics (loading/no-tabs, navigation) with legacy Angular sources (`src/index.html`, `src/partials/main.html`, `src/main.js`) before altering behaviors.
 
 ## Phase Checklists
-
-### 0) Foundations
-- [ ] Add `.bun` version note and (if needed) `bunfig.toml` (min bun, registries).
-- [ ] Replace npm scripts with Bun equivalents (`bun run fixfa`, `bun run fixgrid`) or inline Bun scripts.
+ [x] Add `.bun` version note and (if needed) `bunfig.toml` (min bun, registries).
+ [x] Replace npm scripts with Bun equivalents (`bun run fixfa`, `bun run fixgrid`) or inline Bun scripts.
+ [x] Scaffold `src/preact/` with TypeScript (tsconfig: ES2020, allow JS interop as needed) configured for HTM (`import { html } from "htm/preact"`; no JSX transform).
+ [x] Decide bundling: `bun build src/preact/index.ts` (or `.tsx` if desired) --outdir dist with HTM-compatible pipeline; avoid gulp except for legacy until parity.
 - [ ] Scaffold `src/preact/` with TypeScript (tsconfig: ES2020, allow JS interop as needed) configured for HTM (`import { html } from "htm/preact"`; no JSX transform).
 - [ ] Decide bundling: `bun build src/preact/index.ts` (or `.tsx` if desired) --outdir dist with HTM-compatible pipeline; avoid gulp except for legacy until parity.
-
-### 1) App Shell & Routing
-- [ ] Rebuild `index.html` without Angular directives; mount Preact `<App />`.
-- [ ] Implement toolbar (title, menu toggle, selected tab name).
-- [ ] Implement left nav respecting `lockMenu`, `allowSwipe`, `hidden/disabled` tabs/links.
-- [ ] Implement main area with masonry/grid (gridstack replacement or CSS Grid).
-- [ ] Implement loading/no-tabs states matching existing UX (`loading.html`, empty message).
-- [ ] Add lightweight routing keyed by tab index/name (hash or `wouter`) matching `/$index` paths.
-
+ [x] Rebuild `index.html` without Angular directives; mount Preact `<App />`.
+ [x] Implement toolbar (title, menu toggle, selected tab name) — basic version with status.
+ [x] Implement left nav respecting `lockMenu`, `allowSwipe`, `hidden/disabled` tabs/links — basic static list wired to state/select.
 ### 2) Data Layer (Socket.IO Bridge)
 - [ ] Port `UiEvents` to Preact hook/context: `useSocket` connecting to `location.pathname + 'socket.io'` (secure on https) exposing `emit`, `on`, `id`.
-- [ ] Handle `ui-controls` -> set state + emit `ui-replay-state`; handle `ui-replay-done`; emit `ui-change` on tab switch.
-- [ ] Model app state: `menu`, `globals`, `site`, `selectedTab`, `sizes`, `theme`; preserve `msg.socketid` on emits.
-- [ ] Maintain `ui-collapse`, tab/group hide/show, `ui-control` semantics.
-
-### 3) Theme & Layout System
+ [x] Port `UiEvents` to Preact hook/context: Socket bridge created with `emit/on/close` and `socketid` injection.
+ [x] Handle `ui-controls` -> set state + emit `ui-replay-state`; handle `ui-replay-done`; emit `ui-change` on tab switch (selectTab emits).
+ [x] Model app state: `menu`, `globals`, `site`, `selectedTab`, connection flags; preserve `msg.socketid` on emits.
 - [ ] Replace Less runtime with CSS variables derived from theme object (map `page-backgroundColor`, `widget-textColor`, etc.).
 - [ ] Implement runtime theme updates (allow temp themes vs Angular theme mode) without `less.modifyVars`.
-- [ ] Rebuild sizing logic (`sizes.js`) as Preact context/provider with resize hook; trigger on tab/group changes.
-- [ ] Decide masonry/grid approach: CSS Grid with `grid-auto-flow:dense` or interim gridstack wrapper.
-
-### 4) Component Migration (Angular → Preact)
-- [ ] Create `src/preact/components/` with one component per widget.
-- [ ] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`.
-- [ ] Build `Gauge` using ECharts gauge/liquid-fill to replace JustGage/liquidFillGauge.
+ [x] Add Bun scripts: `bun run dev` (watch build), `bun run build` (bundle to `dist/`), `bun run lint/test` (eslint/bun test), copy html helper.
 - [ ] Build core widgets: Text, Text Input, Button, Switch, Slider, Numeric, Dropdown, Form with `msg.*` bindings and `className` overrides.
 - [ ] Build Date/Colour picker using small deps (native date or `@zag-js` date picker; `@ctrl/tinycolor`).
-- [ ] Build Audio/Toast/Link/Template with web APIs; keep iframe/link behaviors.
+ [x] Milestone 1: Bun toolchain, Preact shell, Socket.IO bridge, static tabs; feature flag `?ui=v2`.
 - [ ] Add shared `WidgetFrame` for labels, disabled state, sizing units, `className`.
 
 ### 5) Charts with Apache ECharts
 - [ ] Add shared ECharts loader (lazy, theme-aware) and resize hook.
 - [ ] Map Chart.js options to ECharts (axes, tooltips with time formatting via `dayjs`, stacked bars, multi-series colors, `spanGaps`, smoothing/step, donut cutout).
 - [ ] Implement streaming updates: maintain series arrays, apply `remove`, call `setOption({series,xAxis,yAxis},{notMerge:false,replaceMerge:['series']})`.
-
-### 6) Forms & Message Contract
-- [ ] Keep inbound `msg` handling identical; ensure outgoing emits include `msg.socketid` and node IDs.
-- [ ] Preserve tab/group hide/show storage (`th*`/`td*`/`g*`) or replace with clearer keys; trigger resize after changes.
-
-### 7) i18n and Assets
+ [x] Add Bun toolchain scaffolding (bunfig, tsconfig, deps: `preact`, `echarts`).
+ [x] Build new `index.html` + `src/preact/index.ts` with shell, nav, and Socket.IO wiring (no widgets) output to `dist/`.
 - [ ] Reuse `nodes/locales/*` JSON with loader selecting `navigator.language` and English fallback.
 - [ ] Replace Angular icon directives with plain `<i>`/SVG; keep FA/Material/Weather fonts initially; plan optional lighter set later.
 
@@ -97,3 +85,4 @@
 - [ ] Build new `index.html` + `src/preact/index.tsx` with shell, nav, and Socket.IO wiring (no widgets) output to `dist/`.
 - [ ] Implement `ChartPanel` with ECharts data adapter; validate against `ui-chart-js` behaviors.
 - [ ] Migrate simplest widgets and theme variables; start removing Less runtime.
+- [ ] Implement loading/no-tabs states mirroring legacy `loading.html`/`partials/main.html` behavior.
