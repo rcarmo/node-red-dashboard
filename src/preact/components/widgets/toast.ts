@@ -17,7 +17,7 @@ export type ToastControl = UiControl & {
 export function resolveToastToneColor(level?: "info" | "warn" | "error"): string {
   if (level === "error") return "#f87171";
   if (level === "warn") return "#facc15";
-  return "#60a5fa";
+    return "var(--nr-dashboard-infoColor, #60a5fa)";
 }
 
 export function ToastWidget(props: { control: UiControl; index: number }): VNode {
@@ -48,7 +48,7 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
     style=${{
       border: `1px solid ${toneColor}`,
       padding: "8px 10px",
-      borderRadius: "8px",
+      background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
       background: "rgba(255,255,255,0.04)",
       position: "relative",
     }}
