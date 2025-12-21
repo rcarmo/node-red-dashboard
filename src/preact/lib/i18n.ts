@@ -45,6 +45,10 @@ const defaultMessages: LocaleMessages = {
   status_disconnected: "Disconnected",
   widget_preview_empty: "(no value yet)",
   text_label: "Text {index}",
+  dimensions_px: "{width}×{height} px",
+  link_open: "Open {label}",
+  audio_controls: "Audio controls for {label}",
+  number_value_label: "{label}: {value}",
 };
 
 function interpolate(template: string, params?: Record<string, string | number>): string {
@@ -68,21 +72,25 @@ function resolveMessages(locales: LocaleMap | undefined, lang: string): LocaleMe
   return defaultMessages;
 }
 
-export const I18nContext = createContext<{ t: (key: string, fallback?: string, params?: Record<string, string | number>) => string }>({
-  t: (key: string, fallback?: string, params?: Record<string, string | number>) => interpolate(fallback ?? key, params),
-});
+export const I18nContext = createContext<{ t: (key: string, fallback?: string, params?: Record<string, string | number>) => string; lang: string }>(
+  {
+    t: (key: string, fallback?: string, params?: Record<string, string | number>) => interpolate(fallback ?? key, params),
+    lang: "en",
+  },
+);
 
 export function I18nProvider(props: { lang?: string | null; locales?: LocaleMap; children: ComponentChildren }): VNode {
   const { lang, locales, children } = props;
-  const messages = useMemo(() => resolveMessages(locales, lang ?? "en"), [locales, lang]);
+  const resolvedLang = normalizeLang(lang ?? "en");
+  const messages = useMemo(() => resolveMessages(locales, resolvedLang), [locales, resolvedLang]);
   const t = (key: string, fallback?: string, params?: Record<string, string | number>) => {
     const template = messages[key] ?? fallback ?? key;
     return interpolate(template, params);
   };
-  return html`<${I18nContext.Provider} value=${{ t }}>${children}</${I18nContext.Provider}>`;
+  return html`<${I18nContext.Provider} value=${{ t, lang: resolvedLang }}>${children}</${I18nContext.Provider}>`;
 }
 
-export function useI18n(): { t: (key: string, fallback?: string, params?: Record<string, string | number>) => string } {
+export function useI18n(): { t: (key: string, fallback?: string, params?: Record<string, string | number>) => string; lang: string } {
   return useContext(I18nContext);
 }
 

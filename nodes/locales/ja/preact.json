@@ -37,6 +37,10 @@
     "status_connecting": "接続中",
     "status_disconnected": "切断",
     "widget_preview_empty": "（まだ値がありません）",
-    "text_label": "テキスト {index}"
+    "text_label": "テキスト {index}",
+    "dimensions_px": "{width}×{height} px",
+    "link_open": "{label} を開く",
+    "audio_controls": "{label} のオーディオ操作",
+    "number_value_label": "{label}: {value}"
   }
 }

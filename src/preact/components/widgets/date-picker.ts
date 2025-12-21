@@ -25,8 +25,8 @@ export function resolveDateInputType(mode?: string): "date" | "time" | "datetime
 export function DatePickerWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const c = control as DatePickerControl;
+  const { t, lang } = useI18n();
   const label = c.label || c.name || t("date_label", "Date {index}", { index: index + 1 });
-  const { t } = useI18n();
   const [value, setValue] = useState<string>(c.value || "");
   const [error, setError] = useState<string>("");
   const isDisabled = Boolean(disabled);
@@ -57,6 +57,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
       type=${inputType}
       value=${value}
       disabled=${isDisabled}
+      lang=${lang}
       aria-invalid=${error ? "true" : "false"}
       aria-errormessage=${error ? `err-date-${index}` : undefined}
       onInput=${(e: Event) => {

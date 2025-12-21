@@ -86,7 +86,7 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
       ${formatted}
     </div>
     <div style=${{ opacity: 0.45, fontSize: "10px" }}>
-      ${Math.round(size.width)}×${Math.round(size.height)} px
+      ${t("dimensions_px", "{width}×{height} px", { width: Math.round(size.width), height: Math.round(size.height) })}
     </div>
   </div>`;
 }

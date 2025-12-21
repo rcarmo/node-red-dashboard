@@ -37,6 +37,10 @@
     "status_connecting": "Connexion",
     "status_disconnected": "Déconnecté",
     "widget_preview_empty": "(aucune valeur pour le moment)",
-    "text_label": "Texte {index}"
+    "text_label": "Texte {index}",
+    "dimensions_px": "{width}×{height} px",
+    "link_open": "Ouvrir {label}",
+    "audio_controls": "Commandes audio pour {label}",
+    "number_value_label": "{label} : {value}"
   }
 }

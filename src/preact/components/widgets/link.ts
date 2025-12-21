@@ -32,7 +32,9 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
       target=${target}
       rel="noreferrer noopener"
       aria-disabled=${isDisabled}
+      aria-label=${t("link_open", "Open {label}", { label })}
       tabIndex=${isDisabled ? -1 : undefined}
+      title=${c.tooltip || t("link_open", "Open {label}", { label })}
       onClick=${isDisabled
         ? (e: Event) => {
             e.preventDefault();

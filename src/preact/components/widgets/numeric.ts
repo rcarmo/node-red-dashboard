@@ -1,5 +1,5 @@
 import { html } from "htm/preact";
-import { useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
@@ -42,12 +42,13 @@ export function buildNumericEmit(ctrl: NumericControl, fallbackLabel: string, va
 export function NumericWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asNum = control as NumericControl;
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const label = asNum.label || asNum.name || t("number_label", "Number {index}", { index: index + 1 });
   const min = toNumber(asNum.min, Number.MIN_SAFE_INTEGER);
   const max = toNumber(asNum.max, Number.MAX_SAFE_INTEGER);
   const step = toNumber(asNum.step, 1) || 1;
   const [value, setValue] = useState<number>(clampValue(toNumber(asNum.min, 0), min, max, !!asNum.wrap));
+  const formatter = useMemo(() => new Intl.NumberFormat(lang || undefined), [lang]);
 
   const update = (next: number) => {
     const clamped = clampValue(next, min, max, !!asNum.wrap);
@@ -95,5 +96,8 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
       />
       ${post ? html`<span style=${{ opacity: 0.7 }}>${post}</span>` : null}
     </div>
+    <span style=${{ opacity: 0.65, fontSize: "11px", alignSelf: "flex-end" }}>
+      ${t("number_value_label", "{label}: {value}", { label, value: formatter.format(value) })}
+    </span>
   </label>`;
 }

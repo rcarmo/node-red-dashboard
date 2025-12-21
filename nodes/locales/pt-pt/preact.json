@@ -37,6 +37,10 @@
     "status_connecting": "A ligar",
     "status_disconnected": "Desligado",
     "widget_preview_empty": "(ainda sem valor)",
-    "text_label": "Texto {index}"
+    "text_label": "Texto {index}",
+    "dimensions_px": "{width}×{height} px",
+    "link_open": "Abrir {label}",
+    "audio_controls": "Controlos de áudio para {label}",
+    "number_value_label": "{label}: {value}"
   }
 }

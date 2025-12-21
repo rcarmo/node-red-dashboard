@@ -37,6 +37,10 @@
     "status_connecting": "连接中",
     "status_disconnected": "已断开",
     "widget_preview_empty": "（尚无值）",
-    "text_label": "文本 {index}"
+    "text_label": "文本 {index}",
+    "dimensions_px": "{width}×{height} 像素",
+    "link_open": "打开 {label}",
+    "audio_controls": "{label} 的音频控件",
+    "number_value_label": "{label}: {value}"
   }
 }

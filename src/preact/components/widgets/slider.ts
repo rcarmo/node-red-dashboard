@@ -212,7 +212,7 @@ export function buildSliderEmit(ctrl: SliderControl, fallbackLabel: string, valu
 export function SliderWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asSlider = control as SliderControl;
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const label = asSlider.label || asSlider.name || t("slider_label", "Slider {index}", { index: index + 1 });
   const isDisabled = Boolean(disabled);
 
@@ -226,6 +226,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const invert = Boolean(asSlider.invert);
   const isDiscrete = outs === "end";
   const forceSign = Boolean(asSlider.showSign);
+  const formatter = new Intl.NumberFormat(lang || undefined);
 
   const initial = clampSliderValue(toNumber(asSlider.value ?? min, min), min, max);
   const [value, setValue] = useState<number>(initial);
@@ -351,10 +352,10 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
             style=${isVertical
               ? { top: `${100 - percent * 100}%` }
               : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
-          >${value}</span>`
+          >${formatter.format(value)}</span>`
         : null}
     </div>
     ${isVertical ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
-    <span class="nr-dashboard-slider__value">${value}</span>
+    <span class="nr-dashboard-slider__value">${formatter.format(value)}</span>
   </div>`;
 }

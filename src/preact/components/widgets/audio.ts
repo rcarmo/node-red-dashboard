@@ -66,6 +66,7 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
       loop=${Boolean(c.loop)}
       data-play-intent=${playIntent ? "true" : "false"}
       aria-disabled=${isDisabled}
+      aria-label=${t("audio_controls", "Audio controls for {label}", { label })}
       tabIndex=${isDisabled ? -1 : undefined}
       style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto" }}
     ></audio>
