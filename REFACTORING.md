@@ -13,6 +13,7 @@
 - [x] Layout: CSS Grid tabs/groups with theme-aware cards; hash routing for tab index; layout announcements dispatched.
 - [x] Widgets: text, button, switch, text-input (CR/delay/blur), numeric (wrap/format), dropdown, slider (outs/all/end, invert, vertical, ticks/sign), gauge (ECharts gauge/donut), form, date/colour picker, audio, toast, link, template; ui-control handlers for tab/group/control updates.
 - [x] ECharts added (gauge); helper tests for widgets + layout utils in place.
+- [x] I18n provider with locale fallback (`ui-control` lang → site lang/locale → browser → en) and localized aria/value strings across widgets; resolveLanguage unit tests added.
 
 ## Goals & Constraints Checklist
 - [ ] Frontend rewritten in Preact; charts/gauges on Apache ECharts.
@@ -105,5 +106,6 @@
 - [ ] Implement chart panel on ECharts (line/bar/etc.) and streaming adapter.
 - [ ] Finish theme variable coverage (legacy Less tokens) and apply to remaining widgets.
 - [ ] Harden `ui-control` parity (ui-collapse coverage, socket contract tests) and validate toast/audio overlays against legacy flows.
+- [ ] Expand i18n coverage to layout chrome (toolbar/menu/system messages) and ensure locale bundles are reused end-to-end.
 - [ ] Add streaming helpers + option mapping for charts (after loader in place).
 - [ ] Remove gulp/legacy build once parity is acceptable; point Node-RED runtime to `dist/` by default.

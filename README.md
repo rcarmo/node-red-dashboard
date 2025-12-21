@@ -9,6 +9,7 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 
 - Work in progress: replacing the Angular v1 client with a Preact runtime while keeping the existing Node-RED editor nodes and saved flows.
 - Current runtime pieces: tab/nav shell, CSS Grid layout for groups, theme application via CSS variables, Socket.IO bridge, text/button/switch/text-input/numeric/dropdown/slider/form/date/colour/audio/toast/link/template widgets, and an Apache ECharts gauge/donut implementation with ui-control handlers for tabs/groups/controls.
+- Internationalization: locale bundles loaded through an I18n provider with language precedence `ui-control lang` → `site lang/locale` → browser language → `en`; aria/value strings are localized.
 - Tooling: Bun scripts for dev/build/test/lint/format; strict TypeScript; HTM (no JSX); Apache ECharts vendored via bundler.
 - Compatibility: editor-side configuration is unchanged; the refactor targets drop-in consumption of existing saved metadata but remains experimental until full widget/chart coverage lands. Track progress in `REFACTORING.md`.
 
@@ -33,6 +34,11 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 - Layout: CSS Grid for groups/cards with theme-aware surfaces; layout announcements for screen readers.
 - Widgets: text, button, switch, text-input (enter/delay/blur), numeric (wrap/format), dropdown, slider (invert/vertical/ticks/signals), form, date picker, colour picker, audio, toast, link, template, and gauge (standard/donut) on ECharts.
 - Tests: Vitest + @testing-library/preact for widgets/layout; Bun scripts wired.
+
+### Internationalization details
+
+- Locale selection uses `resolveLanguage` (precedence: runtime `ui-control` lang → site lang/locale → `navigator.language` → `en`).
+- Strings come from the existing Node-RED locale bundles; widget aria/value labels use translated strings when available.
 
 ## Roadmap highlights
 
