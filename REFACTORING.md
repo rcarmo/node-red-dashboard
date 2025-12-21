@@ -8,8 +8,11 @@
 
 ## Current Progress (v2 scaffold)
 - [x] Bun toolchain: `bunfig`, bun scripts (`dev/build/test/lint/format`), Preact+HTM tsconfig, dependencies installed.
-- [x] New `src/preact/` shell with Socket.IO bridge stub, tab list, connection status; builds to `dist/` via `bun run build`.
+- [x] New `src/preact/` shell with Socket.IO bridge, tab list, connection status; builds to `dist/` via `bun run build`.
 - [x] Lint/format config (ESLint/Prettier) scoped to new preact sources; tests run with `bun test`.
+- [x] Layout: CSS Grid tabs/groups with theme-aware cards; hash routing for tab index; layout announcements dispatched.
+- [x] Widgets: text, button, switch, text-input (CR/delay/blur), numeric (wrap/format), dropdown, slider (outs/all/end, invert, vertical, ticks/sign), gauge (ECharts gauge/donut) wired via renderer.
+- [x] ECharts added (gauge); helper tests for widgets + layout utils in place.
 
 ## Goals & Constraints Checklist
 - [ ] Frontend rewritten in Preact; charts/gauges on Apache ECharts.
@@ -35,9 +38,9 @@
 - [x] Rebuild `index.html` without Angular directives; mount Preact `<App />`.
 - [x] Implement toolbar (title, menu toggle, selected tab name) — basic version with status.
 - [x] Implement left nav respecting `lockMenu`, `allowSwipe`, `hidden/disabled` tabs/links — basic static list wired to state/select.
-- [ ] Implement main area with masonry/grid (gridstack replacement or CSS Grid).
+- [x] Implement main area with CSS Grid groups/tabs (dense layout todo if needed).
 - [x] Implement loading/no-tabs states mirroring legacy `loading.html`/`partials/main.html` behavior.
-- [x] Add lightweight routing keyed by tab index/name (hash or `wouter`) matching `/$index` paths.
+- [x] Add lightweight routing keyed by tab index/name (hash) matching `/$index` paths.
 
 ### 2) Data Layer (Socket.IO Bridge)
 - [x] Port `UiEvents` to Preact hook/context: Socket bridge created with `emit/on/close` and `socketid` injection.
@@ -47,22 +50,20 @@
 
 ### 3) Theme & Layout System
 - [ ] Replace Less runtime with CSS variables derived from theme object (map `page-backgroundColor`, `widget-textColor`, etc.).
-- [ ] Implement runtime theme updates (allow temp themes vs Angular theme mode) without `less.modifyVars`.
-- [ ] Rebuild sizing logic (`sizes.js`) as Preact context/provider with resize hook; trigger on tab/group changes.
-- [ ] Decide masonry/grid approach: CSS Grid with `grid-auto-flow:dense` or interim gridstack wrapper.
+- [x] Implement runtime theme updates (CSS vars) without `less.modifyVars`; `applyThemeToRoot` in place.
+- [ ] Rebuild sizing logic (`sizes.js`) as Preact context/provider with resize hook; trigger on tab/group changes (current: size tokens applied to root only).
+- [x] Decide masonry/grid approach: initial CSS Grid groups; `grid-auto-flow:dense` still pending if needed for dense pack.
 - [ ] Implementation strategy: keep the editor-side layout/ordering UI intact (Gridstack preview + `site.sizes` controls), and adapt the new runtime to consume the same saved tab/group/widget metadata. If a gap appears, reimplement only the runtime reader/adapter, not the editor UI, to preserve existing flows.
 
 ### 4) Component Migration (Angular → Preact)
-- [ ] Create `src/preact/components/` with one component per widget.
+- [x] Create `src/preact/components/` with widgets for text, button, switch, text-input, numeric, dropdown, slider, gauge.
 - [ ] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`.
-- [ ] Build `Gauge` using ECharts gauge/liquid-fill to replace JustGage/liquidFillGauge.
-- [ ] Build core widgets: Text, Text Input, Button, Switch, Slider, Numeric, Dropdown, Form with `msg.*` bindings and `className` overrides.
-- [ ] Build Date/Colour picker using small deps (native date or `@zag-js` date picker; `@ctrl/tinycolor`).
-- [ ] Build Audio/Toast/Link/Template with web APIs; keep iframe/link behaviors.
+- [x] Build `Gauge` using ECharts gauge/donut to replace JustGage (wave/compass pending).
+- [ ] Build remaining core widgets: Form, Date/Colour picker, Audio, Toast, Link, Template.
 - [ ] Add shared `WidgetFrame` for labels, disabled state, sizing units, `className`.
 
 ### 5) Charts with Apache ECharts
-- [ ] Add shared ECharts loader (lazy, theme-aware) and resize hook.
+- [ ] Add shared ECharts loader (lazy, theme-aware) and resize hook (currently direct init in gauge only).
 - [ ] Map Chart.js options to ECharts (axes, tooltips with time formatting via `dayjs`, stacked bars, multi-series colors, `spanGaps`, smoothing/step, donut cutout).
 - [ ] Implement streaming updates: maintain series arrays, apply `remove`, call `setOption({series,xAxis,yAxis},{notMerge:false,replaceMerge:['series']}).
 
@@ -75,7 +76,7 @@
 - [ ] Replace Angular icon directives with plain `<i>`/SVG; keep FA/Material/Weather fonts initially; plan optional lighter set later.
 
 ### 8) Build & Packaging (Bun-only)
-- [ ] Add Bun scripts: `bun run dev` (dev server/proxy), `bun run build` (bundle TS/JSX to `dist/` + static assets), `bun run lint/test` (eslint/vitest optional).
+- [x] Add Bun scripts: dev/build/lint/test/format present; bun build to `dist/`.
 - [ ] Remove gulp after parity; keep `fixfa.js`/`fixgrid.js` as Bun scripts or bake rewrites into build.
 - [ ] Ensure Node-RED consumes `dist/`; update node paths if required.
 - [ ] Vendor dependencies into bundle/output (no CDN fetches); include icon/font assets locally.
@@ -102,7 +103,8 @@
 - [ ] Verify Socket.IO path/auth with Node-RED settings (custom `ui: { middleware }` compatibility).
 
 ## Immediate Next Steps
-- [ ] Implement main area grid/masonry and render tabs/groups in Preact.
-- [ ] Implement `ChartPanel` with ECharts data adapter; validate against `ui-chart-js` behaviors.
-- [ ] Migrate core widgets and theme variables; start removing Less runtime.
-- [ ] Add routing-aware sizing/resizing hooks and ensure tab switches trigger layout updates.
+- [ ] Implement chart panel on ECharts (line/bar/etc.) and streaming adapter.
+- [ ] Add theme variable application for groups/widgets (replace Less runtime fully) and size context beyond root vars.
+- [ ] Implement remaining widgets (form, date/colour picker, audio, toast, link, template) and `ui-control` contracts.
+- [ ] Add shared ECharts loader/resizer + widget frame.
+- [ ] Begin README update to document Preact/ECharts fork and Bun tooling.
