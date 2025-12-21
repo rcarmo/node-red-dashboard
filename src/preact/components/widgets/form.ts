@@ -13,6 +13,7 @@ export type FormField = {
   placeholder?: string;
   pattern?: string;
   error?: string;
+  rows?: number;
 };
 
 export type FormControl = UiControl & {
@@ -39,16 +40,20 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
   const title = c.label || c.name || t("form_label", "Form {index}", { index: index + 1 });
   const fields = useMemo(() => c.fields || [], [c.fields]);
   const isDisabled = Boolean(disabled);
-  const [values, setValues] = useState<Record<string, string>>(() => {
-    const initial: Record<string, string> = {};
+  const [values, setValues] = useState<Record<string, string | boolean>>(() => {
+    const initial: Record<string, string | boolean> = {};
     fields.forEach((f) => {
-      initial[f.name] = f.value == null ? "" : String(f.value);
+      if (f.type === "checkbox" || f.type === "switch") {
+        initial[f.name] = Boolean(f.value);
+      } else {
+        initial[f.name] = f.value == null ? "" : String(f.value);
+      }
     });
     return initial;
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const setField = (name: string, v: string) => {
+  const setField = (name: string, v: string | boolean) => {
     setValues((prev) => ({ ...prev, [name]: v }));
   };
 
@@ -60,10 +65,11 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
       if (isDisabled) return;
       const nextErrors: Record<string, string> = {};
       fields.forEach((f) => {
-        const val = (values[f.name] ?? "").trim();
-        if (f.required && val.length === 0) {
+        const rawVal = values[f.name];
+        const val = typeof rawVal === "string" ? rawVal.trim() : rawVal;
+        if (f.required && (val === "" || val === undefined || val === null)) {
           nextErrors[f.name] = f.error || t("error_required", "This field is required.");
-        } else if (f.pattern) {
+        } else if (typeof val === "string" && f.pattern) {
           const re = new RegExp(f.pattern);
           if (!re.test(val)) nextErrors[f.name] = f.error || t("error_pattern", "Value does not match the required format.");
         }
@@ -77,35 +83,69 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
     ${fields.length === 0
       ? html`<div style=${{ fontSize: "12px", opacity: 0.7 }}>${t("form_no_fields", "No fields configured.")}</div>`
       : fields.map((f) => {
-          const type = f.type === "number" ? "number" : f.type === "password" ? "password" : f.type === "email" ? "email" : "text";
+          const type = f.type === "number" ? "number" : f.type === "password" ? "password" : f.type === "email" ? "email" : f.type === "date" ? "date" : f.type === "time" ? "time" : f.type === "checkbox" || f.type === "switch" ? "checkbox" : f.type === "multiline" ? "multiline" : "text";
           return html`<label style=${{ display: "grid", gap: "4px" }} key=${f.name}>
             <span style=${{ fontSize: "12px", opacity: 0.8 }}>${f.label || f.name}</span>
-            <input
-              name=${f.name}
-              type=${type}
-              value=${values[f.name] ?? ""}
-              required=${Boolean(f.required)}
-              placeholder=${f.placeholder || ""}
-              aria-invalid=${errors[f.name] ? "true" : "false"}
-              aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
-              inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
-              maxLength=${(f as { maxlength?: number }).maxlength || undefined}
-              onInput=${(ev: Event) => setField(f.name, (ev.target as HTMLInputElement).value)}
-              disabled=${isDisabled}
-              style=${{
-                padding: "8px 10px",
-                borderRadius: "6px",
-                border: errors[f.name]
-                  ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
-                  : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-                background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
-                color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-              }}
-            />
-            ${typeof (f as { maxlength?: number }).maxlength === "number"
+            ${type === "multiline"
+              ? html`<textarea
+                  name=${f.name}
+                  required=${Boolean(f.required)}
+                  rows=${f.rows || 3}
+                  placeholder=${f.placeholder || ""}
+                  aria-invalid=${errors[f.name] ? "true" : "false"}
+                  aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
+                  disabled=${isDisabled}
+                  onInput=${(ev: Event) => setField(f.name, (ev.target as HTMLTextAreaElement).value)}
+                  style=${{
+                    padding: "8px 10px",
+                    borderRadius: "6px",
+                    border: errors[f.name]
+                      ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
+                      : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+                    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+                    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+                  }}
+                >${values[f.name] ?? ""}</textarea>`
+              : type === "checkbox"
+              ? html`<input
+                  name=${f.name}
+                  type="checkbox"
+                  checked=${Boolean(values[f.name])}
+                  disabled=${isDisabled}
+                  aria-invalid=${errors[f.name] ? "true" : "false"}
+                  aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
+                  onChange=${(ev: Event) => setField(f.name, (ev.target as HTMLInputElement).checked)}
+                  style=${{
+                    width: "16px",
+                    height: "16px",
+                  }}
+                />`
+              : html`<input
+                  name=${f.name}
+                  type=${type}
+                  value=${values[f.name] ?? ""}
+                  required=${Boolean(f.required)}
+                  placeholder=${f.placeholder || ""}
+                  aria-invalid=${errors[f.name] ? "true" : "false"}
+                  aria-errormessage=${errors[f.name] ? `err-${f.name}` : undefined}
+                  inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
+                  maxLength=${(f as { maxlength?: number }).maxlength || undefined}
+                  onInput=${(ev: Event) => setField(f.name, (ev.target as HTMLInputElement).value)}
+                  disabled=${isDisabled}
+                  style=${{
+                    padding: "8px 10px",
+                    borderRadius: "6px",
+                    border: errors[f.name]
+                      ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
+                      : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+                    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+                    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+                  }}
+                />`}
+            ${typeof (f as { maxlength?: number }).maxlength === "number" && type !== "checkbox" && type !== "multiline"
               ? html`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
                   ${t("char_counter", "{used}/{max}", {
-                    used: (values[f.name] ?? "").length,
+                    used: typeof values[f.name] === "string" ? (values[f.name] as string).length : 0,
                     max: (f as { maxlength?: number }).maxlength ?? 0,
                   })}
                 </span>`

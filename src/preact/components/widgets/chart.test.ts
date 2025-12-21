@@ -85,6 +85,25 @@ describe("Chart adapter", () => {
     expect(after.series[0].data).toEqual([[7000, 3]]);
   });
 
+  test("prunes dataset time series for non-line", () => {
+    const payload = [
+      {
+        values: {
+          series: ["s1"],
+          labels: ["t1"],
+          data: [
+            [
+              { x: 1_000, y: 1 },
+              { x: 10_000, y: 2 },
+            ],
+          ],
+        },
+      },
+    ];
+    const next = applyChartPayload("bar", payload, emptyData(), { removeOlderMs: 5000, removeOlderPoints: undefined });
+    expect(next.series[0].data).toEqual([[10_000, 2]]);
+  });
+
   test("builds line option with smoothing and span gaps", () => {
     const data: ChartData = {
       labels: [],
@@ -127,6 +146,17 @@ describe("Chart adapter", () => {
     expect(series[0].data[1]).toEqual({ name: "Y", value: 10 });
   });
 
+  test("applies polar useDifferentColor", () => {
+    const data: ChartData = {
+      labels: ["X", "Y"],
+      series: [{ name: "S", data: [5, 10] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "polar-area", useDifferentColor: true }, data, "en", t);
+    const series = option.series as Array<{ data: Array<{ itemStyle?: { color?: string } }> }>;
+    expect(series[0].data[0].itemStyle?.color).toBeDefined();
+  });
+
   test("marks stacked series", () => {
     const data: ChartData = {
       labels: ["A", "B"],
@@ -136,6 +166,22 @@ describe("Chart adapter", () => {
     const option = buildChartOption({ look: "bar", stacked: true }, data, "en", t);
     const series = option.series as Array<{ stack?: string }>;
     expect(series[0].stack).toBe("stack");
+  });
+
+  test("uses stackMap for specific series", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [
+        { name: "S1", data: [1, 2] },
+        { name: "S2", data: [1, 2] },
+      ],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "bar", stacked: true, stackMap: { S1: "a", S2: "b" }, stackLabel: true }, data, "en", t);
+    const series = option.series as Array<{ stack?: string; label?: { show?: boolean } }>;
+    expect(series[0].stack).toBe("a");
+    expect(series[1].stack).toBe("b");
+    expect(series[0].label?.show).toBe(true);
   });
 
   test("applies custom stack key and shadow pointer", () => {
@@ -173,6 +219,11 @@ describe("Chart adapter", () => {
     expect(radar.startAngle).toBe(45);
     expect(radar.splitNumber).toBe(6);
     expect(radar.shape).toBe("circle");
+  });
+
+  test("sets animation duration", () => {
+    const option = buildChartOption({ look: "line", animationDuration: 500 }, emptyData(), "en", t);
+    expect((option as { animationDuration?: number }).animationDuration).toBe(500);
   });
 
   test("legend hidden state is preserved", () => {

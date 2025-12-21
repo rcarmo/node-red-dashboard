@@ -43,6 +43,8 @@ export type ChartControl = UiControl & {
   legend?: boolean;
   stacked?: boolean;
   stackKey?: string;
+  stackMap?: Record<string, string>;
+  stackLabel?: boolean;
   interpolate?: "cubic" | "monotone" | "linear" | "bezier" | "step" | string;
   nodata?: boolean;
   width?: number | string;
@@ -61,6 +63,7 @@ export type ChartControl = UiControl & {
   useDifferentColor?: boolean;
   useUTC?: boolean;
   animation?: boolean;
+  animationDuration?: number | string;
   spanGaps?: boolean;
   removeOlder?: number | string;
   removeOlderUnit?: number | string;
@@ -200,6 +203,29 @@ export function applyChartPayload(look: ChartLook, payload: unknown, prev: Chart
     next.series.push({ name, data: mapped });
   });
 
+  if (windowing && next.isTimeSeries) {
+    let maxTs = 0;
+    next.series.forEach((s) => {
+      s.data.forEach((pt) => {
+        if (Array.isArray(pt) && typeof pt[0] === "number") {
+          if (pt[0] > maxTs) maxTs = pt[0];
+        }
+      });
+    });
+    const threshold = windowing.removeOlderMs && maxTs > 0 ? maxTs - windowing.removeOlderMs : undefined;
+    next.series = next.series.map((s) => {
+      let filtered = s.data;
+      if (threshold) {
+        filtered = filtered.filter((pt) => Array.isArray(pt) && (pt[0] as number) >= threshold);
+      }
+      const maxPoints = windowing.removeOlderPoints;
+      if (maxPoints && maxPoints > 0 && filtered.length > maxPoints) {
+        filtered = filtered.slice(filtered.length - maxPoints);
+      }
+      return { ...s, data: filtered };
+    });
+  }
+
   return next;
 }
 
@@ -231,24 +257,39 @@ function buildLineSeries(control: ChartControl, data: ChartData): EChartsOption[
   });
 }
 
-function buildBarSeries(look: ChartLook, data: ChartData, stacked: boolean, stackKey?: string): EChartsOption["series"] {
+function buildBarSeries(
+  look: ChartLook,
+  data: ChartData,
+  stacked: boolean,
+  stackKey: string | undefined,
+  stackMap: Record<string, string> | undefined,
+  showStackLabel: boolean,
+  valueFormatter: (v: number) => string,
+): EChartsOption["series"] {
   const stackName = stackKey || (stacked ? "stack" : undefined);
   return data.series.map((s) => {
     const series: Record<string, unknown> = {
       type: "bar",
       name: s.name,
       data: s.data,
-      label: { show: false },
+      label: showStackLabel
+        ? {
+            show: true,
+            position: "inside",
+            formatter: ({ value }) => valueFormatter(Number(value)),
+          }
+        : { show: false },
     };
     if (look === "horizontalBar") {
       series.type = "bar";
     }
-    if (stackName) series.stack = stackName;
+    const stackForSeries = stackMap?.[s.name] || stackName;
+    if (stackForSeries) series.stack = stackForSeries;
     return series;
   });
 }
 
-function buildPieSeries(look: ChartLook, control: ChartControl, data: ChartData): EChartsOption["series"] {
+function buildPieSeries(look: ChartLook, control: ChartControl, data: ChartData, colors: string[]): EChartsOption["series"] {
   const radiusInner = Math.max(0, Number(control.cutout ?? 0));
   const hasMultiple = data.series.length > 1;
   const radiusBase = radiusInner > 0 ? [radiusInner, "70%"] : [0, "70%"];
@@ -256,13 +297,24 @@ function buildPieSeries(look: ChartLook, control: ChartControl, data: ChartData)
 
   return data.series.map((s, idx) => {
     const radius = hasMultiple ? [radiusInner, `${50 + idx * 15}%`] : radiusBase;
+    const dataWithColor = s.data.map((val, i) => {
+      const base = colors[i % colors.length];
+      if (look === "polar-area" && control.useDifferentColor) {
+        const alpha = Math.max(0.25, 0.7 - i * 0.06);
+        const hex = Math.round(alpha * 255)
+          .toString(16)
+          .padStart(2, "0");
+        return { name: data.labels[i], value: (s.data[i] as number) ?? 0, itemStyle: { color: `${base}${hex}` } };
+      }
+      return { name: data.labels[i], value: (s.data[i] as number) ?? 0 };
+    });
     return {
       type: "pie",
       name: s.name,
       radius,
       startAngle,
       roseType: look === "polar-area" ? "area" : undefined,
-      data: data.labels.map((label, i) => ({ name: label, value: (s.data[i] as number) ?? 0 })),
+      data: dataWithColor,
       label: { show: true },
     };
   });
@@ -289,15 +341,31 @@ export function buildChartOption(
   const animation = control.animation !== false;
   const stacked = Boolean(control.stacked);
   const stackKey = control.stackKey;
+  const stackMap = control.stackMap;
+  const stackLabel = Boolean(control.stackLabel && stacked);
+  const animationDuration = toOptionalNumber(control.animationDuration);
 
   const option: EChartsOption = {
     color: colors,
     animation,
+    animationDuration,
     useUTC,
     textStyle: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
     tooltip: {
       trigger: look === "pie" || look === "polar-area" ? "item" : "axis",
       axisPointer: stacked && (look === "bar" || look === "horizontalBar") ? { type: "shadow" } : undefined,
+      formatter: (params: any) => {
+        const items = Array.isArray(params) ? params : [params];
+        if (!items.length) return "";
+        const first = items[0];
+        const axisValue = first.axisValueLabel ?? first.name;
+        const header = data.isTimeSeries ? timeFormatter(Number(first.axisValue ?? first.value?.[0] ?? Date.now())) : axisValue;
+        const lines = items.map((it: any) => {
+          const val = Array.isArray(it.value) ? it.value[1] : it.value;
+          return `${it.marker || ""}${it.seriesName}: ${valueFormatter(Number(val))}`;
+        });
+        return [header, ...lines].join("\n");
+      },
     },
     legend: control.legend
       ? {
@@ -362,9 +430,11 @@ export function buildChartOption(
     }
 
     option.grid = { left: 10, right: 10, top: 24, bottom: 20, containLabel: true };
-    option.series = look === "line" ? buildLineSeries(control, data) : buildBarSeries(look, data, stacked, stackKey);
+    option.series = look === "line"
+      ? buildLineSeries(control, data)
+      : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter);
   } else if (look === "pie" || look === "polar-area") {
-    option.series = buildPieSeries(look, control, data);
+    option.series = buildPieSeries(look, control, data, colors);
   } else if (look === "radar") {
     const radarStartAngle = toOptionalNumber(control.radarStartAngle);
     const radarSplitNumber = toOptionalNumber(control.radarSplitNumber);
@@ -376,7 +446,8 @@ export function buildChartOption(
       shape: radarShape,
       axisName: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
       splitLine: { lineStyle: { color: "rgba(255,255,255,0.15)" } },
-      splitArea: { areaStyle: { color: "transparent" } },
+      splitArea: { areaStyle: { color: ["rgba(255,255,255,0.02)", "rgba(255,255,255,0.05)"] } },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
     };
     option.series = buildRadarSeries(data);
   }
