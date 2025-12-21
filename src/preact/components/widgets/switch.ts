@@ -1,5 +1,5 @@
 import { html } from "htm/preact";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useElementSize } from "../../hooks/useElementSize";
@@ -10,6 +10,8 @@ export type SwitchControl = UiControl & {
   name?: string;
   value?: boolean;
   state?: boolean;
+  onvalue?: unknown;
+  offvalue?: unknown;
   topic?: string;
   oncolor?: string;
   offcolor?: string;
@@ -25,10 +27,19 @@ export function resolveSwitchColors(ctrl: SwitchControl, checked: boolean): stri
 
 export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next: boolean): Record<string, unknown> {
   return {
-    payload: next,
+    payload: next ? ctrl.onvalue ?? true : ctrl.offvalue ?? false,
     topic: ctrl.topic ?? fallbackLabel,
     type: "switch",
   };
+}
+
+function matchesValue(candidate: unknown, target: unknown): boolean {
+  if (candidate === target) return true;
+  try {
+    return JSON.stringify(candidate) === JSON.stringify(target);
+  } catch {
+    return false;
+  }
 }
 
 export function SwitchWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
@@ -36,9 +47,21 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   const asSwitch = control as SwitchControl;
   const { t } = useI18n();
   const label = asSwitch.label || asSwitch.name || t("switch_label", "Switch {index}", { index: index + 1 });
-  const initial = Boolean(asSwitch.value ?? asSwitch.state);
-  const [checked, setChecked] = useState<boolean>(initial);
+  const toChecked = (val: unknown): boolean => {
+    if (asSwitch.onvalue !== undefined || asSwitch.offvalue !== undefined) {
+      if (matchesValue(val, asSwitch.onvalue)) return true;
+      if (matchesValue(val, asSwitch.offvalue)) return false;
+    }
+    return Boolean(val);
+  };
+
+  const [checked, setChecked] = useState<boolean>(toChecked(asSwitch.value ?? asSwitch.state));
   const [ref, size] = useElementSize<HTMLLabelElement>();
+
+  useEffect(() => {
+    setChecked(toChecked(asSwitch.value ?? asSwitch.state));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [asSwitch.value, asSwitch.state, asSwitch.onvalue, asSwitch.offvalue]);
 
   const toggle = () => {
     if (disabled) return;

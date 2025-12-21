@@ -17,4 +17,10 @@ describe("Switch widget helpers", () => {
     const custom = buildSwitchEmit({ ...base, topic: "t" }, "Label", false);
     expect(custom).toEqual({ payload: false, topic: "t", type: "switch" });
   });
+
+  test("emits custom on/off values", () => {
+    const ctrl: SwitchControl = { onvalue: "YES", offvalue: "NO" };
+    expect(buildSwitchEmit(ctrl, "L", true).payload).toBe("YES");
+    expect(buildSwitchEmit(ctrl, "L", false).payload).toBe("NO");
+  });
 });
