@@ -74,6 +74,34 @@ export type DashboardStore = {
   actions: DashboardActions;
 };
 
+const tabHiddenKey = (idx: number, name: string) => `th${idx}${name}`;
+const tabDisabledKey = (idx: number, name: string) => `td${idx}${name}`;
+const groupHiddenKey = (key: string) => `g${key}`;
+
+function persistTabVisibility(idx: number, name: string, hidden?: boolean, disabled?: boolean): void {
+  if (typeof window === "undefined" || !name) return;
+  if (hidden === true) {
+    window.localStorage.setItem(tabHiddenKey(idx, name), "true");
+  } else if (hidden === false) {
+    window.localStorage.setItem(tabHiddenKey(idx, name), "false");
+  }
+
+  if (disabled === true) {
+    window.localStorage.setItem(tabDisabledKey(idx, name), "true");
+  } else if (disabled === false) {
+    window.localStorage.setItem(tabDisabledKey(idx, name), "false");
+  }
+}
+
+function persistGroupVisibility(key: string, hidden?: boolean): void {
+  if (typeof window === "undefined" || !key) return;
+  if (hidden === true) {
+    window.localStorage.setItem(groupHiddenKey(key), "true");
+  } else if (hidden === false) {
+    window.localStorage.removeItem(groupHiddenKey(key));
+  }
+}
+
 const initialState: DashboardState = {
   connection: "connecting",
   socketId: "",
@@ -91,6 +119,7 @@ export function useDashboardState(): DashboardStore {
   const [bridge, setBridge] = useState<UiSocketBridge | null>(null);
 
   useEffect(() => {
+    // TODO: add socket contract tests covering ui-control/ui-replay/ui-change payloads.
     const b = createSocketBridge({
       onConnect: (id) => {
         setState((prev) => ({ ...prev, connection: "ready", socketId: id }));
@@ -199,17 +228,17 @@ function applyTabVisibility(menu: UiMenuItem[], tabsMsg: Record<string, unknown>
     const enable = Array.isArray((tabsMsg as { enable?: unknown }).enable) ? (tabsMsg as { enable: string[] }).enable : [];
     const disable = Array.isArray((tabsMsg as { disable?: unknown }).disable) ? (tabsMsg as { disable: string[] }).disable : [];
     const next: UiMenuItem = { ...tab };
-    if (show.includes(name)) next.hidden = false;
-    if (hide.includes(name)) next.hidden = true;
-    if (enable.includes(name)) next.disabled = false;
-    if (disable.includes(name)) next.disabled = true;
-    // persist similar to legacy localStorage keys
-    if (typeof window !== "undefined" && name) {
-      if (show.includes(name)) window.localStorage.setItem(`th${idx}${name}`, "false");
-      if (hide.includes(name)) window.localStorage.setItem(`th${idx}${name}`, "true");
-      if (enable.includes(name)) window.localStorage.setItem(`td${idx}${name}`, "false");
-      if (disable.includes(name)) window.localStorage.setItem(`td${idx}${name}`, "true");
-    }
+    const willShow = show.includes(name);
+    const willHide = hide.includes(name);
+    const willEnable = enable.includes(name);
+    const willDisable = disable.includes(name);
+
+    if (willShow) next.hidden = false;
+    if (willHide) next.hidden = true;
+    if (willEnable) next.disabled = false;
+    if (willDisable) next.disabled = true;
+
+    persistTabVisibility(idx, name, willShow ? false : willHide ? true : undefined, willEnable ? false : willDisable ? true : undefined);
     return next;
   });
 }
@@ -221,14 +250,15 @@ function applyGroupVisibility(menu: UiMenuItem[], groupMsg: Record<string, unkno
     const items = (tab.items ?? []).map((group) => {
       const key = `${tab.header ?? tab.name ?? ""} ${group.header?.name ?? ""}`.replace(/ /g, "_");
       const nextHeader = { ...(group.header ?? {}), config: { ...(group.header?.config ?? {}) } };
-      if (show.includes(key)) {
+      const willShow = show.includes(key);
+      const willHide = hide.includes(key);
+      if (willShow) {
         nextHeader.config.hidden = false;
-        if (typeof window !== "undefined") window.localStorage.removeItem(`g${key}`);
       }
-      if (hide.includes(key)) {
+      if (willHide) {
         nextHeader.config.hidden = true;
-        if (typeof window !== "undefined") window.localStorage.setItem(`g${key}`, "true");
       }
+      persistGroupVisibility(key, willHide ? true : willShow ? false : undefined);
       return { ...group, header: nextHeader };
     });
     return { ...tab, items };
@@ -310,3 +340,11 @@ function handleAudioEvent(payload: unknown): void {
     void audio.play().finally(() => URL.revokeObjectURL(url));
   }
 }
+
+export const __test = {
+  tabHiddenKey,
+  tabDisabledKey,
+  groupHiddenKey,
+  persistTabVisibility,
+  persistGroupVisibility,
+};
