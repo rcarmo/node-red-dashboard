@@ -22,6 +22,7 @@ export type UiMenuItem = {
   id?: string | number;
   header?: string;
   name?: string;
+  icon?: string;
   items?: UiGroup[];
   link?: string;
   target?: string;

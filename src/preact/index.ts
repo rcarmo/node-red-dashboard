@@ -172,6 +172,21 @@ export function findFirstFocusable(root: HTMLElement | null): HTMLElement | null
   return candidate ?? root;
 }
 
+function findNextTabIndex(menu: UiMenuItem[], startIdx: number, delta: number): number | null {
+  if (menu.length === 0) return null;
+  const len = menu.length;
+  let idx = startIdx;
+
+  for (let i = 0; i < len; i += 1) {
+    idx = (idx + delta + len) % len;
+    const tab = menu[idx];
+    if (!tab || tab.disabled || tab.hidden) continue;
+    return idx;
+  }
+
+  return null;
+}
+
 export function App(): VNode {
   const { state, selectedTab, actions } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
@@ -226,7 +241,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const sizes = useSizes();
   const { t } = useI18n();
   const mainRef = useRef<HTMLElement | null>(null);
-  const site = (state.site as { lockMenu?: string | boolean; allowSwipe?: string | boolean } | null) ?? null;
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const site = (state.site as { lockMenu?: string | boolean; allowSwipe?: string | boolean; hideToolbar?: string | boolean; name?: string } | null) ?? null;
   const lockModeRaw = site?.lockMenu;
   const lockMode = typeof lockModeRaw === "boolean" ? (lockModeRaw ? "true" : "false") : typeof lockModeRaw === "string" ? lockModeRaw : "false";
   const allowSwipeRaw = site?.allowSwipe;
@@ -234,7 +250,13 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const isLocked = lockMode === "true";
   const isIconOnly = lockMode === "icon";
   const isSlide = lockMode === "false";
-  const [navOpen, setNavOpen] = useState<boolean>(isLocked || isIconOnly);
+  const hideToolbar = site?.hideToolbar === "true" || site?.hideToolbar === true;
+  const hasMultipleTabs = state.menu.length > 1;
+  const [navOpen, setNavOpen] = useState<boolean>(hasMultipleTabs && (isLocked || isIconOnly));
+  const shellStyles = {
+    ...appStyles,
+    gridTemplateRows: hideToolbar ? "1fr" : appStyles.gridTemplateRows,
+  } satisfies Record<string, string>;
 
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
 
@@ -248,8 +270,71 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   }, [selectedTab, state.connection]);
 
   useEffect(() => {
-    setNavOpen(isLocked || isIconOnly || lockMode === "true");
-  }, [isLocked, isIconOnly, lockMode]);
+    if (!hasMultipleTabs) {
+      setNavOpen(false);
+      return;
+    }
+    if (isLocked || isIconOnly || lockMode === "true") {
+      setNavOpen(true);
+    }
+  }, [hasMultipleTabs, isIconOnly, isLocked, lockMode]);
+
+  useEffect(() => {
+    const node = shellRef.current;
+    const allowMenuSwipe = allowSwipe === "menu";
+    const allowTabSwipe = allowSwipe === "true" || allowSwipe === "mouse";
+    const allowMouseSwipe = allowSwipe === "mouse";
+    if (!node || (!allowMenuSwipe && !allowTabSwipe)) return undefined;
+
+    let startX = 0;
+    let startY = 0;
+    let activePointerId: number | null = null;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!event.isPrimary) return;
+      if (event.pointerType === "mouse" && !allowMouseSwipe) return;
+      activePointerId = event.pointerId;
+      startX = event.clientX;
+      startY = event.clientY;
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      if (activePointerId == null || event.pointerId !== activePointerId) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      activePointerId = null;
+      activePointerType = null;
+
+      if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
+      if (event.pointerType === "mouse" && !allowMouseSwipe) return;
+
+      const direction = dx < 0 ? "left" : "right";
+
+      if (allowMenuSwipe && !isLocked && !isIconOnly) {
+        setNavOpen(direction === "right");
+        return;
+      }
+
+      if (allowTabSwipe) {
+        const delta = direction === "left" ? -1 : 1;
+        const next = findNextTabIndex(state.menu, state.selectedTabIndex ?? 0, delta);
+        if (next != null) {
+          if (typeof window !== "undefined") {
+            window.location.hash = `#/${next}`;
+          }
+          actions.selectTab(next);
+        }
+      }
+    };
+
+    node.addEventListener("pointerdown", handlePointerDown, { passive: true });
+    node.addEventListener("pointerup", handlePointerUp, { passive: true });
+
+    return () => {
+      node.removeEventListener("pointerdown", handlePointerDown);
+      node.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [actions, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex]);
 
   const statusLabel = (() => {
     switch (state.connection) {
@@ -262,59 +347,76 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
     }
   })();
 
+  const toolbarTitle = (() => {
+    const tabTitle = selectedTab?.header ?? selectedTab?.name;
+    const siteTitle = site?.name;
+    if (isLocked || isIconOnly) {
+      return siteTitle ?? t("app_title", "Node-RED Dashboard v2");
+    }
+    return tabTitle ?? siteTitle ?? t("app_title", "Node-RED Dashboard v2");
+  })();
+
+  const shouldRenderNav = hasMultipleTabs && (navOpen || isLocked || isIconOnly);
+  const gridTemplateColumns = shouldRenderNav ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr";
+  const sectionMinHeight = hideToolbar ? "100vh" : "calc(100vh - 56px)";
+  const showToggle = isSlide && hasMultipleTabs;
+
   return html`
-    <div style=${appStyles}>
-      <header style=${toolbarStyles}>
-        ${isSlide
-          ? html`<button
-              type="button"
-              aria-label=${t("toggle_menu", "Toggle menu")}
-              onClick=${() => setNavOpen((v) => !v)}
+    <div style=${shellStyles} ref=${shellRef}>
+      ${hideToolbar
+        ? null
+        : html`<header style=${toolbarStyles}>
+            ${showToggle
+              ? html`<button
+                  type="button"
+                  aria-label=${t("toggle_menu", "Toggle menu")}
+                  onClick=${() => setNavOpen((v) => !v)}
+                  style=${{
+                    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+                    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+                    color: "inherit",
+                    borderRadius: "8px",
+                    padding: "6px 10px",
+                    cursor: "pointer",
+                  }}
+                >${navOpen ? "✕" : "☰"}</button>`
+              : null}
+            <strong>${toolbarTitle}</strong>
+            <span
               style=${{
-                border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-                background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
-                color: "inherit",
-                borderRadius: "8px",
-                padding: "6px 10px",
-                cursor: "pointer",
+                marginLeft: "auto",
+                fontSize: "13px",
+                opacity: 0.8,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
               }}
-            >${navOpen ? "✕" : "☰"}</button>`
-          : null}
-        <strong>${t("app_title", "Node-RED Dashboard v2")}</strong>
-        <span
-          style=${{
-            marginLeft: "auto",
-            fontSize: "13px",
-            opacity: 0.8,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style=${{
-              width: "10px",
-              height: "10px",
-              borderRadius: "50%",
-              background:
-                state.connection === "ready"
-                  ? "#46e18a"
-                  : state.connection === "connecting"
-                  ? "#f5c74f"
-                  : "#f26b6b",
-            }}
-          ></span>
-          ${statusLabel}
-        </span>
-      </header>
+            >
+              <span
+                aria-hidden="true"
+                style=${{
+                  width: "10px",
+                  height: "10px",
+                  borderRadius: "50%",
+                  background:
+                    state.connection === "ready"
+                      ? "#46e18a"
+                      : state.connection === "connecting"
+                      ? "#f5c74f"
+                      : "#f26b6b",
+                }}
+              ></span>
+              ${statusLabel}
+            </span>
+          </header>`}
       <section
         style=${{
           ...layoutStyles,
-          gridTemplateColumns: navOpen || isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr",
+          gridTemplateColumns,
+          minHeight: sectionMinHeight,
         }}
       >
-        ${navOpen || isLocked || isIconOnly
+        ${shouldRenderNav
           ? html`<nav
               style=${{
                 ...navStyles,
@@ -333,7 +435,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                     window.location.hash = `#/${idx}`;
                   }
                   actions.selectTab(idx);
-                  if (isSlide && allowSwipe !== "true" && allowSwipe !== "mouse" && allowSwipe !== "menu") {
+                  if (isSlide) {
                     setNavOpen(false);
                   }
                 }}

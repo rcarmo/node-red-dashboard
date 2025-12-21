@@ -31,6 +31,9 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       background: rgba(255, 255, 255, 0.04);
       color: inherit;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .nr-dashboard-tabs__btn.is-icon {
@@ -50,6 +53,26 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       font-weight: 700;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--nr-dashboard-nav-border);
+    }
+
+    .nr-dashboard-tabs__icon i {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .nr-dashboard-tabs__icon img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .nr-dashboard-tabs__icon-glyph {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      width: 100%;
+      height: 100%;
     }
 
     .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {

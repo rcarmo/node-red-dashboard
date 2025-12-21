@@ -3878,6 +3878,9 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       background: rgba(255, 255, 255, 0.04);
       color: inherit;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .nr-dashboard-tabs__btn.is-icon {
@@ -3897,6 +3900,26 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       font-weight: 700;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--nr-dashboard-nav-border);
+    }
+
+    .nr-dashboard-tabs__icon i {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .nr-dashboard-tabs__icon img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+    }
+
+    .nr-dashboard-tabs__icon-glyph {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      width: 100%;
+      height: 100%;
     }
 
     .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
@@ -4066,23 +4089,59 @@ function TabNav(props) {
   ensureLayoutStyles();
   const { t: t4 } = useI18n();
   const iconOnly = variant === "icon";
-  const renderIcon = (tab, idx) => {
+  const renderLetterFallback = (tab, idx) => {
     const raw = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
     const trimmed = raw.trim();
     if (trimmed.length === 0)
       return "?";
     return trimmed[0].toUpperCase();
   };
+  const renderIcon = (tab, idx) => {
+    const icon = (tab.icon ?? "").trim();
+    const letter = renderLetterFallback(tab, idx);
+    if (icon.length === 0) {
+      return m2`<span class="nr-dashboard-tabs__icon">${letter}</span>`;
+    }
+    const isUrl = /^https?:\/\//i.test(icon);
+    if (isUrl) {
+      return m2`<span class="nr-dashboard-tabs__icon"><img src=${icon} alt="" /></span>`;
+    }
+    if (icon.startsWith("mi-")) {
+      const glyph = icon.slice(3);
+      return m2`<span class="nr-dashboard-tabs__icon"><span class=${`material-icons ${icon}`} aria-hidden="true">${glyph}</span></span>`;
+    }
+    if (icon.startsWith("fa-")) {
+      return m2`<span class="nr-dashboard-tabs__icon"><i class=${`fa fa-fw ${icon}`} aria-hidden="true"></i></span>`;
+    }
+    if (icon.startsWith("wi-")) {
+      return m2`<span class="nr-dashboard-tabs__icon"><i class=${`wi wi-fw ${icon}`} aria-hidden="true"></i></span>`;
+    }
+    if (icon.startsWith("icofont-")) {
+      return m2`<span class="nr-dashboard-tabs__icon"><i class=${`icofont icofont-fw ${icon}`} aria-hidden="true"></i></span>`;
+    }
+    if (icon.startsWith("iconify-")) {
+      const [, size] = icon.split(" ");
+      const iconName = icon.split(" ")[0].slice(8);
+      return m2`<span class="nr-dashboard-tabs__icon"><i class="iconify" data-icon=${iconName} data-width=${size ?? "1.3em"} data-height=${size ?? "1.3em"} aria-hidden="true"></i></span>`;
+    }
+    return m2`<span class="nr-dashboard-tabs__icon">${letter}</span>`;
+  };
   return m2`<ul class=${`nr-dashboard-tabs ${iconOnly ? "nr-dashboard-tabs--icon" : ""}`.trim()}>
     ${menu.length === 0 ? m2`<li style=${{ opacity: 0.6 }}>${t4("no_tabs", "No tabs yet")}</li>` : menu.map((tab, idx) => {
     const active = idx === selectedIndex;
+    const label = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
+    const icon = renderIcon(tab, idx);
     return m2`<li key=${tab.id ?? tab.header ?? idx}>
             <button
               class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active" : ""}`.trim()}
               disabled=${tab.disabled || tab.hidden}
+              type="button"
+              aria-label=${label}
+              title=${label}
               onClick=${() => onSelect(idx)}
             >
-              ${iconOnly ? m2`<span class="nr-dashboard-tabs__icon">${renderIcon(tab, idx)}</span><span class="nr-dashboard-tabs__label">${tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 })}</span>` : tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 })}
+              ${icon}
+              <span class="nr-dashboard-tabs__label">${label}</span>
             </button>
           </li>`;
   })}
@@ -46470,6 +46529,20 @@ function findFirstFocusable(root) {
   const candidate = root.querySelector(selector);
   return candidate ?? root;
 }
+function findNextTabIndex(menu, startIdx, delta) {
+  if (menu.length === 0)
+    return null;
+  const len2 = menu.length;
+  let idx = startIdx;
+  for (let i3 = 0;i3 < len2; i3 += 1) {
+    idx = (idx + delta + len2) % len2;
+    const tab = menu[idx];
+    if (!tab || tab.disabled || tab.hidden)
+      continue;
+    return idx;
+  }
+  return null;
+}
 function App() {
   const { state, selectedTab, actions: actions2 } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
@@ -46511,6 +46584,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const sizes = useSizes();
   const { t: t4 } = useI18n();
   const mainRef = A2(null);
+  const shellRef = A2(null);
   const site = state.site ?? null;
   const lockModeRaw = site?.lockMenu;
   const lockMode = typeof lockModeRaw === "boolean" ? lockModeRaw ? "true" : "false" : typeof lockModeRaw === "string" ? lockModeRaw : "false";
@@ -46519,7 +46593,13 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const isLocked = lockMode === "true";
   const isIconOnly = lockMode === "icon";
   const isSlide = lockMode === "false";
-  const [navOpen, setNavOpen] = d2(isLocked || isIconOnly);
+  const hideToolbar = site?.hideToolbar === "true" || site?.hideToolbar === true;
+  const hasMultipleTabs = state.menu.length > 1;
+  const [navOpen, setNavOpen] = d2(hasMultipleTabs && (isLocked || isIconOnly));
+  const shellStyles = {
+    ...appStyles,
+    gridTemplateRows: hideToolbar ? "1fr" : appStyles.gridTemplateRows
+  };
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
   y2(() => {
     if (state.connection !== "ready")
@@ -46531,8 +46611,67 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     }
   }, [selectedTab, state.connection]);
   y2(() => {
-    setNavOpen(isLocked || isIconOnly || lockMode === "true");
-  }, [isLocked, isIconOnly, lockMode]);
+    if (!hasMultipleTabs) {
+      setNavOpen(false);
+      return;
+    }
+    if (isLocked || isIconOnly || lockMode === "true") {
+      setNavOpen(true);
+    }
+  }, [hasMultipleTabs, isIconOnly, isLocked, lockMode]);
+  y2(() => {
+    const node = shellRef.current;
+    const allowMenuSwipe = allowSwipe === "menu";
+    const allowTabSwipe = allowSwipe === "true" || allowSwipe === "mouse";
+    const allowMouseSwipe = allowSwipe === "mouse";
+    if (!node || !allowMenuSwipe && !allowTabSwipe)
+      return;
+    let startX = 0;
+    let startY = 0;
+    let activePointerId = null;
+    const handlePointerDown = (event) => {
+      if (!event.isPrimary)
+        return;
+      if (event.pointerType === "mouse" && !allowMouseSwipe)
+        return;
+      activePointerId = event.pointerId;
+      startX = event.clientX;
+      startY = event.clientY;
+    };
+    const handlePointerUp = (event) => {
+      if (activePointerId == null || event.pointerId !== activePointerId)
+        return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      activePointerId = null;
+      activePointerType = null;
+      if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx))
+        return;
+      if (event.pointerType === "mouse" && !allowMouseSwipe)
+        return;
+      const direction = dx < 0 ? "left" : "right";
+      if (allowMenuSwipe && !isLocked && !isIconOnly) {
+        setNavOpen(direction === "right");
+        return;
+      }
+      if (allowTabSwipe) {
+        const delta = direction === "left" ? -1 : 1;
+        const next = findNextTabIndex(state.menu, state.selectedTabIndex ?? 0, delta);
+        if (next != null) {
+          if (typeof window !== "undefined") {
+            window.location.hash = `#/${next}`;
+          }
+          actions2.selectTab(next);
+        }
+      }
+    };
+    node.addEventListener("pointerdown", handlePointerDown, { passive: true });
+    node.addEventListener("pointerup", handlePointerUp, { passive: true });
+    return () => {
+      node.removeEventListener("pointerdown", handlePointerDown);
+      node.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [actions2, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex]);
   const statusLabel = (() => {
     switch (state.connection) {
       case "ready":
@@ -46543,14 +46682,26 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
         return t4("status_disconnected", "Disconnected");
     }
   })();
+  const toolbarTitle = (() => {
+    const tabTitle = selectedTab?.header ?? selectedTab?.name;
+    const siteTitle = site?.name;
+    if (isLocked || isIconOnly) {
+      return siteTitle ?? t4("app_title", "Node-RED Dashboard v2");
+    }
+    return tabTitle ?? siteTitle ?? t4("app_title", "Node-RED Dashboard v2");
+  })();
+  const shouldRenderNav = hasMultipleTabs && (navOpen || isLocked || isIconOnly);
+  const gridTemplateColumns = shouldRenderNav ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr";
+  const sectionMinHeight = hideToolbar ? "100vh" : "calc(100vh - 56px)";
+  const showToggle = isSlide && hasMultipleTabs;
   return m2`
-    <div style=${appStyles}>
-      <header style=${toolbarStyles}>
-        ${isSlide ? m2`<button
-              type="button"
-              aria-label=${t4("toggle_menu", "Toggle menu")}
-              onClick=${() => setNavOpen((v3) => !v3)}
-              style=${{
+    <div style=${shellStyles} ref=${shellRef}>
+      ${hideToolbar ? null : m2`<header style=${toolbarStyles}>
+            ${showToggle ? m2`<button
+                  type="button"
+                  aria-label=${t4("toggle_menu", "Toggle menu")}
+                  onClick=${() => setNavOpen((v3) => !v3)}
+                  style=${{
     border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
     background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
     color: "inherit",
@@ -46558,10 +46709,10 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     padding: "6px 10px",
     cursor: "pointer"
   }}
-            >${navOpen ? "✕" : "☰"}</button>` : null}
-        <strong>${t4("app_title", "Node-RED Dashboard v2")}</strong>
-        <span
-          style=${{
+                >${navOpen ? "✕" : "☰"}</button>` : null}
+            <strong>${toolbarTitle}</strong>
+            <span
+              style=${{
     marginLeft: "auto",
     fontSize: "13px",
     opacity: 0.8,
@@ -46569,26 +46720,27 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     alignItems: "center",
     gap: "6px"
   }}
-        >
-          <span
-            aria-hidden="true"
-            style=${{
+            >
+              <span
+                aria-hidden="true"
+                style=${{
     width: "10px",
     height: "10px",
     borderRadius: "50%",
     background: state.connection === "ready" ? "#46e18a" : state.connection === "connecting" ? "#f5c74f" : "#f26b6b"
   }}
-          ></span>
-          ${statusLabel}
-        </span>
-      </header>
+              ></span>
+              ${statusLabel}
+            </span>
+          </header>`}
       <section
         style=${{
     ...layoutStyles2,
-    gridTemplateColumns: navOpen || isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr"
+    gridTemplateColumns,
+    minHeight: sectionMinHeight
   }}
       >
-        ${navOpen || isLocked || isIconOnly ? m2`<nav
+        ${shouldRenderNav ? m2`<nav
               style=${{
     ...navStyles,
     padding: isIconOnly ? "12px 10px" : navStyles.padding,
@@ -46606,7 +46758,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       window.location.hash = `#/${idx}`;
     }
     actions2.selectTab(idx);
-    if (isSlide && allowSwipe !== "true" && allowSwipe !== "mouse" && allowSwipe !== "menu") {
+    if (isSlide) {
       setNavOpen(false);
     }
   }}

@@ -118,3 +118,4 @@
 - [ ] Expand i18n coverage to layout chrome (toolbar/menu/system messages) and ensure locale bundles are reused end-to-end.
 - [ ] Add streaming helpers + option mapping for charts (after loader in place).
 - [ ] Remove gulp/legacy build once parity is acceptable; point Node-RED runtime to `dist/` by default.
+- [ ] Restore legacy dashboard layout behaviors: honor `hideToolbar`, reuse site/tab titles in the toolbar, gate menu toggle/nav on tab count, auto-close the nav on tab select when unlocked, render real tab icons (not letter-only), and add swipe handling that respects `allowSwipe` (`menu` to open/close nav; `true`/`mouse` to switch tabs; disable mouse swipes unless explicitly allowed).
