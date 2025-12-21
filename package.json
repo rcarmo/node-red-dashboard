@@ -102,7 +102,8 @@
         "socket.io-client": "^4.8.1",
         "preact": "^10.19.6",
         "htm": "^3.1.1",
-        "echarts": "^5.5.0"
+        "echarts": "^5.5.0",
+        "dayjs": "^1.11.13"
     },
     "devDependencies": {
         "@testing-library/preact": "^3.2.4",

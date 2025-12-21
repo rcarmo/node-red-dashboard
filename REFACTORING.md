@@ -67,6 +67,15 @@
 - [ ] Map Chart.js options to ECharts (axes, tooltips with time formatting via `dayjs`, stacked bars, multi-series colors, `spanGaps`, smoothing/step, donut cutout).
 - [ ] Implement streaming updates: maintain series arrays, apply `remove`, call `setOption({series,xAxis,yAxis},{notMerge:false,replaceMerge:['series']}).
 
+#### ECharts chart panel plan (ui_chart parity)
+- Supported looks: line (time/number x-axis), bar/horizontalBar, pie, polar-area, radar; respect `legend`, `interpolate` (cubic/monotone/linear/bezier/step), `dot`, `useOneColor`, `useDifferentColor`, `colors`, `cutout`, `spanGaps`, `animation`, `useUTC`, `xformat`, `ymin/ymax`, className.
+- Data contract: handle full dataset payloads `{key,id, values:{series[], data[][], labels[]}}` and streaming `newPoint/update/remove` records with timestamped points for line charts; reset on empty array.
+- Tooltip/labels: format timestamps with `xformat` (fallback relative calendar) using dayjs; number formatting via locale; show series/label for pie/polar.
+- Legend interaction: toggle series visibility and persist hidden state per series in `replaceMerge`.
+- Theming: use CSS vars for text/grid colors; adopt widget text color for axes/legend; background transparent.
+- Performance: reuse chart instance via `useECharts`; throttle resize via existing hook; avoid `setOption` churn by keeping series state in a reducer and applying `replaceMerge` on `series`.
+- Tests: unit test option mapping for each look, streaming update behavior (append, remove), `useUTC`/`xformat` formatting, spanGaps, legend toggle state, and pie/bar data shape mapping.
+
 ### 6) Forms & Message Contract
 - [ ] Keep inbound `msg` handling identical; ensure outgoing emits include `msg.socketid` and node IDs.
 - [ ] Preserve tab/group hide/show storage (`th*`/`td*`/`g*`) or replace with clearer keys; trigger resize after changes.

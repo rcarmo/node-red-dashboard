@@ -16,6 +16,7 @@ import { ToastWidget } from "./widgets/toast";
 import { LinkWidget } from "./widgets/link";
 import { TemplateWidget } from "./widgets/template";
 import { FormWidget } from "./widgets/form";
+import { ChartWidget } from "./widgets/chart";
 import { WidgetPreview } from "./widget-preview";
 import { WidgetFrame } from "./WidgetFrame";
 
@@ -59,6 +60,10 @@ export function WidgetRenderer(props: { control: UiControl; index: number; onEmi
 
   if (type === "gauge" || type === "ui_gauge") {
     return html`<${WidgetFrame} control=${control} disabled=${disabled}><${GaugeWidget} control=${control} index=${index} /></${WidgetFrame}>`;
+  }
+
+  if (type === "chart" || type === "ui_chart") {
+    return html`<${WidgetFrame} control=${control} disabled=${disabled}><${ChartWidget} control=${control} index=${index} disabled=${disabled} /></${WidgetFrame}>`;
   }
 
   if (type === "date" || type === "date-picker" || type === "ui_date_picker") {
