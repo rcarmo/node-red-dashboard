@@ -8,7 +8,7 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 ## Status
 
 - Work in progress: replacing the Angular v1 client with a Preact runtime while keeping the existing Node-RED editor nodes and saved flows.
-- Current runtime pieces: tab/nav shell, CSS Grid layout for groups, theme application via CSS variables, Socket.IO bridge, text/button/switch/text-input/numeric/dropdown/slider widgets, and an Apache ECharts gauge/donut implementation.
+- Current runtime pieces: tab/nav shell, CSS Grid layout for groups, theme application via CSS variables, Socket.IO bridge, text/button/switch/text-input/numeric/dropdown/slider/form/date/colour/audio/toast/link/template widgets, and an Apache ECharts gauge/donut implementation with ui-control handlers for tabs/groups/controls.
 - Tooling: Bun scripts for dev/build/test/lint/format; strict TypeScript; HTM (no JSX); Apache ECharts vendored via bundler.
 - Compatibility: editor-side configuration is unchanged; the refactor targets drop-in consumption of existing saved metadata but remains experimental until full widget/chart coverage lands. Track progress in `REFACTORING.md`.
 
@@ -31,13 +31,13 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 
 - Shell: tab list, connection status, hash-based routing per tab index/name.
 - Layout: CSS Grid for groups/cards with theme-aware surfaces; layout announcements for screen readers.
-- Widgets: text, button, switch, text-input (enter/delay/blur), numeric (wrap/format), dropdown, slider (invert/vertical/ticks/signals), gauge (standard/donut) on ECharts.
+- Widgets: text, button, switch, text-input (enter/delay/blur), numeric (wrap/format), dropdown, slider (invert/vertical/ticks/signals), form, date picker, colour picker, audio, toast, link, template, and gauge (standard/donut) on ECharts.
 - Tests: Vitest + @testing-library/preact for widgets/layout; Bun scripts wired.
 
 ## Roadmap highlights
 
 - Chart panel on ECharts with streaming adapter matching `ui-chart` options.
-- Remaining widgets (form, date/colour picker, audio, toast, link, template) and full `ui-control` parity.
+- Full `ui-control` parity (ui-collapse/backlog edge cases) and socket contract tests.
 - Shared ECharts loader + resize hooks; sizing context to replace legacy `sizes.js`.
 - Full theme variable application and removal of runtime Less usage.
   See `REFACTORING.md` for the detailed checklist.

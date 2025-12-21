@@ -11,7 +11,7 @@
 - [x] New `src/preact/` shell with Socket.IO bridge, tab list, connection status; builds to `dist/` via `bun run build`.
 - [x] Lint/format config (ESLint/Prettier) scoped to new preact sources; tests run with `bun test`.
 - [x] Layout: CSS Grid tabs/groups with theme-aware cards; hash routing for tab index; layout announcements dispatched.
-- [x] Widgets: text, button, switch, text-input (CR/delay/blur), numeric (wrap/format), dropdown, slider (outs/all/end, invert, vertical, ticks/sign), gauge (ECharts gauge/donut) wired via renderer.
+- [x] Widgets: text, button, switch, text-input (CR/delay/blur), numeric (wrap/format), dropdown, slider (outs/all/end, invert, vertical, ticks/sign), gauge (ECharts gauge/donut), form, date/colour picker, audio, toast, link, template; ui-control handlers for tab/group/control updates.
 - [x] ECharts added (gauge); helper tests for widgets + layout utils in place.
 
 ## Goals & Constraints Checklist
@@ -46,7 +46,7 @@
 - [x] Port `UiEvents` to Preact hook/context: Socket bridge created with `emit/on/close` and `socketid` injection.
 - [x] Handle `ui-controls` -> set state + emit `ui-replay-state`; handle `ui-replay-done`; emit `ui-change` on tab switch (selectTab emits).
 - [x] Model app state: `menu`, `globals`, `site`, `selectedTab`, connection flags; preserve `msg.socketid` on emits.
-- [ ] Maintain `ui-collapse`, tab/group hide/show, `ui-control` messages semantics.
+- [ ] Maintain `ui-collapse`, tab/group hide/show, `ui-control` messages semantics (tab/group toggles wired; ui-collapse pending).
 
 ### 3) Theme & Layout System
 - [ ] Replace Less runtime with CSS variables derived from theme object (map `page-backgroundColor`, `widget-textColor`, etc.) — CSS vars mapped/applied to layout/widget frame; finish mapping remaining tokens and legacy fallbacks.
@@ -58,7 +58,7 @@
 - [x] Create `src/preact/components/` with widgets for text, button, switch, text-input, numeric, dropdown, slider, gauge.
 - [ ] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`.
 - [x] Build `Gauge` using ECharts gauge/donut to replace JustGage (wave/compass pending).
-- [ ] Build remaining core widgets: Form, Date/Colour picker, Audio, Toast, Link, Template.
+- [x] Build remaining core widgets: Form, Date/Colour picker, Audio, Toast, Link, Template.
 - [x] Add shared `WidgetFrame` for labels, disabled state, sizing units, `className`.
 
 ### 5) Charts with Apache ECharts
@@ -81,8 +81,8 @@
 - [ ] Vendor dependencies into bundle/output (no CDN fetches); include icon/font assets locally.
 
 ### 9) Testing Strategy
-- [ ] Add unit test setup with Vitest (Preact testing lib) for components, hooks, and data adapters (Socket bridge, ECharts adapter).
-- [ ] Add DOM-focused tests using @testing-library/preact for widgets (inputs, routing, theme variables).
+- [x] Add unit test setup with Vitest (Preact testing lib) for components, hooks, and data adapters (Socket bridge, ECharts adapter).
+- [x] Add DOM-focused tests using @testing-library/preact for widgets (inputs, routing, theme variables).
 - [ ] Add contract tests for Socket.IO events (ui-controls, ui-replay-state, ui-change) with mocked server.
 - [ ] Add lightweight E2E smoke via Playwright (bun test) covering tab navigation, theme switching, chart render, widget interaction.
 - [ ] Add visual regression budget later (optional) once styles stabilize.
@@ -104,6 +104,6 @@
 ## Immediate Next Steps
 - [ ] Implement chart panel on ECharts (line/bar/etc.) and streaming adapter.
 - [ ] Finish theme variable coverage (legacy Less tokens) and apply to remaining widgets.
-- [ ] Implement remaining widgets (form, date/colour picker, audio, toast, link, template) and `ui-control` contracts.
+- [ ] Harden `ui-control` parity (ui-collapse coverage, socket contract tests) and validate toast/audio overlays against legacy flows.
 - [ ] Add streaming helpers + option mapping for charts (after loader in place).
 - [ ] Remove gulp/legacy build once parity is acceptable; point Node-RED runtime to `dist/` by default.
