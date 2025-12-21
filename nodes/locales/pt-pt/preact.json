@@ -42,5 +42,7 @@
     "link_open": "Abrir {label}",
     "audio_controls": "Controlos de áudio para {label}",
     "number_value_label": "{label}: {value}"
+    "gauge_label": "Indicador {index}",
+    "group_label": "Grupo {index}"
   }
 }

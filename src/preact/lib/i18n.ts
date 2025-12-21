@@ -49,6 +49,8 @@ const defaultMessages: LocaleMessages = {
   link_open: "Open {label}",
   audio_controls: "Audio controls for {label}",
   number_value_label: "{label}: {value}",
+  gauge_label: "Gauge {index}",
+  group_label: "Group {index}",
 };
 
 function interpolate(template: string, params?: Record<string, string | number>): string {

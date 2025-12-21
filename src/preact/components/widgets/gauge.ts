@@ -35,9 +35,10 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-export function formatGaugeValue(value: number, format: string | undefined, units?: string): string {
+export function formatGaugeValue(value: number, format: string | undefined, units: string | undefined, formatter: Intl.NumberFormat): string {
   const tpl = format && format.includes("{{") ? format : "{{value}}";
-  return tpl.replace(/{{\s*value\s*}}/g, `${value}`).replace(/{{\s*units\s*}}/g, units ?? "");
+  const formattedValue = formatter.format(value);
+  return tpl.replace(/{{\s*value\s*}}/g, formattedValue).replace(/{{\s*units\s*}}/g, units ?? "");
 }
 
 export function buildSegments(ctrl: GaugeControl, min: number, max: number): Array<[number, string]> {
@@ -57,11 +58,12 @@ export function buildSegments(ctrl: GaugeControl, min: number, max: number): Arr
 export function GaugeWidget(props: { control: UiControl; index: number }): VNode {
   const { control, index } = props;
   const asGauge = control as GaugeControl;
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const label = asGauge.label || asGauge.name || t("gauge_label", "Gauge {index}", { index: index + 1 });
   const min = toNumber(asGauge.min, 0);
   const max = toNumber(asGauge.max, 10);
   const [value, setValue] = useState<number>(clamp(toNumber(asGauge.value ?? min, min), min, max));
+  const formatter = useMemo(() => new Intl.NumberFormat(lang || undefined), [lang]);
   const chartRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -72,12 +74,12 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   const showMinMax = !asGauge.hideMinMax;
   const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "donut" || !asGauge.gtype;
   const isDonut = asGauge.gtype === "donut";
-  const formatted = formatGaugeValue(value, asGauge.format, asGauge.units);
+  const formatted = formatGaugeValue(value, asGauge.format, asGauge.units, formatter);
   const reverse = Boolean(asGauge.reverse);
 
   useECharts(
     chartRef,
-    [value, min, max, segments, showTicks, showMinMax, isDonut, formatted, label, reverse],
+    [value, min, max, segments, showTicks, showMinMax, isDonut, formatted, label, reverse, formatter],
     () => ({
       backgroundColor: "transparent",
       series: [
@@ -104,7 +106,12 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           },
           axisTick: { show: showTicks, distance: -12, length: 6 },
           splitLine: { show: showTicks, length: 10, distance: -14 },
-          axisLabel: { show: showMinMax, distance: 16, color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
+          axisLabel: {
+            show: showMinMax,
+            distance: 16,
+            color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+            formatter: (val: number) => formatter.format(val),
+          },
           pointer: { show: !isDonut, width: 4, itemStyle: { color: "#fff" } },
           anchor: { show: !isDonut, showAbove: true, size: 10, itemStyle: { color: "#fff" } },
           detail: {

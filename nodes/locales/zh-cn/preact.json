@@ -42,5 +42,7 @@
     "link_open": "打开 {label}",
     "audio_controls": "{label} 的音频控件",
     "number_value_label": "{label}: {value}"
+    "gauge_label": "仪表 {index}",
+    "group_label": "分组 {index}"
   }
 }

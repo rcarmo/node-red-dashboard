@@ -3,8 +3,9 @@ import { buildSegments, formatGaugeValue } from "./gauge";
 
 describe("Gauge helpers", () => {
   test("formats value with fallback template", () => {
-    expect(formatGaugeValue(12.3, undefined, "V")).toBe("12.3");
-    expect(formatGaugeValue(5, "{{ value }} {{ units }}", "kPa")).toBe("5 kPa");
+    const fmt = new Intl.NumberFormat("en-US");
+    expect(formatGaugeValue(12.3, undefined, "V", fmt)).toBe("12.3");
+    expect(formatGaugeValue(5, "{{ value }} {{ units }}", "kPa", fmt)).toBe("5 kPa");
   });
 
   test("builds segment thresholds with defaults", () => {

@@ -20,7 +20,7 @@ export function GroupCard(props: {
   const { t } = useI18n();
 
   const header = group.header;
-  const title = header?.name || `Group ${index + 1}`;
+  const title = header?.name || t("group_label", "Group {index}", { index: index + 1 });
   const items = (group.items ?? []) as UiControl[];
   const groupKey = useMemo(() => {
     const base = `${tabName ?? ""} ${header?.name ?? ""}`.trim();
