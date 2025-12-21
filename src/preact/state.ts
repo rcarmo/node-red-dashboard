@@ -318,9 +318,21 @@ function handleUiControl(prev: DashboardState, payload: unknown): DashboardState
   const msg = (payload || {}) as Record<string, unknown>;
   let menu = prev.menu;
   let selectedTabIndex = prev.selectedTabIndex;
+  const controlId = msg.id as string | number | undefined;
 
-  if (msg.control && msg.id !== undefined) {
-    menu = updateControlById(menu, msg.id as string | number, msg.control as Record<string, unknown>);
+  if (msg.control && controlId !== undefined) {
+    menu = updateControlById(menu, controlId, msg.control as Record<string, unknown>);
+  }
+
+  // Dropdown legacy parity: accept option updates/reset/value sent via ui-control
+  if (msg.options && controlId !== undefined) {
+    const nextValue = (msg as { value?: unknown; payload?: unknown }).value ?? (msg as { payload?: unknown }).payload;
+    const resetSelection = Boolean((msg as { resetSearch?: unknown }).resetSearch || (msg as { resetSelection?: unknown }).resetSelection);
+    menu = updateControlById(menu, controlId, {
+      options: msg.options,
+      value: nextValue,
+      resetSelection,
+    });
   }
 
   if (msg.tabs) {

@@ -137,8 +137,8 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
               color: segments,
             },
           },
-          axisTick: { show: showTicks, distance: -12, length: 6 },
-          splitLine: { show: showTicks, length: 10, distance: -14 },
+          axisTick: { show: showTicks, distance: isCompass ? -8 : -12, length: isCompass ? 8 : 6 },
+          splitLine: { show: showTicks, length: isCompass ? 12 : 10, distance: isCompass ? -10 : -14 },
           axisLabel: {
             show: showMinMax || isCompass,
             distance: isCompass ? 22 : 16,
