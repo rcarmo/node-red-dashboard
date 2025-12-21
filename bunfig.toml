@@ -1,0 +1,7 @@
+[install]
+# Adjust if you want bun install to prefer production/dev defaults.
+production = false
+
+[entrypoints]
+# Add project-wide entrypoints here if needed.
+

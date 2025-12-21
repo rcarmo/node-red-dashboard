@@ -6,9 +6,11 @@
         "node-red"
     ],
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "prepare": "node fixfa.js",
-        "postinstall": "node fixgrid.js"
+        "test": "bun test",
+        "dev": "bun build src/preact/index.html --outdir dist --target browser --public-path ./ --watch",
+        "build": "bun build src/preact/index.html --outdir dist --target browser --public-path ./",
+        "prepare": "bun fixfa.js",
+        "postinstall": "bun fixgrid.js"
     },
     "contributors": [
         {
@@ -48,7 +50,10 @@
             "name": "@petslane"
         },
         {
-            "name": "@hotNipi"
+                "name": "@hotNipi"
+            },
+            {
+                "name": "@rcarmo"
         },
         {
             "name": "@Steve-Mcl"
@@ -57,7 +62,7 @@
     "license": "Apache-2.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/node-red/node-red-dashboard.git"
+        "url": "https://github.com/rcarmo/node-red-dashboard.git"
     },
     "node-red": {
         "version": ">=1.0.0",
@@ -89,7 +94,10 @@
         "compression": "^1.8.1",
         "gridstack": "^0.6.4",
         "serve-static": "^1.16.2",
-        "socket.io": "^4.8.1"
+        "socket.io": "^4.8.1",
+        "socket.io-client": "^4.8.1",
+        "preact": "^10.19.6",
+        "htm": "^3.1.1"
     },
     "devDependencies": {
         "angular": "~1.8.3",
@@ -138,7 +146,8 @@
         "svg-morpheus": "^0.3.0",
         "terser": "^5.43.1",
         "tinycolor2": "^1.6.0",
-        "weather-icons-lite": "^1.6.1"
+        "weather-icons-lite": "^1.6.1",
+        "typescript": "^5.4.5"
     },
     "engines": {
         "node": ">=12"
