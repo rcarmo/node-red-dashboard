@@ -14,6 +14,18 @@ export { groupColumnSpan } from "./components/layout/utils";
 export { resolveSizes, applySizesToRoot } from "./lib/sizes";
 export type { ConnectionState } from "./state";
 
+export function resolveLanguage(
+  stateLang: string | null | undefined,
+  site: { lang?: string; locale?: string } | null,
+  navigatorLang?: string,
+): string {
+  const fromState = stateLang;
+  const fromSite = site?.lang ?? site?.locale;
+  const candidate = fromState ?? fromSite ?? navigatorLang ?? "en";
+  if (typeof candidate !== "string" || candidate.length === 0) return "en";
+  return candidate;
+}
+
 const themeVarMap: Record<string, string> = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
   "page-textColor": "--nr-dashboard-pageTextColor",
@@ -104,11 +116,7 @@ export function App(): VNode {
   const { state, selectedTab, actions } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
   const locales = useMemo(() => state.locales ?? hydrateLocales(), [state.locales]);
-  const lang =
-    state.lang ??
-    (state.site as { lang?: string; locale?: string } | null)?.lang ??
-    (state.site as { lang?: string; locale?: string } | null)?.locale ??
-    (typeof navigator !== "undefined" ? navigator.language : "en");
+  const lang = resolveLanguage(state.lang, state.site as { lang?: string; locale?: string } | null, typeof navigator !== "undefined" ? navigator.language : undefined);
 
   // Hash-based routing to mirror legacy /<tabIndex>
   useEffect(() => {
