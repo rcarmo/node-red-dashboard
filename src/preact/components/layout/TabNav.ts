@@ -11,6 +11,9 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
   ensureLayoutStyles();
   const { t } = useI18n();
   const iconOnly = variant === "icon";
+  const visibleMenu = menu
+    .map((tab, originalIndex) => ({ tab, originalIndex }))
+    .filter(({ tab }) => !tab.hidden);
 
   const renderLetterFallback = (tab: UiMenuItem, idx: number): string => {
     const raw = (tab.header || tab.name || t("tab_label", "Tab {index}", { index: idx + 1 })) as string;
@@ -59,20 +62,20 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
   };
 
   return html`<ul class=${`nr-dashboard-tabs ${iconOnly ? "nr-dashboard-tabs--icon" : ""}`.trim()}>
-    ${menu.length === 0
+    ${visibleMenu.length === 0
       ? html`<li style=${{ opacity: 0.6 }}>${t("no_tabs", "No tabs yet")}</li>`
-      : menu.map((tab, idx) => {
-          const active = idx === selectedIndex;
-              const label = (tab.header || tab.name || t("tab_label", "Tab {index}", { index: idx + 1 })) as string;
-              const icon = renderIcon(tab, idx);
-          return html`<li key=${tab.id ?? tab.header ?? idx}>
+      : visibleMenu.map(({ tab, originalIndex }, idx) => {
+          const active = originalIndex === selectedIndex;
+          const label = (tab.header || tab.name || t("tab_label", "Tab {index}", { index: idx + 1 })) as string;
+          const icon = renderIcon(tab, idx);
+          return html`<li key=${tab.id ?? tab.header ?? originalIndex}>
             <button
               class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active" : ""}`.trim()}
-              disabled=${tab.disabled || tab.hidden}
+              disabled=${tab.disabled}
               type="button"
               aria-label=${label}
               title=${label}
-              onClick=${() => onSelect(idx)}
+              onClick=${() => onSelect(originalIndex)}
             >
               ${icon}
               <span class="nr-dashboard-tabs__label">${label}</span>

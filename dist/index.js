@@ -4089,6 +4089,7 @@ function TabNav(props) {
   ensureLayoutStyles();
   const { t: t4 } = useI18n();
   const iconOnly = variant === "icon";
+  const visibleMenu = menu.map((tab, originalIndex) => ({ tab, originalIndex })).filter(({ tab }) => !tab.hidden);
   const renderLetterFallback = (tab, idx) => {
     const raw = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
     const trimmed = raw.trim();
@@ -4127,18 +4128,18 @@ function TabNav(props) {
     return m2`<span class="nr-dashboard-tabs__icon">${letter}</span>`;
   };
   return m2`<ul class=${`nr-dashboard-tabs ${iconOnly ? "nr-dashboard-tabs--icon" : ""}`.trim()}>
-    ${menu.length === 0 ? m2`<li style=${{ opacity: 0.6 }}>${t4("no_tabs", "No tabs yet")}</li>` : menu.map((tab, idx) => {
-    const active = idx === selectedIndex;
+    ${visibleMenu.length === 0 ? m2`<li style=${{ opacity: 0.6 }}>${t4("no_tabs", "No tabs yet")}</li>` : visibleMenu.map(({ tab, originalIndex }, idx) => {
+    const active = originalIndex === selectedIndex;
     const label = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
     const icon = renderIcon(tab, idx);
-    return m2`<li key=${tab.id ?? tab.header ?? idx}>
+    return m2`<li key=${tab.id ?? tab.header ?? originalIndex}>
             <button
               class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active" : ""}`.trim()}
-              disabled=${tab.disabled || tab.hidden}
+              disabled=${tab.disabled}
               type="button"
               aria-label=${label}
               title=${label}
-              onClick=${() => onSelect(idx)}
+              onClick=${() => onSelect(originalIndex)}
             >
               ${icon}
               <span class="nr-dashboard-tabs__label">${label}</span>
@@ -46434,7 +46435,8 @@ var toolbarStyles = {
 var layoutStyles2 = {
   display: "grid",
   gridTemplateColumns: "260px 1fr",
-  minHeight: "calc(100vh - 56px)"
+  minHeight: "calc(100vh - 56px)",
+  position: "relative"
 };
 var navStyles = {
   borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
@@ -46595,6 +46597,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const isSlide = lockMode === "false";
   const hideToolbar = site?.hideToolbar === "true" || site?.hideToolbar === true;
   const hasMultipleTabs = state.menu.length > 1;
+  const hasTabs = state.menu.length > 0;
   const [navOpen, setNavOpen] = d2(hasMultipleTabs && (isLocked || isIconOnly));
   const shellStyles = {
     ...appStyles,
@@ -46611,14 +46614,18 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     }
   }, [selectedTab, state.connection]);
   y2(() => {
-    if (!hasMultipleTabs) {
+    if (!hasTabs) {
       setNavOpen(false);
       return;
     }
-    if (isLocked || isIconOnly || lockMode === "true") {
+    if (!hasMultipleTabs && (isLocked || isIconOnly)) {
+      setNavOpen(true);
+      return;
+    }
+    if (hasMultipleTabs && (isLocked || isIconOnly || lockMode === "true")) {
       setNavOpen(true);
     }
-  }, [hasMultipleTabs, isIconOnly, isLocked, lockMode]);
+  }, [hasMultipleTabs, hasTabs, isIconOnly, isLocked, lockMode]);
   y2(() => {
     const node = shellRef.current;
     const allowMenuSwipe = allowSwipe === "menu";
@@ -46644,7 +46651,6 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       const dx = event.clientX - startX;
       const dy = event.clientY - startY;
       activePointerId = null;
-      activePointerType = null;
       if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx))
         return;
       if (event.pointerType === "mouse" && !allowMouseSwipe)
@@ -46690,10 +46696,11 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     }
     return tabTitle ?? siteTitle ?? t4("app_title", "Node-RED Dashboard v2");
   })();
-  const shouldRenderNav = hasMultipleTabs && (navOpen || isLocked || isIconOnly);
-  const gridTemplateColumns = shouldRenderNav ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr";
+  const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
+  const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr";
   const sectionMinHeight = hideToolbar ? "100vh" : "calc(100vh - 56px)";
-  const showToggle = isSlide && hasMultipleTabs;
+  const showToggle = isSlide && hasTabs;
+  const showFloatingToggle = isSlide && hasTabs && hideToolbar;
   return m2`
     <div style=${shellStyles} ref=${shellRef}>
       ${hideToolbar ? null : m2`<header style=${toolbarStyles}>
@@ -46740,15 +46747,49 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     minHeight: sectionMinHeight
   }}
       >
-        ${shouldRenderNav ? m2`<nav
+        ${shouldRenderNav ? m2`${isSlide && !isLocked && !isIconOnly && navOpen ? m2`<div
+                  role="button"
+                  aria-label=${t4("close_menu", "Close menu")}
+                  onClick=${() => setNavOpen(false)}
+                  style=${{
+    position: "absolute",
+    inset: 0,
+    background: "rgba(0,0,0,0.32)",
+    zIndex: 9
+  }}
+                ></div>` : null}
+            <nav
               style=${{
     ...navStyles,
     padding: isIconOnly ? "12px 10px" : navStyles.padding,
-    width: isIconOnly ? "72px" : "100%",
-    background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)"
+    width: isIconOnly ? "72px" : isLocked ? "260px" : "260px",
+    background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
+    position: isSlide && !isLocked && !isIconOnly ? "absolute" : "relative",
+    left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : "-280px" : undefined,
+    top: 0,
+    bottom: 0,
+    transition: "left 0.18s ease-out",
+    zIndex: 10,
+    boxShadow: isSlide && !isLocked && !isIconOnly && navOpen ? "2px 0 12px rgba(0,0,0,0.35)" : "0 0 0 rgba(0,0,0,0)",
+    backdropFilter: isSlide && !isLocked && !isIconOnly && navOpen ? "blur(2px)" : undefined
   }}
             >
-              ${isIconOnly ? null : m2`<h3 style=${{ marginTop: 0 }}>${t4("tabs_label", "Tabs")}</h3>`}
+              ${isSlide && !isLocked && !isIconOnly ? m2`<div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                    <h3 style=${{ margin: 0 }}>${t4("tabs_label", "Tabs")}</h3>
+                    <button
+                      type="button"
+                      aria-label=${t4("close_menu", "Close menu")}
+                      onClick=${() => setNavOpen(false)}
+                      style=${{
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+    color: "inherit",
+    borderRadius: "6px",
+    padding: "4px 8px",
+    cursor: "pointer"
+  }}
+                    >✕</button>
+                  </div>` : isIconOnly ? null : m2`<h3 style=${{ marginTop: 0 }}>${t4("tabs_label", "Tabs")}</h3>`}
               <${TabNav}
                 menu=${state.menu}
                 selectedIndex=${state.selectedTabIndex}
