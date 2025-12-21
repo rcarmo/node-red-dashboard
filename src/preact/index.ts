@@ -3,6 +3,7 @@ import { html } from "htm/preact";
 import { useEffect, useMemo } from "preact/hooks";
 import { useDashboardState } from "./state";
 import type { UiMenuItem, UiTheme } from "./state";
+import { WidgetPreview } from "./components/widget-preview";
 
 type SiteSizes = {
   sx: number;
@@ -60,14 +61,6 @@ const navStyles: Record<string, string> = {
 const contentStyles: Record<string, string> = {
   padding: "16px",
 };
-
-function widgetLabel(control: UiControl, idx: number): string {
-  const asAny = control as { type?: string; id?: string | number; name?: string };
-  if (asAny.name) return String(asAny.name);
-  if (asAny.type) return String(asAny.type);
-  if (asAny.id) return `Widget ${asAny.id}`;
-  return `Widget ${idx + 1}`;
-}
 
 function coerceNumber(value: unknown, fallback: number): number {
   const n = Number(value);
@@ -143,6 +136,16 @@ export function groupColumnSpan(group: unknown, maxColumns: number): number {
   return Number.isFinite(capped) ? capped : 1;
 }
 
+function useLayoutAnnouncements(groups: unknown[], sizes: SiteSizes, tabId: string | number | undefined): void {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const detail = { tabId, groupCount: groups.length, sizes };
+    window.dispatchEvent(new CustomEvent("dashboard:layout", { detail }));
+    // Align with legacy behavior where widgets recompute sizes on resize
+    window.dispatchEvent(new Event("resize"));
+  }, [groups, sizes, tabId]);
+}
+
 export function applySizesToRoot(sizes: SiteSizes, root?: HTMLElement): void {
   if (!root && typeof document === "undefined") return;
   const target = root ?? document.documentElement;
@@ -163,6 +166,7 @@ export function applySizesToRoot(sizes: SiteSizes, root?: HTMLElement): void {
 export function App(): VNode {
   const { state, selectedTab, actions } = useDashboardState();
   const sizes = useMemo(() => resolveSizes(state.site), [state.site]);
+  const tabId = selectedTab?.id ?? selectedTab?.header;
 
   // Hash-based routing to mirror legacy /<tabIndex>
   useEffect(() => {
@@ -192,6 +196,8 @@ export function App(): VNode {
   useEffect(() => {
     applySizesToRoot(sizes);
   }, [sizes]);
+
+  useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
 
   const statusLabel = (() => {
     switch (state.connection) {
@@ -318,12 +324,11 @@ export function App(): VNode {
                       background: "rgba(255,255,255,0.03)",
                       minHeight: `${sizes.sy * 2}px`,
                     };
-                    const title =
-                      (group as { header?: { name?: string; id?: string | number } }).header?.
-                        name || `Group ${groupIdx + 1}`;
+                    const header = (group as { header?: { name?: string; id?: string | number } }).header;
+                    const title = header?.name || `Group ${groupIdx + 1}`;
                     const items = (group as { items?: unknown[] }).items ?? [];
 
-                    return html`<section key=${title} style=${cardStyles}>
+                    return html`<section key=${header?.id ?? title} style=${cardStyles}>
                       <header style=${{ fontWeight: 600, marginBottom: "8px" }}>${title}</header>
                       <div style=${{ opacity: 0.8, fontSize: "13px", marginBottom: "8px" }}>
                         ${items.length} widget${items.length === 1 ? "" : "s"}
@@ -339,22 +344,19 @@ export function App(): VNode {
                               display: "grid",
                               gap: `${sizes.cy}px`,
                             }}>
-                            ${items.map((control, ctrlIdx) => {
-                              const label = widgetLabel(control, ctrlIdx);
-                              return html`<li
-                                key=${label + ctrlIdx}
-                                style=${{
-                                  border: "1px dashed rgba(255,255,255,0.14)",
-                                  borderRadius: "8px",
-                                  padding: `${sizes.py + 8}px ${sizes.px + 10}px`,
-                                  background: "rgba(255,255,255,0.02)",
-                                  fontSize: "12px",
-                                  opacity: 0.8,
-                                }}
-                              >
-                                ${label}
-                              </li>`;
-                            })}
+                            ${items.map((control, ctrlIdx) => html`<li
+                                  key=${(control as { id?: string | number })?.id ?? ctrlIdx}
+                                  style=${{
+                                    border: "1px dashed rgba(255,255,255,0.14)",
+                                    borderRadius: "8px",
+                                    padding: `${sizes.py + 8}px ${sizes.px + 10}px`,
+                                    background: "rgba(255,255,255,0.02)",
+                                    fontSize: "12px",
+                                    opacity: 0.9,
+                                  }}
+                                >
+                                  <${WidgetPreview} control=${control} index=${ctrlIdx} />
+                                </li>`)}
                           </ul>`}
                     </section>`;
                   })}
