@@ -39,10 +39,10 @@ export function buildFieldStyles(opts: FieldStyleOptions = {}): Record<string, s
   return {
     width: "100%",
     padding: dense ? "8px 10px" : "10px 12px",
-    borderRadius: "8px",
+    borderRadius: "4px",
     border: `1px solid ${borderColor}`,
-    background: "var(--nr-dashboard-widgetFieldBg, var(--nr-dashboard-widgetBackgroundColor, transparent))",
-    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+    background: "var(--nr-dashboard-widgetFieldBg, #fff)",
+    color: "var(--nr-dashboard-widgetTextColor, #000)",
     outline: "none",
     boxShadow: focusRing,
     transition: "box-shadow 140ms ease, border-color 140ms ease, background 140ms ease",

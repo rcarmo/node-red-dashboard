@@ -89,7 +89,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
           right: "12px",
           top: "50%",
           transform: "translateY(-50%)",
-          color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.6))",
+          color: "rgba(0,0,0,0.54)",
           fontSize: "14px",
           pointerEvents: "none",
         }}

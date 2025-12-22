@@ -4495,17 +4495,17 @@ function ButtonWidget(props) {
     width: "100%",
     minHeight: "38px",
     padding: "10px 14px",
-    borderRadius: "6px",
-    border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.24)) 70%, transparent)",
+    borderRadius: "4px",
+    border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.18)) 80%, transparent)",
     background: color,
     color: "var(--nr-dashboard-widgetTextColor, #fff)",
-    fontWeight: 700,
+    fontWeight: 600,
     cursor: onEmit ? "pointer" : "default",
     outline: "none",
-    boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)" : hovered ? "0 2px 6px rgba(0,0,0,0.18)" : "0 1px 3px rgba(0,0,0,0.16)",
+    boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)" : "none",
     filter: hovered ? "brightness(1.01)" : "none",
     transform: pressed ? "translateY(1px)" : "none",
-    transition: "box-shadow 140ms ease, filter 140ms ease, background 140ms ease, transform 100ms ease",
+    transition: "filter 140ms ease, background 140ms ease, transform 100ms ease",
     letterSpacing: "0.02em",
     position: "relative",
     overflow: "hidden"
@@ -4626,7 +4626,7 @@ function SwitchWidget(props) {
     background: bg,
     position: "relative",
     transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
-    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 32%, transparent)" : hovered ? "0 1px 4px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))" : "none",
+    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)" : hovered ? "0 1px 2px rgba(0,0,0,0.18)" : "0 1px 2px rgba(0,0,0,0.12)",
     overflow: "hidden"
   }}
     >
@@ -4650,7 +4650,7 @@ function SwitchWidget(props) {
     height: "20px",
     borderRadius: "50%",
     background: "var(--nr-dashboard-widgetTextColor, #fff)",
-    boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
     transition: "left 120ms ease"
   }}
       ></div>
@@ -4689,10 +4689,10 @@ function buildFieldStyles(opts = {}) {
   return {
     width: "100%",
     padding: dense ? "8px 10px" : "10px 12px",
-    borderRadius: "8px",
+    borderRadius: "4px",
     border: `1px solid ${borderColor}`,
-    background: "var(--nr-dashboard-widgetFieldBg, var(--nr-dashboard-widgetBackgroundColor, transparent))",
-    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+    background: "var(--nr-dashboard-widgetFieldBg, #fff)",
+    color: "var(--nr-dashboard-widgetTextColor, #000)",
     outline: "none",
     boxShadow: focusRing,
     transition: "box-shadow 140ms ease, border-color 140ms ease, background 140ms ease",
@@ -4855,7 +4855,7 @@ function TextInputWidget(props) {
     flex: 1,
     background: "transparent",
     border: "none",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)",
+    color: "var(--nr-dashboard-widgetTextColor, #000)",
     outline: "none",
     padding: 0,
     fontSize: "14px",
@@ -5143,7 +5143,7 @@ function DropdownWidget(props) {
         onBlur=${() => setFocused(false)}
         style=${{
     ...fieldStyles,
-    paddingRight: "44px",
+    paddingRight: "36px",
     cursor: Boolean(disabled) ? "not-allowed" : "pointer",
     display: "block"
   }}
@@ -5163,7 +5163,15 @@ function DropdownWidget(props) {
           </option>`;
   })}
       </select>
-      <span aria-hidden="true" style=${adornmentStyles}>▼</span>
+      <span
+        aria-hidden="true"
+        style=${{
+    ...adornmentStyles,
+    right: "12px",
+    fontSize: "11px",
+    color: "rgba(0,0,0,0.54)"
+  }}
+      >▼</span>
     </div>
   </label>`;
 }
@@ -5184,9 +5192,9 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       --nr-dashboard-slider-track: var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18));
       --nr-dashboard-slider-fill: var(--nr-dashboard-widgetColor, #1f8af2);
       --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-thumb-shadow: 0 1px 2px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.25));
-      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      --nr-dashboard-slider-thumb-shadow: 0 1px 2px rgba(0,0,0,0.18);
+      --nr-dashboard-slider-focus: color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 70%, transparent);
+      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #000);
       --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, transparent);
       --nr-dashboard-slider-chip-shadow: 0 2px 6px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
     }
@@ -5255,7 +5263,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
       height: 6px;
       border-radius: 999px;
-      background: var(--nr-dashboard-slider-track);
+      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
@@ -5271,7 +5279,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
 
     .nr-dashboard-slider__range:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--nr-dashboard-slider-focus) 30%, transparent);
+      box-shadow: 0 0 0 3px var(--nr-dashboard-slider-focus);
     }
 
     .nr-dashboard-slider__track {
@@ -5292,7 +5300,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-slider__range::-moz-range-track {
       height: 6px;
       border-radius: 999px;
-      background: var(--nr-dashboard-slider-track);
+      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
@@ -42057,7 +42065,7 @@ function DatePickerWidget(props) {
     right: "12px",
     top: "50%",
     transform: "translateY(-50%)",
-    color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.6))",
+    color: "rgba(0,0,0,0.54)",
     fontSize: "14px",
     pointerEvents: "none"
   }}

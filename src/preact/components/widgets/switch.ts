@@ -125,10 +125,10 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
         position: "relative",
         transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
         boxShadow: focused
-          ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 32%, transparent)"
+          ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)"
           : hovered
-            ? "0 1px 4px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))"
-            : "none",
+            ? "0 1px 2px rgba(0,0,0,0.18)"
+            : "0 1px 2px rgba(0,0,0,0.12)",
         overflow: "hidden",
       }}
     >
@@ -152,7 +152,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
           height: "20px",
           borderRadius: "50%",
           background: "var(--nr-dashboard-widgetTextColor, #fff)",
-          boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
           transition: "left 120ms ease",
         }}
       ></div>

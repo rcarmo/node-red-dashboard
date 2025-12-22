@@ -159,7 +159,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
             flex: 1,
             background: "transparent",
             border: "none",
-            color: "var(--nr-dashboard-widgetTextColor, inherit)",
+            color: "var(--nr-dashboard-widgetTextColor, #000)",
             outline: "none",
             padding: 0,
             fontSize: "14px",

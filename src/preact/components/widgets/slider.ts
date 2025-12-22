@@ -35,9 +35,9 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       --nr-dashboard-slider-track: var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18));
       --nr-dashboard-slider-fill: var(--nr-dashboard-widgetColor, #1f8af2);
       --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-thumb-shadow: 0 1px 2px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.25));
-      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      --nr-dashboard-slider-thumb-shadow: 0 1px 2px rgba(0,0,0,0.18);
+      --nr-dashboard-slider-focus: color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 70%, transparent);
+      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #000);
       --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, transparent);
       --nr-dashboard-slider-chip-shadow: 0 2px 6px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
     }
@@ -106,7 +106,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
       height: 6px;
       border-radius: 999px;
-      background: var(--nr-dashboard-slider-track);
+      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
@@ -122,7 +122,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
 
     .nr-dashboard-slider__range:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--nr-dashboard-slider-focus) 30%, transparent);
+      box-shadow: 0 0 0 3px var(--nr-dashboard-slider-focus);
     }
 
     .nr-dashboard-slider__track {
@@ -143,7 +143,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     .nr-dashboard-slider__range::-moz-range-track {
       height: 6px;
       border-radius: 999px;
-      background: var(--nr-dashboard-slider-track);
+      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {

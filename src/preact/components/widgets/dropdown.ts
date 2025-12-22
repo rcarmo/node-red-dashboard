@@ -159,7 +159,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
         onBlur=${() => setFocused(false)}
         style=${{
           ...fieldStyles,
-          paddingRight: "44px",
+          paddingRight: "36px",
           cursor: Boolean(disabled) ? "not-allowed" : "pointer",
           display: "block",
         }}
@@ -189,7 +189,15 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
           </option>`;
         })}
       </select>
-      <span aria-hidden="true" style=${adornmentStyles}>▼</span>
+      <span
+        aria-hidden="true"
+        style=${{
+          ...adornmentStyles,
+          right: "12px",
+          fontSize: "11px",
+          color: "rgba(0,0,0,0.54)",
+        }}
+      >▼</span>
     </div>
   </label>`;
 }

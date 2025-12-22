@@ -69,21 +69,17 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       width: "100%",
       minHeight: "38px",
       padding: "10px 14px",
-      borderRadius: "6px",
-      border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.24)) 70%, transparent)",
+      borderRadius: "4px",
+      border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.18)) 80%, transparent)",
       background: color,
       color: "var(--nr-dashboard-widgetTextColor, #fff)",
-      fontWeight: 700,
+      fontWeight: 600,
       cursor: onEmit ? "pointer" : "default",
       outline: "none",
-      boxShadow: focused
-        ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)"
-        : hovered
-          ? "0 2px 6px rgba(0,0,0,0.18)"
-          : "0 1px 3px rgba(0,0,0,0.16)",
+      boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)" : "none",
       filter: hovered ? "brightness(1.01)" : "none",
       transform: pressed ? "translateY(1px)" : "none",
-      transition: "box-shadow 140ms ease, filter 140ms ease, background 140ms ease, transform 100ms ease",
+      transition: "filter 140ms ease, background 140ms ease, transform 100ms ease",
       letterSpacing: "0.02em",
       position: "relative",
       overflow: "hidden",
