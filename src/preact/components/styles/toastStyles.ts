@@ -12,10 +12,10 @@ export const overlayStyles: Record<string, string | number> = {
 export const cardBaseStyles: Record<string, string | number> = {
   padding: "10px 12px",
   borderRadius: "8px",
-  background: "var(--nr-dashboard-groupBackgroundColor, rgba(20,22,28,0.9))",
-  color: "var(--nr-dashboard-pageTextColor, #fff)",
+  background: "var(--nr-dashboard-toastBackgroundColor, var(--nr-dashboard-groupBackgroundColor, transparent))",
+  color: "var(--nr-dashboard-toastTextColor, var(--nr-dashboard-pageTextColor, inherit))",
   minWidth: "260px",
-  boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+  boxShadow: "var(--nr-dashboard-toastShadow, 0 12px 30px rgba(0,0,0,0.35))",
   pointerEvents: "auto",
   position: "relative",
 };
