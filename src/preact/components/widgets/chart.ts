@@ -350,7 +350,7 @@ export function buildChartOption(
     animation,
     animationDuration,
     useUTC,
-    textStyle: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
+      textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
     tooltip: {
       trigger: look === "pie" || look === "polar-area" ? "item" : "axis",
       axisPointer: stacked && (look === "bar" || look === "horizontalBar") ? { type: "shadow" } : undefined,
@@ -407,9 +407,9 @@ export function buildChartOption(
       data: data.isTimeSeries ? undefined : data.labels,
       axisLabel: {
         formatter: data.isTimeSeries ? (val: number) => timeFormatter(val) : (val: unknown) => String(val ?? ""),
-        color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+          color: "var(--nr-dashboard-widgetTextColor, #000)",
       },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
     };
 
     const valueAxis = {
@@ -418,10 +418,10 @@ export function buildChartOption(
       max: toNumber(control.ymax) ?? undefined,
       axisLabel: {
         formatter: (val: number) => valueFormatter(val),
-        color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+          color: "var(--nr-dashboard-widgetTextColor, #000)",
       },
       splitLine: {
-        lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(255,255,255,0.1))" },
+          lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" },
       },
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
     };
@@ -449,7 +449,7 @@ export function buildChartOption(
       startAngle: radarStartAngle,
       splitNumber: radarSplitNumber,
       shape: radarShape,
-      axisName: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)" },
+        axisName: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
       splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(255,255,255,0.15))" } },
       splitArea: {
         areaStyle: {
@@ -459,7 +459,7 @@ export function buildChartOption(
           ],
         },
       },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
     };
     option.series = buildRadarSeries(data);
   }
