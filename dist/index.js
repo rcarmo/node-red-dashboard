@@ -4422,7 +4422,7 @@ function ButtonWidget(props) {
     onBlur=${() => setFocused(false)}
     style=${{
     width: "100%",
-    padding: "6px 10px",
+    padding: "4px 8px",
     borderRadius: "2px",
     border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
     background: color,
@@ -4430,8 +4430,8 @@ function ButtonWidget(props) {
     fontWeight: 600,
     cursor: onEmit ? "pointer" : "default",
     outline: "none",
-    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent)" : "none",
-    filter: hovered ? "brightness(1.05)" : "none",
+    boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)" : "none",
+    filter: hovered ? "brightness(1.02)" : "none",
     transition: "box-shadow 120ms ease, filter 120ms ease, background 120ms ease"
   }}
   >
@@ -4506,7 +4506,7 @@ function SwitchWidget(props) {
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    cursor: !disabled && onEmit ? "grab" : "default",
+    cursor: "default",
     userSelect: "none",
     opacity: disabled ? 0.55 : 1,
     paddingLeft: "12px",
@@ -4529,37 +4529,34 @@ function SwitchWidget(props) {
       role="switch"
       aria-checked=${checked}
       style=${{
-    width: "46px",
-    height: "24px",
-    borderRadius: "12px",
+    width: "40px",
+    height: "20px",
+    borderRadius: "10px",
     background: bg,
     position: "relative",
     transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
-    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 30%, transparent)" : hovered ? "0 2px 6px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))" : "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))"
+    boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)" : hovered ? "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))" : "none"
   }}
     >
       <div
         style=${{
     position: "absolute",
     top: "2px",
-    left: checked ? "24px" : "2px",
-    width: "20px",
-    height: "20px",
+    left: checked ? "20px" : "2px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
     background: "var(--nr-dashboard-widgetTextColor, #fff)",
-    boxShadow: "0 1px 2px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
+    boxShadow: "none",
     transition: "left 120ms ease"
   }}
       ></div>
     </div>
-    <div style=${{ display: "flex", flexDirection: "column", gap: "2px" }}>
+    <div style=${{ display: "flex", flexDirection: "column", gap: "0" }}>
       <span style=${{ fontWeight: 600, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${checked && asSwitch.onicon ? m2`<span class="fa ${asSwitch.onicon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${!checked && asSwitch.officon ? m2`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${label}
-      </span>
-      <span style=${{ opacity: 0.7, fontSize: "12px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
-        ${checked ? t4("switch_on", "On") : t4("switch_off", "Off")}
       </span>
     </div>
   </label>`;
@@ -4991,7 +4988,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-slider {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       width: 100%;
       align-items: stretch;
       padding: 0 12px;
@@ -5033,22 +5030,22 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-slider__range.is-vertical {
-      width: 32px;
+      width: 24px;
       height: 160px;
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
     }
 
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 16px;
-      width: 16px;
+      height: 14px;
+      width: 14px;
       margin-top: -5px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
@@ -5058,7 +5055,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
 
     .nr-dashboard-slider__range:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 6px color-mix(in srgb, var(--nr-dashboard-slider-focus) 40%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--nr-dashboard-slider-focus) 30%, transparent);
     }
 
     .nr-dashboard-slider__track {
@@ -5073,60 +5070,28 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-slider__track.is-vertical {
       flex-direction: column;
       height: 160px;
-      width: 48px;
+      width: 36px;
     }
 
     .nr-dashboard-slider__range::-moz-range-track {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-fill);
     }
 
     .nr-dashboard-slider__range::-moz-range-thumb {
-      height: 16px;
-      width: 16px;
+      height: 14px;
+      width: 14px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       box-shadow: var(--nr-dashboard-slider-thumb-shadow);
       border: 1px solid transparent;
-    }
-
-    .nr-dashboard-slider__ticks {
-      position: relative;
-      width: 100%;
-      height: 10px;
-      margin-top: 6px;
-    }
-
-    .nr-dashboard-slider__ticks.is-vertical {
-      width: 32px;
-      height: 160px;
-      margin-top: 0;
-      margin-left: 6px;
-    }
-
-    .nr-dashboard-slider__tick {
-      position: absolute;
-      width: 2px;
-      height: 8px;
-      background: var(--nr-dashboard-slider-track);
-      transform: translateX(-1px);
-    }
-
-    .nr-dashboard-slider__tick.is-active {
-      background: var(--nr-dashboard-slider-fill);
-    }
-
-    .nr-dashboard-slider__tick.is-vertical {
-      width: 8px;
-      height: 2px;
-      transform: translateY(-1px);
     }
 
     .nr-dashboard-slider__sign {
@@ -5253,8 +5218,8 @@ function SliderWidget(props) {
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
   const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
-  const showTicks = isDiscrete && stepCount > 0 && stepCount <= 200;
-  const showSign = forceSign || showTicks;
+  const showTicks = false;
+  const showSign = forceSign;
   const sliderStyle = isVertical ? {
     width: "32px",
     height: "160px",

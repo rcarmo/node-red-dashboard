@@ -59,7 +59,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
     onBlur=${() => setFocused(false)}
     style=${{
       width: "100%",
-      padding: "6px 10px",
+      padding: "4px 8px",
       borderRadius: "2px",
       border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
       background: color,
@@ -67,8 +67,10 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       fontWeight: 600,
       cursor: onEmit ? "pointer" : "default",
       outline: "none",
-      boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent)" : "none",
-      filter: hovered ? "brightness(1.05)" : "none",
+      boxShadow: focused
+        ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)"
+        : "none",
+      filter: hovered ? "brightness(1.02)" : "none",
       transition: "box-shadow 120ms ease, filter 120ms ease, background 120ms ease",
     }}
   >

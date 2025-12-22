@@ -44,7 +44,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     .nr-dashboard-slider {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       width: 100%;
       align-items: stretch;
       padding: 0 12px;
@@ -86,22 +86,22 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     }
 
     .nr-dashboard-slider__range.is-vertical {
-      width: 32px;
+      width: 24px;
       height: 160px;
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
     }
 
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 16px;
-      width: 16px;
+      height: 14px;
+      width: 14px;
       margin-top: -5px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
@@ -111,7 +111,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
 
     .nr-dashboard-slider__range:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 6px color-mix(in srgb, var(--nr-dashboard-slider-focus) 40%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--nr-dashboard-slider-focus) 30%, transparent);
     }
 
     .nr-dashboard-slider__track {
@@ -126,60 +126,28 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     .nr-dashboard-slider__track.is-vertical {
       flex-direction: column;
       height: 160px;
-      width: 48px;
+      width: 36px;
     }
 
     .nr-dashboard-slider__range::-moz-range-track {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-fill);
     }
 
     .nr-dashboard-slider__range::-moz-range-thumb {
-      height: 16px;
-      width: 16px;
+      height: 14px;
+      width: 14px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       box-shadow: var(--nr-dashboard-slider-thumb-shadow);
       border: 1px solid transparent;
-    }
-
-    .nr-dashboard-slider__ticks {
-      position: relative;
-      width: 100%;
-      height: 10px;
-      margin-top: 6px;
-    }
-
-    .nr-dashboard-slider__ticks.is-vertical {
-      width: 32px;
-      height: 160px;
-      margin-top: 0;
-      margin-left: 6px;
-    }
-
-    .nr-dashboard-slider__tick {
-      position: absolute;
-      width: 2px;
-      height: 8px;
-      background: var(--nr-dashboard-slider-track);
-      transform: translateX(-1px);
-    }
-
-    .nr-dashboard-slider__tick.is-active {
-      background: var(--nr-dashboard-slider-fill);
-    }
-
-    .nr-dashboard-slider__tick.is-vertical {
-      width: 8px;
-      height: 2px;
-      transform: translateY(-1px);
     }
 
     .nr-dashboard-slider__sign {
@@ -316,8 +284,8 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
   const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
-  const showTicks = isDiscrete && stepCount > 0 && stepCount <= 200;
-  const showSign = forceSign || showTicks;
+  const showTicks = false;
+  const showSign = forceSign;
 
   const sliderStyle = isVertical
     ? {

@@ -91,7 +91,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       display: "flex",
       alignItems: "center",
       gap: "10px",
-      cursor: !disabled && onEmit ? "grab" : "default",
+      cursor: "default",
       userSelect: "none",
       opacity: disabled ? 0.55 : 1,
       paddingLeft: "12px",
@@ -114,41 +114,38 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       role="switch"
       aria-checked=${checked}
       style=${{
-        width: "46px",
-        height: "24px",
-        borderRadius: "12px",
+        width: "40px",
+        height: "20px",
+        borderRadius: "10px",
         background: bg,
         position: "relative",
         transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
         boxShadow: focused
-          ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 30%, transparent)"
+          ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)"
           : hovered
-            ? "0 2px 6px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))"
-            : "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
+            ? "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))"
+            : "none",
       }}
     >
       <div
         style=${{
           position: "absolute",
           top: "2px",
-          left: checked ? "24px" : "2px",
-          width: "20px",
-          height: "20px",
+          left: checked ? "20px" : "2px",
+          width: "16px",
+          height: "16px",
           borderRadius: "50%",
           background: "var(--nr-dashboard-widgetTextColor, #fff)",
-          boxShadow: "0 1px 2px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
+          boxShadow: "none",
           transition: "left 120ms ease",
         }}
       ></div>
     </div>
-    <div style=${{ display: "flex", flexDirection: "column", gap: "2px" }}>
+    <div style=${{ display: "flex", flexDirection: "column", gap: "0" }}>
       <span style=${{ fontWeight: 600, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${checked && asSwitch.onicon ? html`<span class="fa ${asSwitch.onicon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${!checked && asSwitch.officon ? html`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${label}
-      </span>
-      <span style=${{ opacity: 0.7, fontSize: "12px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
-        ${checked ? t("switch_on", "On") : t("switch_off", "Off")}
       </span>
     </div>
   </label>`;
