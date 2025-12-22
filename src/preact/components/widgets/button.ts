@@ -67,9 +67,10 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
     onFocus=${() => setFocused(true)}
     style=${{
       width: "100%",
+      minWidth: "64px",
       minHeight: "38px",
       padding: "10px 14px",
-      borderRadius: "4px",
+      borderRadius: "2px",
       border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.18)) 80%, transparent)",
       background: color,
       color: "var(--nr-dashboard-widgetTextColor, #fff)",

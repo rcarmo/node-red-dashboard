@@ -118,9 +118,9 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       role="switch"
       aria-checked=${checked}
       style=${{
-        width: "46px",
-        height: "26px",
-        borderRadius: "13px",
+        width: "40px",
+        height: "22px",
+        borderRadius: "11px",
         background: bg,
         position: "relative",
         transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
@@ -147,12 +147,12 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
         style=${{
           position: "absolute",
           top: "3px",
-          left: checked ? "24px" : "3px",
-          width: "20px",
-          height: "20px",
+          left: checked ? "21px" : "3px",
+          width: "16px",
+          height: "16px",
           borderRadius: "50%",
           background: "var(--nr-dashboard-widgetTextColor, #fff)",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
           transition: "left 120ms ease",
         }}
       ></div>

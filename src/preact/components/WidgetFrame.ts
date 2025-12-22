@@ -22,7 +22,7 @@ export function WidgetFrame({ control, disabled, children }: WidgetFrameProps): 
     style=${{
       background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
       border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
-      borderRadius: "8px",
+      borderRadius: "0px",
       padding: `${padding}px`,
       display: "flex",
       flexDirection: "column",

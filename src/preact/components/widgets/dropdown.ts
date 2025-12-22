@@ -162,6 +162,9 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
           paddingRight: "36px",
           cursor: Boolean(disabled) ? "not-allowed" : "pointer",
           display: "block",
+          background: "transparent",
+          borderBottom: fieldStyles.borderBottom,
+          color: "var(--nr-dashboard-widgetTextColor, #000)",
         }}
       >
         ${asDrop.place && !multiple

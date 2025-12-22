@@ -29,28 +29,26 @@ export function buildFieldStyles(opts: FieldStyleOptions = {}): Record<string, s
   const { error, focused, disabled, hasAdornment, dense } = opts;
   const borderColor = error
     ? "var(--nr-dashboard-errorColor, #f87171)"
-    : "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))";
-  const focusRing = error
-    ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-errorColor, #f87171) 55%, transparent)"
     : focused
-      ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 55%, transparent)"
-      : "none";
+      ? "var(--nr-dashboard-widgetColor, #1f8af2)"
+      : "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))";
 
   return {
     width: "100%",
-    padding: dense ? "8px 10px" : "10px 12px",
-    borderRadius: "4px",
-    border: `1px solid ${borderColor}`,
-    background: "var(--nr-dashboard-widgetFieldBg, #fff)",
+    padding: dense ? "6px 0" : "8px 0",
+    borderRadius: "0px",
+    border: "none",
+    borderBottom: `1px solid ${borderColor}`,
+    background: "transparent",
     color: "var(--nr-dashboard-widgetTextColor, #000)",
     outline: "none",
-    boxShadow: focusRing,
-    transition: "box-shadow 140ms ease, border-color 140ms ease, background 140ms ease",
+    boxShadow: "none",
+    transition: "border-color 140ms ease, background 140ms ease",
     appearance: "none",
     WebkitAppearance: "none",
     opacity: disabled ? 0.55 : 1,
     cursor: disabled ? "not-allowed" : "text",
-    paddingRight: hasAdornment ? "40px" : dense ? "10px" : "12px",
+    paddingRight: hasAdornment ? "36px" : "0px",
   };
 }
 
