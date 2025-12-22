@@ -47195,7 +47195,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   }, []);
   const toolbarHeight = viewportWidth < 960 ? "48px" : "64px";
   const navMaxWidth = viewportWidth <= 660 ? 200 : 320;
-  const navBaseWidth = isIconOnly ? 72 : Math.min(260, navMaxWidth);
+  const navBaseWidth = isIconOnly ? 72 : navMaxWidth;
   const navWidth = `${Math.max(64, navBaseWidth)}px`;
   const navTop = "0";
   const shellStyles = {
