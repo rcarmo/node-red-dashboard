@@ -234,12 +234,52 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       min-height: 320px;
       color: #888;
       font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      background: var(--nr-dashboard-pageBackgroundColor, #eee);
     }
 
     .nr-dashboard-loading__inner {
       display: grid;
       place-items: center;
       gap: 12px;
+    }
+
+    .nr-dashboard-loading__text {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .nr-dashboard-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      color: #888;
+      font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      text-align: center;
+      padding: 48px 16px;
+      background: var(--nr-dashboard-pageBackgroundColor, #eee);
+      animation: nr-dashboard-fade 2.5s ease-in;
+    }
+
+    .nr-dashboard-empty__inner {
+      display: grid;
+      place-items: center;
+      gap: 10px;
+    }
+
+    .nr-dashboard-empty__title {
+      margin: 4px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .nr-dashboard-empty__body {
+      margin: 0;
+      max-width: 420px;
     }
 
     .nr-dashboard-wheel-spin {

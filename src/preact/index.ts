@@ -561,29 +561,15 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
           ${shouldShowLoading(state.connection)
             ? html`<${LoadingScreen} message=${t("loading", "Loading dashboard...")} />`
             : state.menu.length === 0
-            ? html`<div
-              class="nr-dashboard-fade-in"
-                style=${{
-                  textAlign: "center",
-                  opacity: 1,
-                  padding: "48px 16px",
-                  display: "grid",
-                  placeItems: "center",
-                  gap: "10px",
-                  color: "#888",
-                  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
-                  animationDuration: "2.5s",
-                }}
-              >
-                <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
-                <p style=${{ margin: "4px 0", fontSize: "18px", fontWeight: 600 }}>${t(
-                  "welcome_title",
-                  "Welcome to the Node-RED Dashboard",
-                )}</p>
-                <p style=${{ margin: 0, maxWidth: "420px" }}>${t(
-                  "welcome_body",
-                  "Please add some UI nodes to your flow and redeploy.",
-                )}</p>
+            ? html`<div class="nr-dashboard-empty">
+                <div class="nr-dashboard-empty__inner">
+                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
+                  <p class="nr-dashboard-empty__title">${t("welcome_title", "Welcome to the Node-RED Dashboard")}</p>
+                  <p class="nr-dashboard-empty__body">${t(
+                    "welcome_body",
+                    "Please add some UI nodes to your flow and redeploy.",
+                  )}</p>
+                </div>
               </div>`
             : (() => {
                 if (!selectedTab) {
@@ -645,10 +631,10 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 }
 
 function LoadingScreen({ message }: { message: string }): VNode {
-  return html`<div class="nr-dashboard-loading">
+  return html`<div class="nr-dashboard-loading nr-dashboard-fade-in">
     <div class="nr-dashboard-loading__inner">
       <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin" style=${{ opacity: 0.9 }} />
-      <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500, textAlign: "center" }}>${message}</p>
+      <p class="nr-dashboard-loading__text">${message}</p>
     </div>
   </div>`;
 }
