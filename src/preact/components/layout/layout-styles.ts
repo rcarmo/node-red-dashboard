@@ -157,6 +157,12 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       background: rgba(255, 255, 255, 0.08);
     }
 
+    .nr-dashboard-group-card__collapse:focus-visible {
+      outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
+      outline-offset: 2px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
     .nr-dashboard-group-card__list {
       list-style: none;
       margin: 0;

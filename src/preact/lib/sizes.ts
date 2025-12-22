@@ -17,7 +17,7 @@ export function resolveSizes(site: unknown): SiteSizes {
     py: 0,
     columns: 24,
     dense: false,
-    layoutMode: "grid",
+    layoutMode: "masonry",
   };
 
   if (typeof window !== "undefined" && window.innerWidth < 350) {

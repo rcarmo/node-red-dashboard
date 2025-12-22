@@ -41,7 +41,7 @@ describe("Sizing", () => {
       py: 0,
       columns: 24,
       dense: false,
-      layoutMode: "grid",
+      layoutMode: "masonry",
     });
   });
 
@@ -59,6 +59,7 @@ describe("Sizing", () => {
     const sizes = resolveSizes(null);
     expect(sizes.sx).toBe(42);
     expect(sizes.sy).toBe(42);
+    expect(sizes.layoutMode).toBe("masonry");
   });
 });
 

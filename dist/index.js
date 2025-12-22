@@ -53,7 +53,7 @@ var require_dayjs_min = __commonJS((exports, module) => {
     } }, g2 = "en", D3 = {};
     D3[g2] = M2;
     var p3 = "$isDayjsObject", S2 = function(t5) {
-      return t5 instanceof _2 || !(!t5 || !t5[p3]);
+      return t5 instanceof _3 || !(!t5 || !t5[p3]);
     }, w3 = function t(e5, n4, r4) {
       var i4;
       if (!e5)
@@ -73,12 +73,12 @@ var require_dayjs_min = __commonJS((exports, module) => {
       if (S2(t5))
         return t5.clone();
       var n4 = typeof e5 == "object" ? e5 : {};
-      return n4.date = t5, n4.args = arguments, new _2(n4);
+      return n4.date = t5, n4.args = arguments, new _3(n4);
     }, b = v3;
     b.l = w3, b.i = S2, b.w = function(t5, e5) {
       return O2(t5, { locale: e5.$L, utc: e5.$u, x: e5.$x, $offset: e5.$offset });
     };
-    var _2 = function() {
+    var _3 = function() {
       function M3(t5) {
         this.$L = w3(t5.locale, null, true), this.parse(t5), this.$x = this.$x || t5.x || {}, this[p3] = true;
       }
@@ -303,13 +303,13 @@ var require_dayjs_min = __commonJS((exports, module) => {
       }, m6.toString = function() {
         return this.$d.toUTCString();
       }, M3;
-    }(), k3 = _2.prototype;
+    }(), k3 = _3.prototype;
     return O2.prototype = k3, [["$ms", r3], ["$s", i3], ["$m", s3], ["$H", u3], ["$W", a3], ["$M", c3], ["$y", h3], ["$D", d3]].forEach(function(t5) {
       k3[t5[1]] = function(e5) {
         return this.$g(e5, t5[0], t5[1]);
       };
     }), O2.extend = function(t5, e5) {
-      return t5.$i || (t5(e5, _2, O2), t5.$i = true), O2;
+      return t5.$i || (t5(e5, _3, O2), t5.$i = true), O2;
     }, O2.locale = w3, O2.isDayjs = S2, O2.unix = function(t5) {
       return O2(1000 * t5);
     }, O2.en = D3[g2], O2.Ls = D3, O2.p = {}, O2;
@@ -828,6 +828,10 @@ function h2(n3, u3, i3) {
 function y2(n3, u3) {
   var i3 = p2(t3++, 3);
   !c2.__s && C2(i3.__H, u3) && (i3.__ = n3, i3.u = u3, r2.__H.__h.push(i3));
+}
+function _2(n3, u3) {
+  var i3 = p2(t3++, 4);
+  !c2.__s && C2(i3.__H, u3) && (i3.__ = n3, i3.u = u3, r2.__h.push(i3));
 }
 function A2(n3) {
   return o2 = 5, T2(function() {
@@ -5302,7 +5306,7 @@ function SliderWidget(props) {
   }}
             />
             ${showTicks ? m2`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-                  ${Array.from({ length: stepCount + 1 }).map((_2, idx) => {
+                  ${Array.from({ length: stepCount + 1 }).map((_3, idx) => {
     const pos = idx / stepCount * 100;
     const active = percent * 100 >= pos;
     const style = isVertical ? { top: `${100 - pos}%`, left: "0" } : { left: `${pos}%`, top: "0" };
@@ -5337,7 +5341,7 @@ function SliderWidget(props) {
   }}
           />
           ${showTicks ? m2`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-                ${Array.from({ length: stepCount + 1 }).map((_2, idx) => {
+                ${Array.from({ length: stepCount + 1 }).map((_3, idx) => {
     const pos = idx / stepCount * 100;
     const active = percent * 100 >= pos;
     const style = isVertical ? { top: `${100 - pos}%`, left: "0" } : { left: `${pos}%`, top: "0" };
@@ -46227,7 +46231,8 @@ function resolveSizes(site) {
     px: 0,
     py: 0,
     columns: 24,
-    dense: false
+    dense: false,
+    layoutMode: "grid"
   };
   if (typeof window !== "undefined" && window.innerWidth < 350) {
     base2.sx = 42;
@@ -46246,7 +46251,8 @@ function resolveSizes(site) {
     px: coerceNumber2(sizes.px, base2.px),
     py: coerceNumber2(sizes.py, base2.py),
     columns: coerceNumber2(sizes.columns, base2.columns),
-    dense: Boolean(sizes.dense ?? base2.dense)
+    dense: Boolean(sizes.dense ?? base2.dense),
+    layoutMode: sizes.layoutMode || base2.layoutMode
   };
 }
 function applySizesToRoot(sizes, root) {
@@ -46389,7 +46395,7 @@ function WidgetRenderer(props) {
 
 // src/preact/components/layout/GroupCard.ts
 function GroupCard(props) {
-  const { group, index, columnSpan, padding, sizes, onEmit, tabName } = props;
+  const { group, index, columnSpan, padding, sizes, onEmit, tabName, layoutMode = "grid", layoutPos } = props;
   ensureLayoutStyles();
   const { t: t4 } = useI18n();
   const header = group.header;
@@ -46411,9 +46417,14 @@ function GroupCard(props) {
   };
   return m2`<section
     class=${`nr-dashboard-group-card ${header?.config?.className ?? ""}`.trim()}
+    data-grid-key=${header?.id ?? index}
     style=${{
-    gridColumn: `span ${columnSpan}`,
-    padding: `${padding.y}px ${padding.x}px`
+    gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
+    padding: `${padding.y}px ${padding.x}px`,
+    position: layoutMode === "masonry" ? "absolute" : undefined,
+    left: layoutMode === "masonry" ? `${layoutPos?.left ?? 0}px` : undefined,
+    top: layoutMode === "masonry" ? `${layoutPos?.top ?? 0}px` : undefined,
+    width: layoutMode === "masonry" ? `${layoutPos?.width ?? "auto"}` : undefined
   }}
   >
     <header
@@ -46468,6 +46479,10 @@ function GroupGrid(props) {
   const { groups, sizes, onEmit, tabName } = props;
   ensureLayoutStyles();
   const { t: t4 } = useI18n();
+  const containerRef = A2(null);
+  const [positions, setPositions] = d2({});
+  const [containerHeight, setContainerHeight] = d2(undefined);
+  const layoutMode = sizes.layoutMode === "masonry" ? "masonry" : "grid";
   const visible = groups.filter((group) => {
     const hidden = Boolean(group.header?.config?.hidden);
     return !hidden;
@@ -46475,7 +46490,10 @@ function GroupGrid(props) {
   if (visible.length === 0) {
     return m2`<div style=${{ opacity: 0.7 }}>${t4("no_groups", "No groups in this tab yet.")}</div>`;
   }
-  const gridStyles = {
+  const gridStyles = layoutMode === "masonry" ? {
+    position: "relative",
+    minHeight: containerHeight ? `${containerHeight}px` : undefined
+  } : {
     display: "grid",
     gridTemplateColumns: `repeat(${sizes.columns}, minmax(0, 1fr))`,
     columnGap: `${sizes.gx}px`,
@@ -46483,13 +46501,155 @@ function GroupGrid(props) {
     alignContent: "start",
     gridAutoFlow: sizes.dense ? "dense" : "row"
   };
-  return m2`<div style=${gridStyles}>
+  const calcWidth = (span) => {
+    const cols = Math.max(1, span);
+    return cols * sizes.sx + sizes.px * 2 + (cols - 1) * sizes.gx;
+  };
+  _2(() => {
+    if (layoutMode !== "masonry") {
+      setPositions({});
+      setContainerHeight(undefined);
+      return;
+    }
+    let cancelled = false;
+    const computeLayout = () => {
+      if (cancelled)
+        return;
+      const root = containerRef.current;
+      if (!root)
+        return;
+      const children = Array.from(root.children);
+      if (children.length === 0)
+        return;
+      const availableWidth = Math.max(0, root.clientWidth - sizes.gx * 2);
+      const blocks = [{ x: 0, y: sizes.gy, w: availableWidth, h: Infinity, used: false }];
+      const assigned = [];
+      const blockCache = { [`0:${sizes.gy}`]: blocks[0] };
+      const blockSort = (b1, b2) => {
+        if (b1.y < b2.y)
+          return -1;
+        if (b1.y > b2.y)
+          return 1;
+        return b1.x - b2.x;
+      };
+      const intersect2 = (r1, r22) => {
+        return !(r22.x > r1.x || r22.x + r22.w < r1.x || r22.y > r1.y + r1.h || r22.y + r22.h < r1.y);
+      };
+      children.forEach((child) => {
+        const cw = child.offsetWidth;
+        const ch = child.offsetHeight;
+        let added = false;
+        let blockCacheKey = "";
+        for (let i3 = 0;i3 < blocks.length; i3++) {
+          const b = blocks[i3];
+          if (!b.used && cw <= b.w && ch <= b.h) {
+            let clear2 = true;
+            for (let j3 = 0;j3 < assigned.length; j3++) {
+              const b2 = assigned[j3];
+              if (intersect2(b, b2)) {
+                blockCacheKey = `${b.x}:${b2.y + b2.h + sizes.gy}`;
+                if (!blockCache[blockCacheKey]) {
+                  blocks.push({ x: b.x, y: b2.y + b2.h + sizes.gy, w: b.w, h: b.h, used: false });
+                  blockCache[blockCacheKey] = blocks[blocks.length - 1];
+                  blocks.sort(blockSort);
+                }
+                clear2 = false;
+                break;
+              }
+            }
+            if (!clear2)
+              continue;
+            b.used = true;
+            b.group = child;
+            b.assigned = true;
+            assigned.push(b);
+            added = true;
+            clear2 = true;
+            const rightBlock = { x: b.x + cw + sizes.gx, y: b.y, w: b.w - sizes.gx - cw, h: b.h, used: false };
+            blockCacheKey = `${b.x + cw + sizes.gx}:${b.y}`;
+            if (!blockCache[blockCacheKey]) {
+              for (let j3 = 0;j3 < assigned.length; j3++) {
+                const b3 = assigned[j3];
+                if (b3 !== b && b3.x <= rightBlock.x && b3.x + b3.w >= rightBlock.x && b3.y <= rightBlock.y && b3.y + b3.h >= rightBlock.y) {
+                  clear2 = false;
+                  break;
+                }
+              }
+              if (clear2) {
+                blockCache[blockCacheKey] = rightBlock;
+                blocks.push(rightBlock);
+              }
+            }
+            blockCacheKey = `${b.x}:${b.y + ch + sizes.gy}`;
+            if (!blockCache[blockCacheKey]) {
+              blocks.push({ x: b.x, y: b.y + ch + sizes.gy, w: b.w, h: b.h, used: false });
+              blockCache[blockCacheKey] = blocks[blocks.length - 1];
+            }
+            b.w = cw;
+            b.h = ch;
+            break;
+          }
+        }
+        if (!added) {
+          let maxy2 = 0;
+          assigned.forEach((b) => {
+            maxy2 = Math.max(maxy2, b.y + b.h);
+          });
+          let bottomBlock = blockCache[`0:${maxy2 + sizes.gy}`];
+          if (!bottomBlock) {
+            bottomBlock = { x: 0, y: maxy2 + sizes.gy, w: cw, h: ch };
+            blockCache[`0:${maxy2 + sizes.gy}`] = bottomBlock;
+            blocks.push(bottomBlock);
+          }
+          bottomBlock.used = true;
+          bottomBlock.group = child;
+          bottomBlock.assigned = true;
+          bottomBlock.w = cw;
+          bottomBlock.h = ch;
+          assigned.push(bottomBlock);
+          blockCacheKey = `0:${bottomBlock.y + ch + sizes.gy}`;
+          if (!blockCache[blockCacheKey]) {
+            blocks.push({ x: 0, y: bottomBlock.y + ch + sizes.gy, w: availableWidth, h: Infinity, used: false });
+            blockCache[blockCacheKey] = blocks[blocks.length - 1];
+          }
+        }
+        blocks.sort(blockSort);
+      });
+      let maxx = 0;
+      let maxy = 0;
+      assigned.forEach((b) => {
+        maxx = Math.max(maxx, b.x + b.w);
+        maxy = Math.max(maxy, b.y + b.h);
+      });
+      const leftPadding = Math.max(0, sizes.gx + (availableWidth - maxx) / 2);
+      const nextPositions = {};
+      assigned.forEach((b, idx) => {
+        const key = children[idx]?.dataset?.gridKey ?? idx;
+        nextPositions[key] = { left: leftPadding + b.x, top: b.y, width: b.w };
+        b.group?.classList.add("visible");
+      });
+      setPositions(nextPositions);
+      setContainerHeight(maxy + sizes.gy + 3);
+    };
+    const scheduled = window.setTimeout(computeLayout, 16);
+    const handleResize = () => computeLayout();
+    window.addEventListener("resize", handleResize);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(scheduled);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [groups, sizes.columns, sizes.gx, sizes.gy, sizes.px, sizes.sx, layoutMode]);
+  return m2`<div style=${gridStyles} ref=${containerRef}>
     ${visible.map((group, idx) => {
     const span = groupColumnSpan(group, sizes.columns);
     const paddingX = Math.max(0, sizes.px);
     const paddingY = Math.max(0, sizes.py);
     const itemGapY = Math.max(0, sizes.cy);
     const itemGapX = Math.max(0, sizes.cx);
+    const layoutKey = group.header?.id ?? idx;
+    const pos = positions[layoutKey];
+    const width = layoutMode === "masonry" ? calcWidth(span) : undefined;
     return m2`<${GroupCard}
         key=${group.header?.id ?? idx}
         group=${group}
@@ -46499,6 +46659,8 @@ function GroupGrid(props) {
         sizes=${{ cy: itemGapY, cx: itemGapX }}
         onEmit=${onEmit}
         tabName=${tabName}
+        layoutMode=${layoutMode}
+        layoutPos=${layoutMode === "masonry" ? { left: pos?.left ?? 0, top: pos?.top ?? sizes.gy, width: width ?? 0 } : undefined}
       />`;
   })}
   </div>`;
@@ -47056,7 +47218,9 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       py: sizes.py,
       cy: sizes.cy,
       cx: sizes.cx,
-      dense: Boolean(state.site?.sizes?.dense ?? state.site?.layout?.dense ?? false)
+      sx: sizes.sx,
+      dense: Boolean(state.site?.sizes?.dense ?? state.site?.layout?.dense ?? false),
+      layoutMode: state.site?.sizes?.layoutMode ?? sizes.layoutMode ?? "grid"
     }}
                   onEmit=${actions2.emit ?? undefined}
                   tabName=${selectedTab.header ?? selectedTab.name ?? ""}
