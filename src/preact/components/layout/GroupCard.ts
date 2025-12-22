@@ -14,8 +14,10 @@ export function GroupCard(props: {
   sizes: { cy: number; cx: number };
   onEmit?: (event: string, msg?: Record<string, unknown>) => void;
   tabName?: string;
+  layoutMode?: "grid" | "masonry";
+  layoutPos?: { left: number; top: number; width: number };
 }): VNode {
-  const { group, index, columnSpan, padding, sizes, onEmit, tabName } = props;
+  const { group, index, columnSpan, padding, sizes, onEmit, tabName, layoutMode = "grid", layoutPos } = props;
   ensureLayoutStyles();
   const { t } = useI18n();
 
@@ -44,9 +46,14 @@ export function GroupCard(props: {
 
   return html`<section
     class=${`nr-dashboard-group-card ${header?.config?.className ?? ""}`.trim()}
+    data-grid-key=${header?.id ?? index}
     style=${{
-      gridColumn: `span ${columnSpan}`,
+      gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
       padding: `${padding.y}px ${padding.x}px`,
+      position: layoutMode === "masonry" ? "absolute" : undefined,
+      left: layoutMode === "masonry" ? `${layoutPos?.left ?? 0}px` : undefined,
+      top: layoutMode === "masonry" ? `${layoutPos?.top ?? 0}px` : undefined,
+      width: layoutMode === "masonry" ? `${layoutPos?.width ?? "auto"}` : undefined,
     }}
   >
     <header

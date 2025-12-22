@@ -14,6 +14,7 @@ const baseSizes = {
   cy: 5,
   cx: 4,
   dense: true,
+  sx: 48,
 };
 
 describe("GroupGrid", () => {

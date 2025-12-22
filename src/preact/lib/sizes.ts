@@ -17,6 +17,7 @@ export function resolveSizes(site: unknown): SiteSizes {
     py: 0,
     columns: 24,
     dense: false,
+    layoutMode: "grid",
   };
 
   if (typeof window !== "undefined" && window.innerWidth < 350) {
@@ -38,6 +39,7 @@ export function resolveSizes(site: unknown): SiteSizes {
     py: coerceNumber(sizes.py, base.py),
     columns: coerceNumber(sizes.columns, base.columns),
     dense: Boolean((sizes as { dense?: boolean }).dense ?? base.dense),
+    layoutMode: (sizes as { layoutMode?: "grid" | "masonry" }).layoutMode || base.layoutMode,
   };
 }
 

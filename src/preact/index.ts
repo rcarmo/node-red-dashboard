@@ -589,12 +589,17 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                     py: sizes.py,
                     cy: sizes.cy,
                     cx: sizes.cx,
+                    sx: sizes.sx,
                     dense:
                       Boolean(
                         ((state.site as { sizes?: { dense?: boolean } } | null)?.sizes?.dense ??
                           (state.site as { layout?: { dense?: boolean } } | null)?.layout?.dense ??
                           false),
                       ),
+                    layoutMode:
+                      (state.site as { sizes?: { layoutMode?: "grid" | "masonry" } } | null)?.sizes?.layoutMode ??
+                      sizes.layoutMode ??
+                      "grid",
                   }}
                   onEmit=${actions.emit ?? undefined}
                   tabName=${selectedTab.header ?? selectedTab.name ?? ""}

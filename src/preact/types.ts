@@ -9,4 +9,5 @@ export type SiteSizes = {
   py: number;
   columns: number;
   dense?: boolean;
+  layoutMode?: "grid" | "masonry";
 };
