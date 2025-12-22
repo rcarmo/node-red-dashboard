@@ -4,6 +4,7 @@ import { useState } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { formatDateInput } from "../../lib/format";
+import { buildFieldStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
 
 export type DatePickerControl = UiControl & {
   name?: string;
@@ -30,6 +31,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
   const label = c.label || c.name || t("date_label", "Date {index}", { index: index + 1 });
   const [value, setValue] = useState<string>(c.value || "");
   const [error, setError] = useState<string>("");
+  const [focused, setFocused] = useState<boolean>(false);
   const isDisabled = Boolean(disabled);
 
   const inputType = resolveDateInputType(c.mode);
@@ -51,8 +53,10 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
     return true;
   };
 
-  return html`<label style=${{ display: "grid", gap: "4px" }}>
-    <span style=${{ fontSize: "12px", opacity: 0.8 }}>${label}</span>
+  const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: isDisabled });
+
+  return html`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
     <input
       class=${c.className || ""}
       type=${inputType}
@@ -69,28 +73,9 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
         if (!validate(v)) return;
         onEmit?.("ui-change", { payload: v });
       }}
-      style=${{
-        padding: "8px 4px",
-        borderRadius: "2px",
-        border: "none",
-        borderBottom: error
-          ? "2px solid var(--nr-dashboard-errorColor, #f87171)"
-          : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
-        background: "transparent",
-        color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-        outline: "none",
-        transition: "border-color 120ms ease",
-      }}
-      onFocus=${(e: FocusEvent) => {
-        const el = e.target as HTMLInputElement;
-        if (error) return;
-        el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-      }}
-      onBlur=${(e: FocusEvent) => {
-        const el = e.target as HTMLInputElement;
-        if (error) return;
-        el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-      }}
+      onFocus=${() => setFocused(true)}
+      onBlur=${() => setFocused(false)}
+      style=${fieldStyles}
       min=${c.min || undefined}
       max=${c.max || undefined}
     />

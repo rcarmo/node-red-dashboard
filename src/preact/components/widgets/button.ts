@@ -41,6 +41,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   const color = resolveButtonColor(asButton) || "var(--nr-dashboard-widgetColor, #1f8af2)";
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
@@ -55,23 +56,33 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
     onClick=${onEmit ? handleClick : undefined}
     onMouseEnter=${() => setHovered(true)}
     onMouseLeave=${() => setHovered(false)}
+    onMouseDown=${() => setPressed(true)}
+    onMouseUp=${() => setPressed(false)}
+    onBlur=${() => {
+      setFocused(false);
+      setPressed(false);
+    }}
     onFocus=${() => setFocused(true)}
-    onBlur=${() => setFocused(false)}
     style=${{
       width: "100%",
-      padding: "4px 8px",
-      borderRadius: "2px",
-      border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
+      minHeight: "38px",
+      padding: "10px 14px",
+      borderRadius: "6px",
+      border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.24)) 70%, transparent)",
       background: color,
       color: "var(--nr-dashboard-widgetTextColor, #fff)",
-      fontWeight: 600,
+      fontWeight: 700,
       cursor: onEmit ? "pointer" : "default",
       outline: "none",
       boxShadow: focused
-        ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)"
-        : "none",
-      filter: hovered ? "brightness(1.02)" : "none",
-      transition: "box-shadow 120ms ease, filter 120ms ease, background 120ms ease",
+        ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent), 0 6px 16px rgba(0,0,0,0.35)"
+        : hovered
+          ? "0 6px 16px rgba(0,0,0,0.3)"
+          : "0 4px 12px rgba(0,0,0,0.25)",
+      filter: hovered ? "brightness(1.03)" : "none",
+      transform: pressed ? "translateY(1px)" : "none",
+      transition: "box-shadow 160ms ease, filter 160ms ease, background 160ms ease, transform 120ms ease",
+      letterSpacing: "0.02em",
     }}
   >
     ${asButton.icon ? html`<span class="fa ${asButton.icon}" style=${{ marginRight: "6px" }}></span>` : null}

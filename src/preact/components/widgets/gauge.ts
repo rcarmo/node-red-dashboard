@@ -131,7 +131,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           splitNumber: isCompass ? 8 : showTicks ? 6 : 0,
           progress: {
             show: true,
-            width: isDonut || isWave ? 12 : 8,
+            width: isDonut || isWave ? 14 : 10,
             roundCap: true,
             itemStyle: {
               color: segments[segments.length - 1][1],
@@ -139,7 +139,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           },
           axisLine: {
             lineStyle: {
-              width: isDonut ? 12 : 8,
+              width: isDonut ? 14 : 10,
               color: segments,
             },
           },
@@ -156,14 +156,14 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
               return dirs[idx];
             },
           },
-          pointer: { show: !isDonut && !isWave, width: 3, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
-          anchor: { show: !isDonut && !isWave, showAbove: true, size: 8, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+          pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+          anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
           detail: {
             valueAnimation: true,
             formatter: () => formatted,
             color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-            fontSize: 14,
-            offsetCenter: isWave ? [0, "36%"] : [0, "60%"],
+            fontSize: 16,
+            offsetCenter: isWave ? [0, "34%"] : [0, "54%"],
           },
           data: [
             {

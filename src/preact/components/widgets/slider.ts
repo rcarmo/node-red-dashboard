@@ -83,25 +83,26 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
+      height: 6px;
     }
 
     .nr-dashboard-slider__range.is-vertical {
       width: 24px;
-      height: 160px;
+      height: 200px;
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
     }
 
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 4px;
+      height: 6px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 14px;
-      width: 14px;
+      height: 16px;
+      width: 16px;
       margin-top: -5px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
@@ -125,18 +126,18 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
 
     .nr-dashboard-slider__track.is-vertical {
       flex-direction: column;
-      height: 160px;
+      height: 200px;
       width: 36px;
     }
 
     .nr-dashboard-slider__range::-moz-range-track {
-      height: 4px;
+      height: 6px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
-      height: 4px;
+      height: 6px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-fill);
     }
@@ -221,6 +222,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
 
   const initial = clampSliderValue(toNumber(asSlider.value ?? min, min), min, max);
   const [value, setValue] = useState<number>(initial);
+  const [dragging, setDragging] = useState<boolean>(false);
 
   useEffect(() => {
     setValue(clampSliderValue(toNumber(asSlider.value ?? min, min), min, max));
@@ -285,12 +287,12 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
   const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
   const showTicks = false;
-  const showSign = forceSign;
+  const showSign = forceSign || dragging;
 
   const sliderStyle = isVertical
     ? {
         width: "32px",
-        height: "160px",
+        height: "200px",
         writingMode: "bt-lr" as const,
         WebkitAppearance: "slider-vertical",
         background: `linear-gradient(to top, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`,
@@ -320,6 +322,11 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
               onInput=${handleInput}
               onChange=${handleChange}
               onWheel=${handleWheel}
+              onPointerDown=${() => setDragging(true)}
+              onPointerUp=${() => setDragging(false)}
+              onPointerCancel=${() => setDragging(false)}
+              onBlur=${() => setDragging(false)}
+              onMouseLeave=${() => setDragging(false)}
               style=${{
                 ...sliderStyle,
                 transform: isVertical && invert ? "rotate(180deg)" : undefined,
@@ -364,6 +371,11 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
             onInput=${handleInput}
             onChange=${handleChange}
             onWheel=${handleWheel}
+            onPointerDown=${() => setDragging(true)}
+            onPointerUp=${() => setDragging(false)}
+            onPointerCancel=${() => setDragging(false)}
+            onBlur=${() => setDragging(false)}
+            onMouseLeave=${() => setDragging(false)}
             style=${{
               ...sliderStyle,
               transform: isVertical && invert ? "rotate(180deg)" : undefined,

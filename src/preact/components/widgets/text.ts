@@ -12,6 +12,7 @@ type TextControl = UiControl & {
   color?: string;
   fontSize?: number | string;
   font?: string;
+  fontWeight?: number | string;
   layout?: string;
   layoutAlign?: string;
   className?: string;
@@ -60,6 +61,7 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
   const color = typeof asText.color === "string" ? asText.color : undefined;
   const fontSize = asText.fontSize ? `${asText.fontSize}px` : undefined;
   const fontFamily = asText.font;
+  const fontWeight = asText.fontWeight ?? 500;
   const [ref] = useElementSize<HTMLDivElement>();
 
   const container = mergeStyleString(
@@ -72,11 +74,11 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
   );
 
   return html`<div ref=${ref} class=${asText.className || ""} style=${container}>
-    <div style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
+    <div style=${{ fontSize: "13px", opacity: 0.75, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
     <div
       style=${{
         fontSize: fontSize || "16px",
-        fontWeight: 600,
+        fontWeight,
         color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
         lineHeight: 1.4,
         wordBreak: "break-word",

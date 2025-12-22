@@ -90,11 +90,11 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     style=${{
       display: "flex",
       alignItems: "center",
-      gap: "10px",
+      gap: "12px",
       cursor: "default",
       userSelect: "none",
       opacity: disabled ? 0.55 : 1,
-      paddingLeft: "12px",
+      paddingLeft: "14px",
       margin: isCenter ? "0 auto" : undefined,
     }}
   >
@@ -114,35 +114,35 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       role="switch"
       aria-checked=${checked}
       style=${{
-        width: "40px",
-        height: "20px",
-        borderRadius: "10px",
+        width: "46px",
+        height: "26px",
+        borderRadius: "13px",
         background: bg,
         position: "relative",
         transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
         boxShadow: focused
-          ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)"
+          ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 32%, transparent)"
           : hovered
-            ? "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))"
+            ? "0 1px 4px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))"
             : "none",
       }}
     >
       <div
         style=${{
           position: "absolute",
-          top: "2px",
-          left: checked ? "20px" : "2px",
-          width: "16px",
-          height: "16px",
+          top: "3px",
+          left: checked ? "24px" : "3px",
+          width: "20px",
+          height: "20px",
           borderRadius: "50%",
           background: "var(--nr-dashboard-widgetTextColor, #fff)",
-          boxShadow: "none",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
           transition: "left 120ms ease",
         }}
       ></div>
     </div>
     <div style=${{ display: "flex", flexDirection: "column", gap: "0" }}>
-      <span style=${{ fontWeight: 600, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
+      <span style=${{ fontWeight: 500, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${checked && asSwitch.onicon ? html`<span class="fa ${asSwitch.onicon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${!checked && asSwitch.officon ? html`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${label}

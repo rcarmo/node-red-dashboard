@@ -1,4 +1,5 @@
 import { html } from "htm/preact";
+import { useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
@@ -24,9 +25,16 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
   const target = c.target || "_blank";
   const icon = c.icon;
   const isDisabled = Boolean(disabled);
+  const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-  return html`<div style=${{ display: "flex", gap: "8px", alignItems: "center" }}>
-    ${icon ? html`<i class=${icon} aria-hidden="true"></i>` : null}
+  const focusRing = focused
+    ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 45%, transparent)"
+    : hovered
+      ? "0 3px 10px rgba(0,0,0,0.25)"
+      : "none";
+
+  return html`<div style=${{ display: "flex", alignItems: "center", width: "100%" }}>
     <a
       href=${isDisabled ? undefined : href}
       target=${target}
@@ -41,25 +49,29 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
             e.stopPropagation();
           }
         : undefined}
+      onMouseEnter=${() => setHovered(true)}
+      onMouseLeave=${() => setHovered(false)}
+      onFocus=${() => setFocused(true)}
+      onBlur=${() => setFocused(false)}
       style=${{
-        color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.4))" : "var(--nr-dashboard-widgetColor, #61dafb)",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "10px",
+        padding: "10px 12px",
+        borderRadius: "8px",
+        background: hovered
+          ? "color-mix(in srgb, var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.04)) 70%, transparent)"
+          : "var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.02))",
+        color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : "var(--nr-dashboard-widgetColor, #61dafb)",
         pointerEvents: isDisabled ? "none" : "auto",
         textDecoration: "none",
-        borderBottom: isDisabled ? "none" : "1px solid transparent",
-        transition: "color 120ms ease, border-color 120ms ease",
-      }}
-      onMouseEnter=${(e: MouseEvent) => {
-        const el = e.currentTarget as HTMLAnchorElement;
-        if (isDisabled) return;
-        el.style.borderBottom = "1px solid currentColor";
-      }}
-      onMouseLeave=${(e: MouseEvent) => {
-        const el = e.currentTarget as HTMLAnchorElement;
-        if (isDisabled) return;
-        el.style.borderBottom = "1px solid transparent";
+        boxShadow: focusRing,
+        transition: "box-shadow 140ms ease, background 160ms ease, color 140ms ease",
+        width: "100%",
       }}
     >
-      ${label}
+      ${icon ? html`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : html`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}
+      <span style=${{ fontWeight: 600, letterSpacing: "0.01em" }}>${label}</span>
     </a>
   </div>`;
 }

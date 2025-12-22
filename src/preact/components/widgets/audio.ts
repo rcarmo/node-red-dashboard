@@ -57,8 +57,22 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
     }
   }, [c.autoplay, c.play, c.stop, c.reset, c.url, isDisabled]);
 
-  return html`<div class=${c.className || ""}>
-    <div style=${{ fontSize: "12px", opacity: 0.7, marginBottom: "4px" }}>${label}</div>
+  return html`<div class=${c.className || ""} style=${{ width: "100%" }}>
+    <div
+      style=${{
+        display: "flex",
+        alignItems: "center",
+        gap: "8px",
+        padding: "8px 10px",
+        borderRadius: "8px",
+        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.35))",
+        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
+        marginBottom: "6px",
+      }}
+    >
+      <i class="fa fa-volume-up" aria-hidden="true" style=${{ fontSize: "16px" }}></i>
+      <div style=${{ fontSize: "13px", opacity: 0.78 }}>${label}</div>
+    </div>
     <audio
       ref=${ref}
       src=${c.url || ""}
@@ -68,7 +82,7 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
       aria-disabled=${isDisabled}
       aria-label=${t("audio_controls", "Audio controls for {label}", { label })}
       tabIndex=${isDisabled ? -1 : undefined}
-      style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto" }}
+      style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto", borderRadius: "6px" }}
     ></audio>
   </div>`;
 }

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
+import { adornmentStyles, buildFieldStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
 
 export type DropdownOption = { label: string; value: unknown; type?: string; disabled?: boolean };
 export type DropdownControl = UiControl & {
@@ -99,6 +100,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const multiple = Boolean(asDrop.multiple);
   const [value, setValue] = useState<unknown>(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = useRef<boolean>(false);
+  const [focused, setFocused] = useState<boolean>(false);
 
   useEffect(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
@@ -141,59 +143,53 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
     }
   };
 
-  return html`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
-    <select
-      multiple=${multiple}
-      class=${asDrop.className || ""}
-      title=${asDrop.tooltip || undefined}
-      disabled=${Boolean(disabled)}
-      value=${!multiple ? serializeOptionValue(value) : undefined}
-      onChange=${handleChange}
-      style=${{
-        width: "100%",
-        padding: multiple ? "8px 4px" : "8px 4px",
-        borderRadius: "2px",
-        border: "none",
-        borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
-        background: "transparent",
-        color: "var(--nr-dashboard-widgetTextColor, inherit)",
-        outline: "none",
-        transition: "border-color 120ms ease",
-      }}
-      onFocus=${(e: FocusEvent) => {
-        const el = e.target as HTMLSelectElement;
-        el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-      }}
-      onBlur=${(e: FocusEvent) => {
-        const el = e.target as HTMLSelectElement;
-        el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-      }}
-    >
-      ${asDrop.place && !multiple
-        ? html`<option value="" disabled selected=${value == null || value === ""}>${asDrop.place}</option>`
-        : null}
-      ${opts.map((opt) => {
-        const serialized = typeof opt.value === "string" ? opt.value : JSON.stringify(opt.value);
-        const inferredType = opt.type
-          ? opt.type
-          : typeof opt.value === "number"
-          ? "number"
-          : typeof opt.value === "string"
-          ? "string"
-          : "json";
-        const selected = multiple
-          ? Array.isArray(value) && (value as unknown[]).some((v) => JSON.stringify(v) === JSON.stringify(opt.value))
-          : JSON.stringify(value) === JSON.stringify(opt.value);
-        return html`<option
-          value=${serialized}
-          data-type=${inferredType}
-          disabled=${opt.disabled || false}
-          selected=${selected}
-        >
-          ${opt.label ?? opt.value}
-        </option>`;
-      })}
-    </select>
+  const fieldStyles = buildFieldStyles({ focused, disabled: Boolean(disabled), hasAdornment: true });
+
+  return html`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    <div style=${{ position: "relative", width: "100%" }}>
+      <select
+        multiple=${multiple}
+        class=${asDrop.className || ""}
+        title=${asDrop.tooltip || undefined}
+        disabled=${Boolean(disabled)}
+        value=${!multiple ? serializeOptionValue(value) : undefined}
+        onChange=${handleChange}
+        onFocus=${() => setFocused(true)}
+        onBlur=${() => setFocused(false)}
+        style=${{
+          ...fieldStyles,
+          paddingRight: "44px",
+          cursor: Boolean(disabled) ? "not-allowed" : "pointer",
+          display: "block",
+        }}
+      >
+        ${asDrop.place && !multiple
+          ? html`<option value="" disabled selected=${value == null || value === ""}>${asDrop.place}</option>`
+          : null}
+        ${opts.map((opt) => {
+          const serialized = typeof opt.value === "string" ? opt.value : JSON.stringify(opt.value);
+          const inferredType = opt.type
+            ? opt.type
+            : typeof opt.value === "number"
+            ? "number"
+            : typeof opt.value === "string"
+            ? "string"
+            : "json";
+          const selected = multiple
+            ? Array.isArray(value) && (value as unknown[]).some((v) => JSON.stringify(v) === JSON.stringify(opt.value))
+            : JSON.stringify(value) === JSON.stringify(opt.value);
+          return html`<option
+            value=${serialized}
+            data-type=${inferredType}
+            disabled=${opt.disabled || false}
+            selected=${selected}
+          >
+            ${opt.label ?? opt.value}
+          </option>`;
+        })}
+      </select>
+      <span aria-hidden="true" style=${adornmentStyles}>▼</span>
+    </div>
   </label>`;
 }

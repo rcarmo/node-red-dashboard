@@ -46,18 +46,20 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
   return html`<div
     class=${c.className || ""}
     style=${{
-      border: "1px solid transparent",
-      boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-      padding: "10px 12px",
-      background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.55))",
+      border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2)) 60%, transparent)",
+      borderLeft: `4px solid ${toneColor}`,
+      boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
+      padding: "12px 14px 12px 16px",
+      background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.65))",
       position: "relative",
-      borderRadius: "4px",
+      borderRadius: "8px",
+      margin: "6px 0",
     }}
     role="status"
     aria-live="polite"
   >
-    <div style=${{ fontWeight: 600, marginBottom: "4px", color: toneColor }}>${label}</div>
-    <div style=${{ fontSize: "13px" }}>${msg}</div>
+    <div style=${{ fontWeight: 700, marginBottom: "6px", color: toneColor }}>${label}</div>
+    <div style=${{ fontSize: "13px", lineHeight: 1.45 }}>${msg}</div>
     ${dismissible
       ? html`<button
           type="button"
@@ -71,8 +73,9 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
             border: "none",
             color: toneColor,
             cursor: "pointer",
-            fontWeight: 700,
-            padding: 0,
+            fontWeight: 800,
+            fontSize: "18px",
+            padding: "4px",
           }}
         >×</button>`
       : null}

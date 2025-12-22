@@ -23,7 +23,18 @@ export function TemplateWidget(props: { control: UiControl; index: number }): VN
   const htmlContent = resolveTemplateHtml(c);
 
   return html`<div class=${c.className || ""} style=${{ width: "100%" }}>
-    <div style=${{ fontSize: "12px", opacity: 0.7, marginBottom: "4px" }}>${title}</div>
-    <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
+    <div
+      style=${{
+        padding: "10px 12px",
+        borderRadius: "8px",
+        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.4))",
+        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
+        display: "grid",
+        gap: "6px",
+      }}
+    >
+      <div style=${{ fontSize: "12px", opacity: 0.7 }}>${title}</div>
+      <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
+    </div>
   </div>`;
 }

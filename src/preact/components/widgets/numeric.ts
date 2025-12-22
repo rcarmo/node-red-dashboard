@@ -4,6 +4,7 @@ import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { formatNumber } from "../../lib/format";
+import { adornmentStyles, buildFieldStyles, fieldHelperStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
 
 function toNumber(value: unknown, fallback: number): number {
   const n = Number(value);
@@ -36,6 +37,7 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
   const max = toNumber(asNum.max, Number.MAX_SAFE_INTEGER);
   const step = toNumber(asNum.step, 1) || 1;
   const [value, setValue] = useState<number>(clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap));
+  const [focused, setFocused] = useState<boolean>(false);
   const formatter = useMemo(() => new Intl.NumberFormat(lang || undefined), [lang]);
 
   useEffect(() => {
@@ -64,44 +66,48 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
   const pre = prePart || "";
   const post = postPart || "";
 
-  const labeledValue = `${label}: ${formatter.format(value)}`;
+  const fieldStyles = buildFieldStyles({ focused, disabled: Boolean(disabled), hasAdornment: Boolean(post || pre) });
 
-  return html`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${labeledValue}</span>
-    <div style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
-      ${pre ? html`<span style=${{ opacity: 0.7 }}>${pre}</span>` : null}
-      <input
-        class=${asNum.className || ""}
-        type="number"
-        min=${min}
-        max=${max}
-        step=${step}
-        value=${value}
-        title=${asNum.tooltip || undefined}
-        disabled=${Boolean(disabled)}
-        aria-valuetext=${t("number_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
-        onInput=${handleChange}
+  return html`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    <div style=${{ position: "relative", width: "100%" }}>
+      <div
         style=${{
-          width: "100%",
-          padding: "8px 4px",
-          borderRadius: "2px",
-          border: "none",
-          borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
-          background: "transparent",
-          color: "var(--nr-dashboard-widgetTextColor, inherit)",
-          outline: "none",
-          transition: "border-color 120ms ease",
+          ...fieldStyles,
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          paddingRight: post ? "48px" : fieldStyles.paddingRight,
         }}
-        onFocus=${(e: FocusEvent) => {
-          const el = e.target as HTMLInputElement;
-          el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-        }}
-        onBlur=${(e: FocusEvent) => {
-          const el = e.target as HTMLInputElement;
-          el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-        }}
-      />
-      ${post ? html`<span style=${{ opacity: 0.7 }}>${post}</span>` : null}
+      >
+        ${pre ? html`<span style=${fieldHelperStyles}>${pre}</span>` : null}
+        <input
+          class=${asNum.className || ""}
+          type="number"
+          min=${min}
+          max=${max}
+          step=${step}
+          value=${value}
+          title=${asNum.tooltip || undefined}
+          disabled=${Boolean(disabled)}
+          aria-valuetext=${t("number_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
+          onInput=${handleChange}
+          onFocus=${() => setFocused(true)}
+          onBlur=${() => setFocused(false)}
+          style=${{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            color: "var(--nr-dashboard-widgetTextColor, inherit)",
+            outline: "none",
+            padding: 0,
+            fontSize: "14px",
+            minWidth: 0,
+          }}
+        />
+        ${post ? html`<span style=${{ ...adornmentStyles, position: "static", transform: "none" }}>${post}</span>` : null}
+      </div>
     </div>
+    <span style=${{ ...fieldHelperStyles, alignSelf: "flex-end" }}>${t("number_value_label", "{label}: {value}", { label, value: formatter.format(value) })}</span>
   </label>`;
 }

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
+import { adornmentStyles, buildFieldStyles, fieldHelperStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
 
 export type TextInputControl = UiControl & {
   label?: string;
@@ -44,12 +45,14 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   const label = asInput.label || asInput.name || t("input_label", "Input {index}", { index: index + 1 });
   const [value, setValue] = useState<string>((asInput.value as string) ?? "");
   const [error, setError] = useState<string>("");
+  const [focused, setFocused] = useState<boolean>(false);
   const maxLength = (control as { maxlength?: number }).maxlength;
   const delay = Number.isFinite(asInput.delay) ? Number(asInput.delay) : 0;
   const sendOnEnter = delay <= 0 || (control as { type?: string }).type === "text-input-CR";
   const timer = useRef<number | undefined>(undefined);
   const type = useMemo(() => inputType(asInput.mode), [asInput.mode]);
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
+  const isColorMode = asInput.mode === "color";
 
   const validate = (next: string): boolean => {
     if (asInput.required && next.trim().length === 0) {
@@ -106,51 +109,67 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
     }
   };
 
-  return html`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
-    ${asInput.required
-      ? html`<span style=${{ fontSize: "11px", opacity: 0.72 }}>${t("required_label", "Required")}</span>`
-      : null}
-    <input
-      class=${asInput.className || ""}
-      type=${type}
-      value=${value}
-      title=${asInput.tooltip || undefined}
-      disabled=${Boolean(disabled)}
-      aria-invalid=${error ? "true" : "false"}
-      aria-errormessage=${error ? `err-${index}` : undefined}
-      inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
-      maxLength=${maxLength || undefined}
-      onInput=${handleChange}
-      onKeyDown=${handleKeyDown}
-      onBlur=${handleBlur}
-      style=${{
-        width: "100%",
-        padding: "8px 4px",
-        borderRadius: "2px",
-        border: "none",
-        borderBottom: error
-          ? "2px solid var(--nr-dashboard-errorColor, #f87171)"
-          : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
-        background: "transparent",
-        color: "var(--nr-dashboard-widgetTextColor, inherit)",
-        outline: "none",
-        transition: "border-color 120ms ease",
-      }}
-      onFocus=${(e: FocusEvent) => {
-        const el = e.target as HTMLInputElement;
-        if (error) return;
-        el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-      }}
-      onBlur=${(e: FocusEvent) => {
-        handleBlur();
-        const el = e.target as HTMLInputElement;
-        if (error) return;
-        el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-      }}
-    />
+  const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: Boolean(disabled), hasAdornment: isColorMode });
+
+  const colorSwatch = isColorMode
+    ? html`<span
+        aria-hidden="true"
+        style=${{
+          width: "18px",
+          height: "18px",
+          borderRadius: "4px",
+          border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+          background: value || "#cccccc",
+          boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.15)",
+        }}
+      ></span>`
+    : null;
+
+  return html`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    ${asInput.required ? html`<span style=${fieldHelperStyles}>${t("required_label", "Required")}</span>` : null}
+    <div style=${{ position: "relative", width: "100%" }}>
+      <div
+        style=${{
+          ...fieldStyles,
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+        }}
+      >
+        ${colorSwatch}
+        <input
+          class=${asInput.className || ""}
+          type=${type}
+          value=${value}
+          title=${asInput.tooltip || undefined}
+          disabled=${Boolean(disabled)}
+          aria-invalid=${error ? "true" : "false"}
+          aria-errormessage=${error ? `err-${index}` : undefined}
+          inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
+          maxLength=${maxLength || undefined}
+          onInput=${handleChange}
+          onKeyDown=${handleKeyDown}
+          onBlur=${() => {
+            handleBlur();
+            setFocused(false);
+          }}
+          onFocus=${() => setFocused(true)}
+          style=${{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            color: "var(--nr-dashboard-widgetTextColor, inherit)",
+            outline: "none",
+            padding: 0,
+            fontSize: "14px",
+            minWidth: 0,
+          }}
+        />
+      </div>
+    </div>
     ${typeof maxLength === "number"
-      ? html`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
+      ? html`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end" }}>
           ${t("char_counter", "{used}/{max}", { used: value.length, max: maxLength })}
         </span>`
       : null}
