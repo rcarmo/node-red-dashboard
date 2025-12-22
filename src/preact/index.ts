@@ -508,7 +508,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
                 position: isSlide && !isLocked && !isIconOnly ? "fixed" : "relative",
                 left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navWidthNum}px`) : undefined,
-                top: navTop,
+                top: isSlide && !isLocked && !isIconOnly ? navTop : undefined,
                 bottom: 0,
                 transition: "left 0.18s ease-out",
                 zIndex: 80,
