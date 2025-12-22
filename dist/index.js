@@ -4008,6 +4008,12 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       background: rgba(255, 255, 255, 0.08);
     }
 
+    .nr-dashboard-group-card__collapse:focus-visible {
+      outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
+      outline-offset: 2px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
     .nr-dashboard-group-card__list {
       list-style: none;
       margin: 0;
@@ -4330,6 +4336,7 @@ function TextWidget(props) {
   const color = typeof asText.color === "string" ? asText.color : undefined;
   const fontSize = asText.fontSize ? `${asText.fontSize}px` : undefined;
   const fontFamily = asText.font;
+  const fontWeight = asText.fontWeight ?? 500;
   const [ref] = useElementSize();
   const container = mergeStyleString({
     ...layoutStyles(asText),
@@ -4337,11 +4344,11 @@ function TextWidget(props) {
     padding: "4px 2px"
   }, asText.style);
   return m2`<div ref=${ref} class=${asText.className || ""} style=${container}>
-    <div style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
+    <div style=${{ fontSize: "13px", opacity: 0.75, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
     <div
       style=${{
     fontSize: fontSize || "16px",
-    fontWeight: 600,
+    fontWeight,
     color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
     lineHeight: 1.4,
     wordBreak: "break-word",
@@ -4422,6 +4429,8 @@ function ButtonWidget(props) {
   const color = resolveButtonColor(asButton) || "var(--nr-dashboard-widgetColor, #1f8af2)";
   const [hovered, setHovered] = d2(false);
   const [focused, setFocused] = d2(false);
+  const [pressed, setPressed] = d2(false);
+  const ripple = hovered || pressed;
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
     onEmit?.("ui-control", payload);
@@ -4434,25 +4443,46 @@ function ButtonWidget(props) {
     onClick=${onEmit ? handleClick : undefined}
     onMouseEnter=${() => setHovered(true)}
     onMouseLeave=${() => setHovered(false)}
+    onMouseDown=${() => setPressed(true)}
+    onMouseUp=${() => setPressed(false)}
+    onBlur=${() => {
+    setFocused(false);
+    setPressed(false);
+  }}
     onFocus=${() => setFocused(true)}
-    onBlur=${() => setFocused(false)}
     style=${{
     width: "100%",
-    padding: "4px 8px",
-    borderRadius: "2px",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
+    minHeight: "38px",
+    padding: "10px 14px",
+    borderRadius: "6px",
+    border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.24)) 70%, transparent)",
     background: color,
     color: "var(--nr-dashboard-widgetTextColor, #fff)",
-    fontWeight: 600,
+    fontWeight: 700,
     cursor: onEmit ? "pointer" : "default",
     outline: "none",
-    boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)" : "none",
-    filter: hovered ? "brightness(1.02)" : "none",
-    transition: "box-shadow 120ms ease, filter 120ms ease, background 120ms ease"
+    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent), 0 6px 16px rgba(0,0,0,0.35)" : hovered ? "0 6px 16px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.25)",
+    filter: hovered ? "brightness(1.03)" : "none",
+    transform: pressed ? "translateY(1px)" : "none",
+    transition: "box-shadow 160ms ease, filter 160ms ease, background 160ms ease, transform 120ms ease",
+    letterSpacing: "0.02em",
+    position: "relative",
+    overflow: "hidden"
   }}
   >
     ${asButton.icon ? m2`<span class="fa ${asButton.icon}" style=${{ marginRight: "6px" }}></span>` : null}
     ${label}
+    <span
+      aria-hidden="true"
+      style=${{
+    position: "absolute",
+    inset: 0,
+    background: "radial-gradient(circle at center, rgba(255,255,255,0.24), transparent 55%)",
+    opacity: ripple ? 0.4 : 0,
+    transition: "opacity 180ms ease",
+    pointerEvents: "none"
+  }}
+    ></span>
   </button>`;
 }
 
@@ -4516,16 +4546,17 @@ function SwitchWidget(props) {
   const resolvedColor = resolveSwitchColors(asSwitch, checked);
   const bg = checked ? asSwitch.oncolor ?? `var(--nr-dashboard-widgetColor, ${resolvedColor})` : asSwitch.offcolor ?? `var(--nr-dashboard-widgetBorderColor, ${resolvedColor})`;
   const isCenter = (asSwitch.className || "").split(" ").includes("center");
+  const [ripple, setRipple] = d2(false);
   return m2`<label
     class=${asSwitch.className || ""}
     style=${{
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "12px",
     cursor: "default",
     userSelect: "none",
     opacity: disabled ? 0.55 : 1,
-    paddingLeft: "12px",
+    paddingLeft: "14px",
     margin: isCenter ? "0 auto" : undefined
   }}
   >
@@ -4535,6 +4566,9 @@ function SwitchWidget(props) {
       onMouseLeave=${() => setHovered(false)}
       onFocus=${() => setFocused(true)}
       onBlur=${() => setFocused(false)}
+      onMouseDown=${() => setRipple(true)}
+      onMouseUp=${() => setRipple(false)}
+      onMouseOut=${() => setRipple(false)}
       onKeyDown=${(e3) => {
     if (e3.key === "Enter" || e3.key === " " || e3.key === "Spacebar") {
       e3.preventDefault();
@@ -4545,31 +4579,43 @@ function SwitchWidget(props) {
       role="switch"
       aria-checked=${checked}
       style=${{
-    width: "40px",
-    height: "20px",
-    borderRadius: "10px",
+    width: "46px",
+    height: "26px",
+    borderRadius: "13px",
     background: bg,
     position: "relative",
     transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
-    boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)" : hovered ? "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))" : "none"
+    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 32%, transparent)" : hovered ? "0 1px 4px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))" : "none",
+    overflow: "hidden"
   }}
     >
+      <span
+        aria-hidden="true"
+        style=${{
+    position: "absolute",
+    inset: 0,
+    background: "radial-gradient(circle at center, rgba(255,255,255,0.22), transparent 55%)",
+    opacity: ripple ? 0.28 : 0,
+    transition: "opacity 180ms ease",
+    pointerEvents: "none"
+  }}
+      ></span>
       <div
         style=${{
     position: "absolute",
-    top: "2px",
-    left: checked ? "20px" : "2px",
-    width: "16px",
-    height: "16px",
+    top: "3px",
+    left: checked ? "24px" : "3px",
+    width: "20px",
+    height: "20px",
     borderRadius: "50%",
     background: "var(--nr-dashboard-widgetTextColor, #fff)",
-    boxShadow: "none",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
     transition: "left 120ms ease"
   }}
       ></div>
     </div>
     <div style=${{ display: "flex", flexDirection: "column", gap: "0" }}>
-      <span style=${{ fontWeight: 600, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
+      <span style=${{ fontWeight: 500, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${checked && asSwitch.onicon ? m2`<span class="fa ${asSwitch.onicon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${!checked && asSwitch.officon ? m2`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
         ${label}
@@ -4577,6 +4623,57 @@ function SwitchWidget(props) {
     </div>
   </label>`;
 }
+
+// src/preact/components/styles/fieldStyles.ts
+var fieldWrapperStyles = {
+  display: "grid",
+  gap: "6px",
+  width: "100%"
+};
+var fieldLabelStyles = {
+  fontSize: "13px",
+  opacity: 0.85,
+  color: "var(--nr-dashboard-widgetTextColor, inherit)",
+  lineHeight: 1.3
+};
+var fieldHelperStyles = {
+  fontSize: "11px",
+  opacity: 0.7,
+  color: "var(--nr-dashboard-widgetTextColor, inherit)"
+};
+function buildFieldStyles(opts = {}) {
+  const { error, focused, disabled, hasAdornment, dense } = opts;
+  const borderColor = error ? "var(--nr-dashboard-errorColor, #f87171)" : "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))";
+  const focusRing = error ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-errorColor, #f87171) 55%, transparent)" : focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 55%, transparent)" : "none";
+  return {
+    width: "100%",
+    padding: dense ? "8px 10px" : "10px 12px",
+    borderRadius: "8px",
+    border: `1px solid ${borderColor}`,
+    background: "var(--nr-dashboard-widgetFieldBg, var(--nr-dashboard-widgetBackgroundColor, #0f1115))",
+    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+    outline: "none",
+    boxShadow: focusRing,
+    transition: "box-shadow 140ms ease, border-color 140ms ease, background 140ms ease",
+    appearance: "none",
+    WebkitAppearance: "none",
+    opacity: disabled ? 0.55 : 1,
+    cursor: disabled ? "not-allowed" : "text",
+    paddingRight: hasAdornment ? "40px" : dense ? "10px" : "12px"
+  };
+}
+var adornmentStyles = {
+  position: "absolute",
+  right: "10px",
+  top: "50%",
+  transform: "translateY(-50%)",
+  pointerEvents: "none",
+  color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.6))",
+  fontSize: "12px",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center"
+};
 
 // src/preact/components/widgets/text-input.ts
 function inputType(mode) {
@@ -4610,12 +4707,14 @@ function TextInputWidget(props) {
   const label = asInput.label || asInput.name || t4("input_label", "Input {index}", { index: index + 1 });
   const [value2, setValue] = d2(asInput.value ?? "");
   const [error, setError] = d2("");
+  const [focused, setFocused] = d2(false);
   const maxLength = control.maxlength;
   const delay = Number.isFinite(asInput.delay) ? Number(asInput.delay) : 0;
   const sendOnEnter = delay <= 0 || control.type === "text-input-CR";
   const timer = A2(undefined);
   const type = T2(() => inputType(asInput.mode), [asInput.mode]);
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
+  const isColorMode = asInput.mode === "color";
   const validate = (next) => {
     if (asInput.required && next.trim().length === 0) {
       setError(asInput.error || t4("error_required", "This field is required."));
@@ -4669,48 +4768,62 @@ function TextInputWidget(props) {
       emitValue(value2);
     }
   };
-  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
-    ${asInput.required ? m2`<span style=${{ fontSize: "11px", opacity: 0.72 }}>${t4("required_label", "Required")}</span>` : null}
-    <input
-      class=${asInput.className || ""}
-      type=${type}
-      value=${value2}
-      title=${asInput.tooltip || undefined}
-      disabled=${Boolean(disabled)}
-      aria-invalid=${error ? "true" : "false"}
-      aria-errormessage=${error ? `err-${index}` : undefined}
-      inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
-      maxLength=${maxLength || undefined}
-      onInput=${handleChange}
-      onKeyDown=${handleKeyDown}
-      onBlur=${handleBlur}
-      style=${{
-    width: "100%",
-    padding: "8px 4px",
-    borderRadius: "2px",
-    border: "none",
-    borderBottom: error ? "2px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+  const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: Boolean(disabled), hasAdornment: isColorMode });
+  const colorSwatch = isColorMode ? m2`<span
+        aria-hidden="true"
+        style=${{
+    width: "18px",
+    height: "18px",
+    borderRadius: "4px",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+    background: value2 || "#cccccc",
+    boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.15)"
+  }}
+      ></span>` : null;
+  return m2`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    ${asInput.required ? m2`<span style=${fieldHelperStyles}>${t4("required_label", "Required")}</span>` : null}
+    <div style=${{ position: "relative", width: "100%" }}>
+      <div
+        style=${{
+    ...fieldStyles,
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
+  }}
+      >
+        ${colorSwatch}
+        <input
+          class=${asInput.className || ""}
+          type=${type}
+          value=${value2}
+          title=${asInput.tooltip || undefined}
+          disabled=${Boolean(disabled)}
+          aria-invalid=${error ? "true" : "false"}
+          aria-errormessage=${error ? `err-${index}` : undefined}
+          inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
+          maxLength=${maxLength || undefined}
+          onInput=${handleChange}
+          onKeyDown=${handleKeyDown}
+          onBlur=${() => {
+    handleBlur();
+    setFocused(false);
+  }}
+          onFocus=${() => setFocused(true)}
+          style=${{
+    flex: 1,
     background: "transparent",
+    border: "none",
     color: "var(--nr-dashboard-widgetTextColor, inherit)",
     outline: "none",
-    transition: "border-color 120ms ease"
+    padding: 0,
+    fontSize: "14px",
+    minWidth: 0
   }}
-      onFocus=${(e3) => {
-    const el = e3.target;
-    if (error)
-      return;
-    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-  }}
-      onBlur=${(e3) => {
-    handleBlur();
-    const el = e3.target;
-    if (error)
-      return;
-    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-  }}
-    />
-    ${typeof maxLength === "number" ? m2`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
+        />
+      </div>
+    </div>
+    ${typeof maxLength === "number" ? m2`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end" }}>
           ${t4("char_counter", "{used}/{max}", { used: value2.length, max: maxLength })}
         </span>` : null}
     ${error ? m2`<span
@@ -4783,6 +4896,7 @@ function NumericWidget(props) {
   const max = toNumber(asNum.max, Number.MAX_SAFE_INTEGER);
   const step = toNumber(asNum.step, 1) || 1;
   const [value2, setValue] = d2(clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap));
+  const [focused, setFocused] = d2(false);
   const formatter = T2(() => new Intl.NumberFormat(lang || undefined), [lang]);
   y2(() => {
     const next = clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap);
@@ -4806,44 +4920,48 @@ function NumericWidget(props) {
   const [, postPart = ""] = (rest || "").split("}}");
   const pre = prePart || "";
   const post = postPart || "";
-  const labeledValue = `${label}: ${formatter.format(value2)}`;
-  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${labeledValue}</span>
-    <div style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
-      ${pre ? m2`<span style=${{ opacity: 0.7 }}>${pre}</span>` : null}
-      <input
-        class=${asNum.className || ""}
-        type="number"
-        min=${min}
-        max=${max}
-        step=${step}
-        value=${value2}
-        title=${asNum.tooltip || undefined}
-        disabled=${Boolean(disabled)}
-        aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
-        onInput=${handleChange}
+  const fieldStyles = buildFieldStyles({ focused, disabled: Boolean(disabled), hasAdornment: Boolean(post || pre) });
+  return m2`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    <div style=${{ position: "relative", width: "100%" }}>
+      <div
         style=${{
-    width: "100%",
-    padding: "8px 4px",
-    borderRadius: "2px",
-    border: "none",
-    borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+    ...fieldStyles,
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    paddingRight: post ? "48px" : fieldStyles.paddingRight
+  }}
+      >
+        ${pre ? m2`<span style=${fieldHelperStyles}>${pre}</span>` : null}
+        <input
+          class=${asNum.className || ""}
+          type="number"
+          min=${min}
+          max=${max}
+          step=${step}
+          value=${value2}
+          title=${asNum.tooltip || undefined}
+          disabled=${Boolean(disabled)}
+          aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+          onInput=${handleChange}
+          onFocus=${() => setFocused(true)}
+          onBlur=${() => setFocused(false)}
+          style=${{
+    flex: 1,
     background: "transparent",
+    border: "none",
     color: "var(--nr-dashboard-widgetTextColor, inherit)",
     outline: "none",
-    transition: "border-color 120ms ease"
+    padding: 0,
+    fontSize: "14px",
+    minWidth: 0
   }}
-        onFocus=${(e3) => {
-    const el = e3.target;
-    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-  }}
-        onBlur=${(e3) => {
-    const el = e3.target;
-    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-  }}
-      />
-      ${post ? m2`<span style=${{ opacity: 0.7 }}>${post}</span>` : null}
+        />
+        ${post ? m2`<span style=${{ ...adornmentStyles, position: "static", transform: "none" }}>${post}</span>` : null}
+      </div>
     </div>
+    <span style=${{ ...fieldHelperStyles, alignSelf: "flex-end" }}>${t4("number_value_label", "{label}: {value}", { label, value: formatter.format(value2) })}</span>
   </label>`;
 }
 
@@ -4929,6 +5047,7 @@ function DropdownWidget(props) {
   const multiple = Boolean(asDrop.multiple);
   const [value2, setValue] = d2(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = A2(false);
+  const [focused, setFocused] = d2(false);
   y2(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
     if (multiple) {
@@ -4968,56 +5087,50 @@ function DropdownWidget(props) {
         onEmit("ui-control", buildDropdownEmit(asDrop, label, parsed));
     }
   };
-  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
-    <select
-      multiple=${multiple}
-      class=${asDrop.className || ""}
-      title=${asDrop.tooltip || undefined}
-      disabled=${Boolean(disabled)}
-      value=${!multiple ? serializeOptionValue(value2) : undefined}
-      onChange=${handleChange}
-      style=${{
-    width: "100%",
-    padding: multiple ? "8px 4px" : "8px 4px",
-    borderRadius: "2px",
-    border: "none",
-    borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
-    background: "transparent",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)",
-    outline: "none",
-    transition: "border-color 120ms ease"
+  const fieldStyles = buildFieldStyles({ focused, disabled: Boolean(disabled), hasAdornment: true });
+  return m2`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    <div style=${{ position: "relative", width: "100%" }}>
+      <select
+        multiple=${multiple}
+        class=${asDrop.className || ""}
+        title=${asDrop.tooltip || undefined}
+        disabled=${Boolean(disabled)}
+        value=${!multiple ? serializeOptionValue(value2) : undefined}
+        onChange=${handleChange}
+        onFocus=${() => setFocused(true)}
+        onBlur=${() => setFocused(false)}
+        style=${{
+    ...fieldStyles,
+    paddingRight: "44px",
+    cursor: Boolean(disabled) ? "not-allowed" : "pointer",
+    display: "block"
   }}
-      onFocus=${(e3) => {
-    const el = e3.target;
-    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-  }}
-      onBlur=${(e3) => {
-    const el = e3.target;
-    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-  }}
-    >
-      ${asDrop.place && !multiple ? m2`<option value="" disabled selected=${value2 == null || value2 === ""}>${asDrop.place}</option>` : null}
-      ${opts.map((opt) => {
+      >
+        ${asDrop.place && !multiple ? m2`<option value="" disabled selected=${value2 == null || value2 === ""}>${asDrop.place}</option>` : null}
+        ${opts.map((opt) => {
     const serialized = typeof opt.value === "string" ? opt.value : JSON.stringify(opt.value);
     const inferredType = opt.type ? opt.type : typeof opt.value === "number" ? "number" : typeof opt.value === "string" ? "string" : "json";
     const selected = multiple ? Array.isArray(value2) && value2.some((v3) => JSON.stringify(v3) === JSON.stringify(opt.value)) : JSON.stringify(value2) === JSON.stringify(opt.value);
     return m2`<option
-          value=${serialized}
-          data-type=${inferredType}
-          disabled=${opt.disabled || false}
-          selected=${selected}
-        >
-          ${opt.label ?? opt.value}
-        </option>`;
+            value=${serialized}
+            data-type=${inferredType}
+            disabled=${opt.disabled || false}
+            selected=${selected}
+          >
+            ${opt.label ?? opt.value}
+          </option>`;
   })}
-    </select>
+      </select>
+      <span aria-hidden="true" style=${adornmentStyles}>▼</span>
+    </div>
   </label>`;
 }
 
 // src/preact/components/widgets/slider.ts
 var DEFAULT_THROTTLE_MS = 10;
 var SLIDER_STYLE_ID = "nr-dashboard-slider-style";
+var MAX_TICKS = 10;
 function ensureSliderStyles(doc = typeof document !== "undefined" ? document : undefined) {
   if (!doc)
     return;
@@ -5074,30 +5187,40 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       overflow: hidden;
     }
 
+    .nr-dashboard-slider__minmax {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.7;
+      color: var(--nr-dashboard-slider-text);
+      padding: 0 2px;
+    }
+
     .nr-dashboard-slider__range {
       width: 100%;
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
+      height: 6px;
     }
 
     .nr-dashboard-slider__range.is-vertical {
       width: 24px;
-      height: 160px;
+      height: 200px;
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
     }
 
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 4px;
+      height: 6px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 14px;
-      width: 14px;
+      height: 16px;
+      width: 16px;
       margin-top: -5px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
@@ -5121,18 +5244,18 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
 
     .nr-dashboard-slider__track.is-vertical {
       flex-direction: column;
-      height: 160px;
+      height: 200px;
       width: 36px;
     }
 
     .nr-dashboard-slider__range::-moz-range-track {
-      height: 4px;
+      height: 6px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
-      height: 4px;
+      height: 6px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-fill);
     }
@@ -5209,6 +5332,7 @@ function SliderWidget(props) {
   const formatter = new Intl.NumberFormat(lang || undefined);
   const initial = clampSliderValue(toNumber2(asSlider.value ?? min, min), min, max);
   const [value2, setValue] = d2(initial);
+  const [dragging, setDragging] = d2(false);
   y2(() => {
     setValue(clampSliderValue(toNumber2(asSlider.value ?? min, min), min, max));
   }, [asSlider.value, min, max]);
@@ -5270,11 +5394,11 @@ function SliderWidget(props) {
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
   const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
-  const showTicks = false;
-  const showSign = forceSign;
+  const showTicks = stepCount > 0 && stepCount <= MAX_TICKS;
+  const showSign = forceSign || dragging;
   const sliderStyle = isVertical ? {
     width: "32px",
-    height: "160px",
+    height: "200px",
     writingMode: "bt-lr",
     WebkitAppearance: "slider-vertical",
     background: `linear-gradient(to top, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`
@@ -5300,6 +5424,11 @@ function SliderWidget(props) {
               onInput=${handleInput}
               onChange=${handleChange}
               onWheel=${handleWheel}
+              onPointerDown=${() => setDragging(true)}
+              onPointerUp=${() => setDragging(false)}
+              onPointerCancel=${() => setDragging(false)}
+              onBlur=${() => setDragging(false)}
+              onMouseLeave=${() => setDragging(false)}
               style=${{
     ...sliderStyle,
     transform: isVertical && invert ? "rotate(180deg)" : undefined
@@ -5335,6 +5464,11 @@ function SliderWidget(props) {
             onInput=${handleInput}
             onChange=${handleChange}
             onWheel=${handleWheel}
+            onPointerDown=${() => setDragging(true)}
+            onPointerUp=${() => setDragging(false)}
+            onPointerCancel=${() => setDragging(false)}
+            onBlur=${() => setDragging(false)}
+            onMouseLeave=${() => setDragging(false)}
             style=${{
     ...sliderStyle,
     transform: isVertical && invert ? "rotate(180deg)" : undefined
@@ -5356,6 +5490,10 @@ function SliderWidget(props) {
                 style=${isVertical ? { top: `${100 - percent * 100}%` } : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
               >${formatter.format(value2)}</span>` : null}
         </div>`}
+    ${!isVertical ? m2`<div class="nr-dashboard-slider__minmax">
+          <span>${formatter.format(min)}</span>
+          <span>${formatter.format(max)}</span>
+        </div>` : null}
     ${isVertical ? m2`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
     <span class="nr-dashboard-slider__value">${formatter.format(value2)}</span>
   </div>`;
@@ -41745,7 +41883,7 @@ function GaugeWidget(props) {
         splitNumber: isCompass ? 8 : showTicks ? 6 : 0,
         progress: {
           show: true,
-          width: isDonut || isWave ? 12 : 8,
+          width: isDonut || isWave ? 14 : 10,
           roundCap: true,
           itemStyle: {
             color: segments[segments.length - 1][1]
@@ -41753,7 +41891,7 @@ function GaugeWidget(props) {
         },
         axisLine: {
           lineStyle: {
-            width: isDonut ? 12 : 8,
+            width: isDonut ? 14 : 10,
             color: segments
           }
         },
@@ -41771,14 +41909,14 @@ function GaugeWidget(props) {
             return dirs[idx];
           }
         },
-        pointer: { show: !isDonut && !isWave, width: 3, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
-        anchor: { show: !isDonut && !isWave, showAbove: true, size: 8, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
         detail: {
           valueAnimation: true,
           formatter: () => formatted,
           color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-          fontSize: 14,
-          offsetCenter: isWave ? [0, "36%"] : [0, "60%"]
+          fontSize: 16,
+          offsetCenter: isWave ? [0, "34%"] : [0, "54%"]
         },
         data: [
           {
@@ -41822,6 +41960,8 @@ function DatePickerWidget(props) {
   const label = c3.label || c3.name || t4("date_label", "Date {index}", { index: index + 1 });
   const [value2, setValue] = d2(c3.value || "");
   const [error2, setError] = d2("");
+  const [focused, setFocused] = d2(false);
+  const inputId = T2(() => `nr-dashboard-date-${index}`, [index]);
   const isDisabled = Boolean(disabled);
   const inputType2 = resolveDateInputType(c3.mode);
   const validate = (next) => {
@@ -41840,18 +41980,21 @@ function DatePickerWidget(props) {
     setError("");
     return true;
   };
-  return m2`<label style=${{ display: "grid", gap: "4px" }}>
-    <span style=${{ fontSize: "12px", opacity: 0.8 }}>${label}</span>
-    <input
-      class=${c3.className || ""}
-      type=${inputType2}
-      value=${value2}
-      disabled=${isDisabled}
-      lang=${lang}
-      aria-invalid=${error2 ? "true" : "false"}
-      aria-errormessage=${error2 ? `err-date-${index}` : undefined}
-      aria-valuetext=${formatDateInput(value2, c3.mode, lang) || undefined}
-      onInput=${(e4) => {
+  const fieldStyles = buildFieldStyles({ error: Boolean(error2), focused, disabled: isDisabled });
+  return m2`<label style=${fieldWrapperStyles}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    <div style=${{ position: "relative", width: "100%" }}>
+      <input
+        id=${inputId}
+        class=${c3.className || ""}
+        type=${inputType2}
+        value=${value2}
+        disabled=${isDisabled}
+        lang=${lang}
+        aria-invalid=${error2 ? "true" : "false"}
+        aria-errormessage=${error2 ? `err-date-${index}` : undefined}
+        aria-valuetext=${formatDateInput(value2, c3.mode, lang) || undefined}
+        onInput=${(e4) => {
     if (isDisabled)
       return;
     const v3 = e4.target.value;
@@ -41860,31 +42003,27 @@ function DatePickerWidget(props) {
       return;
     onEmit?.("ui-change", { payload: v3 });
   }}
-      style=${{
-    padding: "8px 4px",
-    borderRadius: "2px",
-    border: "none",
-    borderBottom: error2 ? "2px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
-    background: "transparent",
-    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-    outline: "none",
-    transition: "border-color 120ms ease"
+        onFocus=${() => setFocused(true)}
+        onBlur=${() => setFocused(false)}
+        style=${{ ...fieldStyles, paddingRight: "44px" }}
+        min=${c3.min || undefined}
+        max=${c3.max || undefined}
+      />
+      <span
+        aria-hidden="true"
+        style=${{
+    position: "absolute",
+    right: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.6))",
+    fontSize: "14px",
+    pointerEvents: "none"
   }}
-      onFocus=${(e4) => {
-    const el = e4.target;
-    if (error2)
-      return;
-    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
-  }}
-      onBlur=${(e4) => {
-    const el = e4.target;
-    if (error2)
-      return;
-    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
-  }}
-      min=${c3.min || undefined}
-      max=${c3.max || undefined}
-    />
+      >
+        <i class="fa fa-calendar" aria-hidden="true"></i>
+      </span>
+    </div>
     ${error2 ? m2`<span
           id=${`err-date-${index}`}
           role="alert"
@@ -41906,28 +42045,48 @@ function ColourPickerWidget(props) {
   const label = c3.label || c3.name || t4("colour_label", "Colour {index}", { index: index + 1 });
   const [value2, setValue] = d2(resolveColourValue(c3.value));
   const isDisabled = Boolean(disabled);
-  return m2`<label style=${{ display: "grid", gap: "6px" }}>
-    <span style=${{ fontSize: "12px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
-    <input
-      class=${c3.className || ""}
-      type="color"
-      value=${value2}
-      disabled=${isDisabled}
-      onInput=${(e4) => {
+  const [focused, setFocused] = d2(false);
+  const inputId = T2(() => `nr-dashboard-colour-${index}`, [index]);
+  const fieldStyles = buildFieldStyles({ focused, disabled: isDisabled, hasAdornment: true });
+  return m2`<label style=${fieldWrapperStyles} htmlFor=${inputId}>
+    <span style=${fieldLabelStyles}>${label}</span>
+    <div
+      style=${{
+    ...fieldStyles,
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    paddingRight: "16px"
+  }}
+    >
+      <input
+        class=${c3.className || ""}
+        type="color"
+        value=${value2}
+        disabled=${isDisabled}
+        id=${inputId}
+        aria-label=${label}
+        onInput=${(e4) => {
     if (isDisabled)
       return;
     const v3 = e4.target.value;
     setValue(v3);
     onEmit?.("ui-change", { payload: v3 });
   }}
-      style=${{
-    width: "100%",
-    minHeight: "28px",
-    padding: "0",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)"
+        onFocus=${() => setFocused(true)}
+        onBlur=${() => setFocused(false)}
+        style=${{
+    width: "46px",
+    height: "32px",
+    padding: 0,
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+    borderRadius: "6px",
+    background: "transparent",
+    cursor: isDisabled ? "not-allowed" : "pointer"
   }}
-    />
+      />
+      <span style=${{ fontSize: "13px", opacity: 0.9, wordBreak: "break-all" }}>${value2}</span>
+    </div>
   </label>`;
 }
 
@@ -41973,8 +42132,22 @@ function AudioWidget(props) {
       setPlayIntent(false);
     }
   }, [c3.autoplay, c3.play, c3.stop, c3.reset, c3.url, isDisabled]);
-  return m2`<div class=${c3.className || ""}>
-    <div style=${{ fontSize: "12px", opacity: 0.7, marginBottom: "4px" }}>${label}</div>
+  return m2`<div class=${c3.className || ""} style=${{ width: "100%" }}>
+    <div
+      style=${{
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    padding: "8px 10px",
+    borderRadius: "8px",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.35))",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
+    marginBottom: "6px"
+  }}
+    >
+      <i class="fa fa-volume-up" aria-hidden="true" style=${{ fontSize: "16px" }}></i>
+      <div style=${{ fontSize: "13px", opacity: 0.78 }}>${label}</div>
+    </div>
     <audio
       ref=${ref}
       src=${c3.url || ""}
@@ -41984,7 +42157,7 @@ function AudioWidget(props) {
       aria-disabled=${isDisabled}
       aria-label=${t4("audio_controls", "Audio controls for {label}", { label })}
       tabIndex=${isDisabled ? -1 : undefined}
-      style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto" }}
+      style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto", borderRadius: "6px" }}
     ></audio>
   </div>`;
 }
@@ -42008,8 +42181,10 @@ function ToastWidget(props) {
   const [visible, setVisible] = d2(true);
   const dismissible = c3.dismissible !== false;
   const displayMs = Number.isFinite(c3.displayTime) ? Math.max(0, Number(c3.displayTime)) : 3000;
+  const [stackOffset, setStackOffset] = d2(index * 4);
   y2(() => {
     setVisible(true);
+    setStackOffset(index * 4);
     if (displayMs > 0) {
       const timer = window.setTimeout(() => setVisible(false), displayMs);
       return () => window.clearTimeout(timer);
@@ -42021,18 +42196,21 @@ function ToastWidget(props) {
   return m2`<div
     class=${c3.className || ""}
     style=${{
-    border: "1px solid transparent",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-    padding: "10px 12px",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.55))",
+    border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2)) 60%, transparent)",
+    borderLeft: `4px solid ${toneColor}`,
+    boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
+    padding: "12px 14px 12px 16px",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.65))",
     position: "relative",
-    borderRadius: "4px"
+    borderRadius: "8px",
+    margin: `${6 + stackOffset}px 0 6px 0`
   }}
     role="status"
     aria-live="polite"
+    aria-atomic="true"
   >
-    <div style=${{ fontWeight: 600, marginBottom: "4px", color: toneColor }}>${label}</div>
-    <div style=${{ fontSize: "13px" }}>${msg}</div>
+    <div style=${{ fontWeight: 700, marginBottom: "6px", color: toneColor }}>${label}</div>
+    <div style=${{ fontSize: "13px", lineHeight: 1.45 }}>${msg}</div>
     ${dismissible ? m2`<button
           type="button"
           aria-label=${t4("toast_close", "Close notification")}
@@ -42045,8 +42223,9 @@ function ToastWidget(props) {
     border: "none",
     color: toneColor,
     cursor: "pointer",
-    fontWeight: 700,
-    padding: 0
+    fontWeight: 800,
+    fontSize: "18px",
+    padding: "4px"
   }}
         >×</button>` : null}
   </div>`;
@@ -42065,8 +42244,11 @@ function LinkWidget(props) {
   const target = c3.target || "_blank";
   const icon = c3.icon;
   const isDisabled = Boolean(disabled);
-  return m2`<div style=${{ display: "flex", gap: "8px", alignItems: "center" }}>
-    ${icon ? m2`<i class=${icon} aria-hidden="true"></i>` : null}
+  const [focused, setFocused] = d2(false);
+  const [hovered, setHovered] = d2(false);
+  const [pressed, setPressed] = d2(false);
+  const focusRing = focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 45%, transparent)" : hovered ? "0 3px 10px rgba(0,0,0,0.25)" : "none";
+  return m2`<div style=${{ display: "flex", alignItems: "center", width: "100%" }}>
     <a
       href=${isDisabled ? undefined : href}
       target=${target}
@@ -42079,27 +42261,31 @@ function LinkWidget(props) {
     e4.preventDefault();
     e4.stopPropagation();
   } : undefined}
+      onMouseEnter=${() => setHovered(true)}
+      onMouseLeave=${() => setHovered(false)}
+      onMouseDown=${() => setPressed(true)}
+      onMouseUp=${() => setPressed(false)}
+      onBlur=${() => setPressed(false)}
+      onFocus=${() => setFocused(true)}
+      onBlur=${() => setFocused(false)}
       style=${{
-    color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.4))" : "var(--nr-dashboard-widgetColor, #61dafb)",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "10px 12px",
+    borderRadius: "8px",
+    background: hovered ? "color-mix(in srgb, var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.04)) 70%, transparent)" : "var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.02))",
+    color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : "var(--nr-dashboard-widgetColor, #61dafb)",
     pointerEvents: isDisabled ? "none" : "auto",
     textDecoration: "none",
-    borderBottom: isDisabled ? "none" : "1px solid transparent",
-    transition: "color 120ms ease, border-color 120ms ease"
-  }}
-      onMouseEnter=${(e4) => {
-    const el = e4.currentTarget;
-    if (isDisabled)
-      return;
-    el.style.borderBottom = "1px solid currentColor";
-  }}
-      onMouseLeave=${(e4) => {
-    const el = e4.currentTarget;
-    if (isDisabled)
-      return;
-    el.style.borderBottom = "1px solid transparent";
+    boxShadow: focusRing,
+    transition: "box-shadow 140ms ease, background 160ms ease, color 140ms ease",
+    width: "100%",
+    transform: pressed ? "translateY(1px)" : "none"
   }}
     >
-      ${label}
+      ${icon ? m2`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : m2`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}
+      <span style=${{ fontWeight: 600, letterSpacing: "0.01em" }}>${label}</span>
     </a>
   </div>`;
 }
@@ -42115,8 +42301,19 @@ function TemplateWidget(props) {
   const title = c3.name || t4("template_label", "Template {index}", { index: index + 1 });
   const htmlContent = resolveTemplateHtml(c3);
   return m2`<div class=${c3.className || ""} style=${{ width: "100%" }}>
-    <div style=${{ fontSize: "12px", opacity: 0.7, marginBottom: "4px" }}>${title}</div>
-    <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
+    <div
+      style=${{
+    padding: "10px 12px",
+    borderRadius: "8px",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.4))",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
+    display: "grid",
+    gap: "6px"
+  }}
+    >
+      <div style=${{ fontSize: "12px", opacity: 0.7 }}>${title}</div>
+      <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
+    </div>
   </div>`;
 }
 
@@ -46232,7 +46429,7 @@ function resolveSizes(site) {
     py: 0,
     columns: 24,
     dense: false,
-    layoutMode: "grid"
+    layoutMode: "masonry"
   };
   if (typeof window !== "undefined" && window.innerWidth < 350) {
     base2.sx = 42;

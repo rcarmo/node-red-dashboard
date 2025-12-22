@@ -120,20 +120,20 @@
 - [ ] Remove gulp/legacy build once parity is acceptable; point Node-RED runtime to `dist/` by default.
 - [ ] Restore legacy dashboard layout behaviors: honor `hideToolbar`, reuse site/tab titles in the toolbar, gate menu toggle/nav on tab count, auto-close the nav on tab select when unlocked, render real tab icons (not letter-only), and add swipe handling that respects `allowSwipe` (`menu` to open/close nav; `true`/`mouse` to switch tabs; disable mouse swipes unless explicitly allowed).
 
-## Widget Fit-Gap (rev2)
-- Button: now taller with stronger elevation and focus ring; still missing ripple/ink feedback, legacy pillier radius option, and disabled token contrast. Needs optional left icon spacing tokens and loading/active states to mirror Angular MD.
-- Switch: track/knob enlarged and focus shadow improved; still lacks ripple, alternate label placement (left), and themed disabled tint. Keyboard focus outline could be more visible against dark themes.
-- Slider: track/thumb thickened and vertical height raised; ticks/step markers still absent, value chip only simple text, no min/max captions, and no legend for discrete steps. Styling differs from legacy MD bubble and tick marks.
-- Numeric: boxed field now; still no +/- spinner buttons, helper/error text spacing, or dedicated value display separate from label. Border/fill tokens should respond to error/disabled more clearly.
-- Text Input: boxed with helper text and optional color swatch; still missing prefix/suffix icon support, clear button, and filled vs outlined style toggle. Required/helper spacing could match legacy MD rhythm more tightly.
-- Dropdown: boxed with chevron; still native select (no custom menu surface, elevation, or multi-select chips). Placeholder is a disabled option; lacks search/filter and consistent option padding vs legacy.
-- Date Picker: boxed native inputs only; no calendar/time overlay, no inline calendar icon affordance, and limited locale formatting/validation hints compared to legacy picker.
-- Colour Picker: boxed with swatch + hex label; still just `<input type=color>` (no hue/lightness/alpha sliders, no popover). Disabled state uses native UI; value display lacks contrast token.
-- Text: supports configurable weight; still lacks two-line/secondary text styling, per-layout spacing presets, and optional label hiding when not needed. Font tokens per theme not fully mapped.
-- Link: now padded tile with focus ring; still lacks visited/pressed states and toolbar-aligned spacing presets. No inline external indicator beyond icon.
-- Toast: added tone stripe, padding, larger dismiss; still missing per-corner spacing logic, action buttons, and max-visible stack behavior tuning vs legacy.
-- Gauge: thicker strokes/pointer; wave look not implemented, compass/wave visuals simplified, and label/unit typography still lighter than JustGage. Needs card padding toggle and legacy pointer cap styles.
-- Form: base controls styled but helper/error spacing and grid rhythm diverge from legacy MD. No numeric spinners, select menu styling remains native, and submit button lacks ripple/raised states matching other buttons.
-- Audio: now has padded header row; still missing status text/timecode, play-state icon change, and disabled visual overlay.
-- Template: padded container added; still no sandboxing or legacy Angular interpolation; users must supply own padding/background for custom content consistency.
-- Chart: ECharts panel still pending; legacy Chart.js looks (legends, tooltips, stacked bars, polar/radar, cutout, gradients, spanGaps) and streaming behaviors need full parity implementation.
+## Widget Fit-Gap (rev3)
+- Button: taller with elevation + ripple/press overlay; still missing legacy pill radius option, loading/active states, and clearer disabled token contrast. Optional left-icon spacing tokens would help consistency.
+- Switch: larger track/knob with ripple and stronger focus glow; still needs optional left label placement, themed disabled tint, and clearer keyboard focus outline on dark themes.
+- Slider: thicker track/thumb, taller verticals, drag-only value chip, tick marks when step count is small, and min/max captions; still lacks styled tick bullets/labels like legacy MD and a legend for discrete steps.
+- Numeric: boxed field; still no +/- spinner buttons, helper/error rhythm, or separate value display. Error/disabled token responses could be stronger.
+- Text Input: boxed with helper and optional swatch; still missing prefix/suffix icons, clear button, and filled vs outlined style toggle. Spacing could hew closer to legacy MD rhythm.
+- Dropdown: boxed with chevron; still native select (no custom menu/elevation or multi-select chips). Placeholder is disabled option; lacks search/filter and option padding parity.
+- Date Picker: boxed native input with calendar icon; still no calendar/time overlay, limited locale formatting hints, and no custom surface styling.
+- Colour Picker: boxed with swatch + hex label; remains raw `<input type=color>` (no hue/lightness/alpha sliders or popover). Disabled state and value contrast remain native.
+- Text: configurable weight; still missing two-line/secondary styling, layout presets, and optional label hiding. Theme font tokens not fully mapped.
+- Link: padded tile with focus/pressed states; still missing visited state styling and toolbar-aligned spacing presets; external indicator limited to icon.
+- Toast: tone stripe, padding, aria-atomic, slight stack offset; still needs max-visible stack tuning, action buttons, and per-corner spacing logic.
+- Gauge: thicker strokes/pointer/detail text; wave look not implemented, compass/wave simplified, label/unit typography lighter than JustGage. Card padding toggle and pointer cap styles still pending.
+- Form: base controls styled; helper/error rhythm still off legacy MD, select menu native, submit button lacks ripple/raised parity; numeric fields missing spinners.
+- Audio: padded header row; still missing status text/timecode, play-state icon change, and disabled overlay.
+- Template: padded container; still no sandboxing or legacy Angular interpolation; custom content must supply its own internal layout.
+- Chart: ECharts panel still pending; need legend/tooltip/stacked bar/polar/radar/cutout/gradient/spanGaps parity and streaming adapter.
