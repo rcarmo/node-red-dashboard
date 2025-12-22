@@ -162,6 +162,17 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       border-radius: 8px;
     }
 
+    .nr-dashboard-icon-press {
+      position: relative;
+      overflow: hidden;
+      transition: transform 140ms ease, background 160ms ease;
+    }
+
+    .nr-dashboard-icon-press:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
     @keyframes nr-dashboard-nav-backdrop {
       from { opacity: 0; }
       to { opacity: 1; }

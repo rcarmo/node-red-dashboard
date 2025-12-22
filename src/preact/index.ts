@@ -82,7 +82,7 @@ const floatingToggleStyles: Record<string, string> = {
   borderRadius: "50%",
   padding: "10px 12px",
   cursor: "pointer",
-  boxShadow: "0 6px 16px rgba(0,0,0,0.24)",
+  boxShadow: "0 6px 16px rgba(0,0,0,0.20)",
   transition: "background 140ms ease, box-shadow 140ms ease",
 };
 
@@ -394,6 +394,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   type="button"
                   aria-label=${t("toggle_menu", "Toggle menu")}
                   onClick=${() => setNavOpen((v) => !v)}
+                  class="nr-dashboard-icon-press"
                   style=${{
                     ...iconButtonStyles,
                     background: navOpen
@@ -443,6 +444,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               type="button"
               aria-label=${t("toggle_menu", "Toggle menu")}
               onClick=${() => setNavOpen((v) => !v)}
+              class="nr-dashboard-icon-press"
               style=${{
                 ...floatingToggleStyles,
                 ...iconButtonStyles,
@@ -480,7 +482,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
                 background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
                 position: isSlide && !isLocked && !isIconOnly ? "absolute" : "relative",
-                left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navMaxWidth + 20}px`) : undefined,
+                left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navMaxWidth + 16}px`) : undefined,
                 top: navTop,
                 bottom: 0,
                 transition: "left 0.20s ease-in-out",
@@ -491,13 +493,14 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                       ? "2px 0 12px rgba(0,0,0,0.32)"
                       : "0 0 0 rgba(0,0,0,0)"
                     : "2px 0 8px rgba(0,0,0,0.22)",
-                backdropFilter: isSlide && !isLocked && !isIconOnly && navOpen ? "blur(2px)" : undefined,
+                backdropFilter: isSlide && !isLocked && !isIconOnly && navOpen ? "blur(1px)" : undefined,
               }}
             >
               ${isSlide && !isLocked && !isIconOnly
                 ? html`<div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
                   <h3 style=${{ margin: 0, fontSize: "14px", fontWeight: 600 }}>${t("tabs_label", "Tabs")}</h3>
                     <button
+                      class="nr-dashboard-icon-press"
                       type="button"
                       aria-label=${t("close_menu", "Close menu")}
                       onClick=${() => setNavOpen(false)}
