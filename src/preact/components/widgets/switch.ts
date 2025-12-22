@@ -129,7 +129,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       background: bg,
       position: "relative",
       transition: "background 120ms ease, box-shadow 120ms ease",
-      boxShadow: focused ? "0 0 0 4px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 35%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
+      boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 32%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
       overflow: "hidden",
       cursor: disabled ? "default" : "grab",
     }}
@@ -137,10 +137,10 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     <div
       style=${{
         position: "absolute",
-        top: "3px",
-        left: checked ? "18px" : "3px",
-        width: "14px",
-        height: "14px",
+        top: "-2px",
+        left: checked ? "18px" : "-2px",
+        width: "20px",
+        height: "20px",
         borderRadius: "50%",
         background: checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)",
         boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
@@ -161,6 +161,8 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
           width: "36px",
           height: "20px",
           cursor: disabled ? "default" : "grab",
+          padding: "0 8px",
+          position: "relative",
         }}
       >
         <span
@@ -168,7 +170,10 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
           style=${{
             color: checked ? asSwitch.oncolor : "transparent",
             transition: "opacity 120ms ease, color 120ms ease",
-            position: checked ? "static" : "absolute",
+            position: "absolute",
+            left: 0,
+            right: 0,
+            textAlign: "center",
           }}
         >${renderIcon(asSwitch.onicon)}</span>
         <span
@@ -176,7 +181,10 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
           style=${{
             color: !checked ? asSwitch.offcolor : "transparent",
             transition: "opacity 120ms ease, color 120ms ease",
-            position: !checked ? "static" : "absolute",
+            position: "absolute",
+            left: 0,
+            right: 0,
+            textAlign: "center",
           }}
         >${renderIcon(asSwitch.officon)}</span>
       </div>`
@@ -189,6 +197,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       alignItems: "center",
       justifyContent: isCenter ? "center" : "space-between",
       width: "100%",
+      height: "100%",
       gap: "0",
       padding: "0 8px 0 8px",
       cursor: disabled ? "default" : "grab",
@@ -197,7 +206,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     title=${asSwitch.tooltip || undefined}
   >
     ${showLabel
-      ? html`<p style=${{ margin: 0, padding: "0 0 0 12px", whiteSpace: "nowrap", overflow: "hidden" }} dangerouslySetInnerHTML=${labelHtml}></p>`
+      ? html`<p style=${{ margin: 0, padding: "0 0 0 12px", whiteSpace: "nowrap", overflow: "hidden", color: "var(--nr-dashboard-widgetTextColor, inherit)", fontWeight: 400 }} dangerouslySetInnerHTML=${labelHtml}></p>`
       : null}
     ${customIcons}
   </div>`;

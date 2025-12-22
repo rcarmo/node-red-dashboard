@@ -52,9 +52,11 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
       onMouseLeave=${() => setHovered(false)}
       onMouseDown=${() => setPressed(true)}
       onMouseUp=${() => setPressed(false)}
-      onBlur=${() => setPressed(false)}
       onFocus=${() => setFocused(true)}
-      onBlur=${() => setFocused(false)}
+      onBlur=${() => {
+        setPressed(false);
+        setFocused(false);
+      }}
       style=${{
         display: "inline-flex",
         alignItems: "center",
@@ -62,11 +64,15 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
         padding: "10px 12px",
         borderRadius: "8px",
         background: "transparent",
-        color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : "var(--nr-dashboard-widgetColor, #61dafb)",
+        color: isDisabled
+          ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))"
+          : hovered
+            ? "color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 90%, white 10%)"
+            : "var(--nr-dashboard-widgetColor, #61dafb)",
         pointerEvents: isDisabled ? "none" : "auto",
-        textDecoration: "none",
+        textDecoration: hovered ? "underline" : "none",
         boxShadow: focusRing,
-        transition: "box-shadow 140ms ease, color 140ms ease",
+        transition: "box-shadow 140ms ease, color 140ms ease, text-decoration-color 140ms ease",
         width: "100%",
         transform: pressed ? "translateY(1px)" : "none",
       }}

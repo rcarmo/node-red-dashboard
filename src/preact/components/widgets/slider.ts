@@ -206,7 +206,6 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const outs = asSlider.outs === "end" ? "end" : "all";
   const isVertical = toNumber(asSlider.width ?? 0, 0) < toNumber(asSlider.height ?? 0, 0);
   const isDiscrete = outs === "end";
-  const forceSign = Boolean(asSlider.showSign);
   const formatter = new Intl.NumberFormat(lang || undefined);
 
   const initial = clampSliderValue(toNumber(asSlider.value ?? min, min), min, max);
@@ -274,7 +273,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const sliderValue = toDisplayValue(value);
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
-  const showSign = (outs === "end" || forceSign) && !isDisabled;
+  const showSign = outs === "end" && !isDisabled;
 
   const sliderStyle = isVertical
     ? {
@@ -290,6 +289,9 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
       };
 
   const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
+
+  const showHorizontalLabel = !isVertical && Number(asSlider.width ?? 0) >= Number(asSlider.height ?? 0) && Boolean(label);
+  const showVerticalLabel = isVertical && Boolean(label);
 
   const sliderInput = html`<input
     class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
@@ -327,7 +329,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   return html`<div class=${containerClass}>
     ${!isVertical
       ? html`<div class="nr-dashboard-slider__row">
-          <span class="nr-dashboard-slider__label">${label}</span>
+          ${showHorizontalLabel ? html`<span class="nr-dashboard-slider__label">${label}</span>` : null}
           <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
             ${sliderInput}
             ${bubble}
@@ -337,6 +339,6 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
           ${sliderInput}
           ${bubble}
         </div>
-        <span class="nr-dashboard-slider__label is-vertical">${label}</span>`}
+        ${showVerticalLabel ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}`}
   </div>`;
 }

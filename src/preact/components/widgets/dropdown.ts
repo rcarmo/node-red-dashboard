@@ -3,7 +3,85 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
-import { adornmentStyles, buildFieldStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
+
+const DROPDOWN_STYLE_ID = "nr-dashboard-dropdown-style";
+
+function ensureDropdownStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
+  if (!doc) return;
+  if (doc.getElementById(DROPDOWN_STYLE_ID)) return;
+  const style = doc.createElement("style");
+  style.id = DROPDOWN_STYLE_ID;
+  style.textContent = `
+    .nr-dashboard-dropdown {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 0 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-dropdown__label {
+      margin: 0;
+      line-height: 34px;
+      margin-right: 4px;
+      margin-top: 3px;
+      padding-right: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 20%;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+    }
+
+    .nr-dashboard-dropdown__field {
+      flex: 1 1 auto;
+      height: 90%;
+      padding-left: 8px;
+      padding-right: 4px;
+      margin: 0 4px 0 0;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .nr-dashboard-dropdown__select {
+      width: 100%;
+      height: 34px;
+      padding: 0 28px 0 8px;
+      background: transparent;
+      color: var(--nr-dashboard-widgetTextColor, #000);
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      box-sizing: border-box;
+      margin-top: 6px;
+      font: inherit;
+    }
+
+    .nr-dashboard-dropdown__select:focus {
+      outline: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+    }
+
+    .nr-dashboard-dropdown__select:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .nr-dashboard-dropdown__chevron {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-35%);
+      font-size: 11px;
+      color: rgba(0,0,0,0.54);
+      pointer-events: none;
+    }
+  `;
+  doc.head.appendChild(style);
+}
 
 export type DropdownOption = { label: string; value: unknown; type?: string; disabled?: boolean };
 export type DropdownControl = UiControl & {
@@ -96,11 +174,14 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const asDrop = control as DropdownControl;
   const { t } = useI18n();
   const label = asDrop.label || asDrop.name || t("dropdown_label", "Select {index}", { index: index + 1 });
+  const labelHtml = { __html: label as string };
   const opts = useMemo(() => asDrop.options ?? [], [asDrop.options]);
   const multiple = Boolean(asDrop.multiple);
   const [value, setValue] = useState<unknown>(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = useRef<boolean>(false);
   const [focused, setFocused] = useState<boolean>(false);
+
+  ensureDropdownStyles();
 
   useEffect(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
@@ -143,14 +224,14 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
     }
   };
 
-  const fieldStyles = buildFieldStyles({ focused, disabled: Boolean(disabled), hasAdornment: true });
+  const showLabel = !(Number(asDrop.width) === 1) && label.length > 0;
 
-  return html`<label style=${fieldWrapperStyles}>
-    <span style=${fieldLabelStyles}>${label}</span>
-    <div style=${{ position: "relative", width: "100%" }}>
+  return html`<div class=${`nr-dashboard-dropdown ${asDrop.className || ""}`.trim()} title=${asDrop.tooltip || undefined}>
+    ${showLabel ? html`<p class="nr-dashboard-dropdown__label" dangerouslySetInnerHTML=${labelHtml}></p>` : null}
+    <div class="nr-dashboard-dropdown__field">
       <select
         multiple=${multiple}
-        class=${asDrop.className || ""}
+        class="nr-dashboard-dropdown__select"
         title=${asDrop.tooltip || undefined}
         disabled=${Boolean(disabled)}
         value=${!multiple ? serializeOptionValue(value) : undefined}
@@ -158,13 +239,8 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
         onFocus=${() => setFocused(true)}
         onBlur=${() => setFocused(false)}
         style=${{
-          ...fieldStyles,
-          paddingRight: "36px",
+          borderBottomColor: focused ? "var(--nr-dashboard-widgetBackgroundColor, #1f8af2)" : undefined,
           cursor: Boolean(disabled) ? "not-allowed" : "pointer",
-          display: "block",
-          background: "transparent",
-          borderBottom: fieldStyles.borderBottom,
-          color: "var(--nr-dashboard-widgetTextColor, #000)",
         }}
       >
         ${asDrop.place && !multiple
@@ -192,15 +268,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
           </option>`;
         })}
       </select>
-      <span
-        aria-hidden="true"
-        style=${{
-          ...adornmentStyles,
-          right: "12px",
-          fontSize: "11px",
-          color: "rgba(0,0,0,0.54)",
-        }}
-      >▼</span>
+      <span class="nr-dashboard-dropdown__chevron" aria-hidden="true">▼</span>
     </div>
-  </label>`;
+  </div>`;
 }
