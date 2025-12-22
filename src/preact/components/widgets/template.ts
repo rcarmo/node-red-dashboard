@@ -33,7 +33,7 @@ export function TemplateWidget(props: { control: UiControl; index: number }): VN
         gap: "4px",
       }}
     >
-      <div style=${{ fontSize: "12px", opacity: 0.7 }}>${title}</div>
+      <div style=${{ fontSize: "14px", lineHeight: "20px", fontWeight: 500, opacity: 0.8 }}>${title}</div>
       <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
     </div>
   </div>`;

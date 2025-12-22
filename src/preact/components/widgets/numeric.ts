@@ -27,6 +27,7 @@ function ensureNumericStyles(doc: Document | undefined = typeof document !== "un
     .nr-dashboard-numeric .label {
       margin: 0 8px 0 0;
       font-size: 16px;
+      line-height: 20px;
       font-weight: 500;
       line-height: 1.4;
       color: var(--nr-dashboard-widgetTextColor, inherit);

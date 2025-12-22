@@ -206,7 +206,19 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     title=${asSwitch.tooltip || undefined}
   >
     ${showLabel
-      ? html`<p style=${{ margin: 0, padding: "0 0 0 12px", whiteSpace: "nowrap", overflow: "hidden", color: "var(--nr-dashboard-widgetTextColor, inherit)", fontWeight: 400 }} dangerouslySetInnerHTML=${labelHtml}></p>`
+      ? html`<p
+          style=${{
+            margin: 0,
+            padding: "0 0 0 12px",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            color: "var(--nr-dashboard-widgetTextColor, inherit)",
+            fontWeight: 500,
+            fontSize: "14px",
+            lineHeight: "20px",
+          }}
+          dangerouslySetInnerHTML=${labelHtml}
+        ></p>`
       : null}
     ${customIcons}
   </div>`;

@@ -4407,6 +4407,7 @@ function TextWidget(props) {
       style=${{
     margin: "0.1em 0.25em 0.1em 0",
     fontSize: "14px",
+    lineHeight: "20px",
     color: "var(--nr-dashboard-widgetTextColor, inherit)",
     opacity: 0.85,
     lineHeight: 1.3,
@@ -4421,7 +4422,7 @@ function TextWidget(props) {
     fontSize: fontSize || (isColumn ? "16px" : "15px"),
     fontWeight,
     color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
-    lineHeight: 1.3,
+    lineHeight: 1.35,
     wordBreak: "break-word",
     fontFamily
   }}
@@ -4789,7 +4790,19 @@ function SwitchWidget(props) {
   }}
     title=${asSwitch.tooltip || undefined}
   >
-    ${showLabel ? m2`<p style=${{ margin: 0, padding: "0 0 0 12px", whiteSpace: "nowrap", overflow: "hidden", color: "var(--nr-dashboard-widgetTextColor, inherit)", fontWeight: 400 }} dangerouslySetInnerHTML=${labelHtml}></p>` : null}
+    ${showLabel ? m2`<p
+          style=${{
+    margin: 0,
+    padding: "0 0 0 12px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)",
+    fontWeight: 500,
+    fontSize: "14px",
+    lineHeight: "20px"
+  }}
+          dangerouslySetInnerHTML=${labelHtml}
+        ></p>` : null}
     ${customIcons}
   </div>`;
 }
@@ -4832,8 +4845,8 @@ function ensureTextInputStyles(doc = typeof document !== "undefined" ? document 
       padding-left: 12px;
       margin-bottom: 3px;
       color: var(--nr-dashboard-widgetTextColor, inherit);
-      font-size: 13px;
-      line-height: 1.3;
+      font-size: 14px;
+      line-height: 1.35;
     }
 
     .nr-dashboard-textinput__container--focused .nr-dashboard-textinput__label {
@@ -5089,6 +5102,7 @@ function ensureNumericStyles(doc = typeof document !== "undefined" ? document : 
     .nr-dashboard-numeric .label {
       margin: 0 8px 0 0;
       font-size: 16px;
+      line-height: 20px;
       font-weight: 500;
       line-height: 1.4;
       color: var(--nr-dashboard-widgetTextColor, inherit);
@@ -5342,6 +5356,8 @@ function ensureDropdownStyles(doc = typeof document !== "undefined" ? document :
       overflow: hidden;
       min-width: 20%;
       color: var(--nr-dashboard-widgetTextColor, inherit);
+      font-size: 14px;
+      font-weight: 500;
     }
 
     .nr-dashboard-dropdown__field {
@@ -5367,7 +5383,9 @@ function ensureDropdownStyles(doc = typeof document !== "undefined" ? document :
       -moz-appearance: none;
       box-sizing: border-box;
       margin-top: 6px;
-      font: inherit;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 20px;
     }
 
     .nr-dashboard-dropdown__select:focus {
@@ -42308,7 +42326,7 @@ function GaugeWidget(props) {
   }}
     aria-label=${ariaLabel}
   >
-    <div style=${{ fontWeight: 600 }}>${label}</div>
+    <div style=${{ fontWeight: 600, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
     <div ref=${chartRef} style=${{ width: "100%", height: `${chartHeight}px` }}></div>
   </div>`;
 }
@@ -42362,7 +42380,16 @@ function DatePickerWidget(props) {
   const isDisabled = Boolean(disabled);
   const containerStyle = T2(() => ({ display: "flex", flexDirection: "column", width: "100%", marginTop: "8px" }), []);
   const rowStyle = T2(() => ({ display: "flex", alignItems: "center", width: "100%" }), []);
-  const labelStyle = T2(() => ({ ...fieldLabelStyles, marginLeft: "8px", marginRight: "12px", whiteSpace: "nowrap", marginBottom: "0" }), []);
+  const labelStyle = T2(() => ({
+    ...fieldLabelStyles,
+    fontSize: "14px",
+    fontWeight: 500,
+    lineHeight: "20px",
+    marginLeft: "8px",
+    marginRight: "12px",
+    whiteSpace: "nowrap",
+    marginBottom: "0"
+  }), []);
   const inputContainerStyle = T2(() => ({ position: "relative", flex: "1 1 auto", width: "100%", padding: "0" }), []);
   const iconStyle = T2(() => ({
     position: "absolute",
@@ -42419,7 +42446,7 @@ function DatePickerWidget(props) {
   }}
           onFocus=${() => setFocused(true)}
           onBlur=${() => setFocused(false)}
-          style=${{ ...fieldStyles, paddingRight: "55px", width: "100%" }}
+          style=${{ ...fieldStyles, paddingRight: "55px", width: "100%", fontSize: "14px", lineHeight: "20px" }}
           min=${c3.min || undefined}
           max=${c3.max || undefined}
         />
@@ -42461,6 +42488,7 @@ function ensureColourPickerStyles(doc = typeof document !== "undefined" ? docume
       margin: 0;
       font-size: 14px;
       font-weight: 500;
+      line-height: 20px;
       color: var(--nr-dashboard-widgetTextColor, inherit);
       white-space: nowrap;
       overflow: hidden;
@@ -42492,7 +42520,8 @@ function ensureColourPickerStyles(doc = typeof document !== "undefined" ? docume
       min-width: 122px;
       height: 22px;
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
+      line-height: 18px;
       padding: 2px 6px;
       border-radius: 3px;
       border: 0;
@@ -42603,7 +42632,7 @@ function AudioWidget(props) {
   }}
     >
       <i class="fa fa-volume-up" aria-hidden="true" style=${{ fontSize: "16px" }}></i>
-      <div style=${{ fontSize: "13px", opacity: 0.78 }}>${label}</div>
+      <div style=${{ fontSize: "14px", fontWeight: 500, opacity: 0.82, lineHeight: "20px" }}>${label}</div>
     </div>
     <audio
       ref=${ref}
@@ -42666,8 +42695,8 @@ function ToastWidget(props) {
     aria-live="polite"
     aria-atomic="true"
   >
-    <div style=${{ fontWeight: 700, marginBottom: "6px", color: toneColor }}>${label}</div>
-    <div style=${{ fontSize: "13px", lineHeight: 1.45 }}>${msg}</div>
+    <div style=${{ fontWeight: 700, marginBottom: "6px", color: toneColor, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
+    <div style=${{ fontSize: "14px", lineHeight: 1.45 }}>${msg}</div>
     ${dismissible ? m2`<button
           type="button"
           aria-label=${t4("toast_close", "Close notification")}
@@ -42744,7 +42773,7 @@ function LinkWidget(props) {
   }}
     >
       ${icon ? m2`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : m2`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}
-      <span style=${{ fontWeight: 600, letterSpacing: "0.01em" }}>${label}</span>
+      <span style=${{ fontWeight: 600, letterSpacing: "0.01em", fontSize: "14px", lineHeight: "20px" }}>${label}</span>
     </a>
   </div>`;
 }
@@ -42770,7 +42799,7 @@ function TemplateWidget(props) {
     gap: "4px"
   }}
     >
-      <div style=${{ fontSize: "12px", opacity: 0.7 }}>${title}</div>
+      <div style=${{ fontSize: "14px", lineHeight: "20px", fontWeight: 500, opacity: 0.8 }}>${title}</div>
       <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
     </div>
   </div>`;

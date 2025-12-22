@@ -41,7 +41,16 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
   );
   const rowStyle = useMemo(() => ({ display: "flex", alignItems: "center", width: "100%" }), []);
   const labelStyle = useMemo(
-    () => ({ ...fieldLabelStyles, marginLeft: "8px", marginRight: "12px", whiteSpace: "nowrap", marginBottom: "0" }),
+    () => ({
+      ...fieldLabelStyles,
+      fontSize: "14px",
+      fontWeight: 500,
+      lineHeight: "20px",
+      marginLeft: "8px",
+      marginRight: "12px",
+      whiteSpace: "nowrap",
+      marginBottom: "0",
+    }),
     [],
   );
   const inputContainerStyle = useMemo(
@@ -108,7 +117,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
           }}
           onFocus=${() => setFocused(true)}
           onBlur=${() => setFocused(false)}
-          style=${{ ...fieldStyles, paddingRight: "55px", width: "100%" }}
+          style=${{ ...fieldStyles, paddingRight: "55px", width: "100%", fontSize: "14px", lineHeight: "20px" }}
           min=${c.min || undefined}
           max=${c.max || undefined}
         />

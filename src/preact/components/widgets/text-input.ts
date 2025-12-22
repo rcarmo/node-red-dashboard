@@ -39,8 +39,8 @@ function ensureTextInputStyles(doc: Document | undefined = typeof document !== "
       padding-left: 12px;
       margin-bottom: 3px;
       color: var(--nr-dashboard-widgetTextColor, inherit);
-      font-size: 13px;
-      line-height: 1.3;
+      font-size: 14px;
+      line-height: 1.35;
     }
 
     .nr-dashboard-textinput__container--focused .nr-dashboard-textinput__label {

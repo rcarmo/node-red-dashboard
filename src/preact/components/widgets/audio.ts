@@ -71,7 +71,7 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
       }}
     >
       <i class="fa fa-volume-up" aria-hidden="true" style=${{ fontSize: "16px" }}></i>
-      <div style=${{ fontSize: "13px", opacity: 0.78 }}>${label}</div>
+      <div style=${{ fontSize: "14px", fontWeight: 500, opacity: 0.82, lineHeight: "20px" }}>${label}</div>
     </div>
     <audio
       ref=${ref}

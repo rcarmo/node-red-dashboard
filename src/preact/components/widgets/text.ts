@@ -82,6 +82,7 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
       style=${{
         margin: "0.1em 0.25em 0.1em 0",
         fontSize: "14px",
+        lineHeight: "20px",
         color: "var(--nr-dashboard-widgetTextColor, inherit)",
         opacity: 0.85,
         lineHeight: 1.3,
@@ -96,7 +97,7 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
         fontSize: fontSize || (isColumn ? "16px" : "15px"),
         fontWeight,
         color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
-        lineHeight: 1.3,
+        lineHeight: 1.35,
         wordBreak: "break-word",
         fontFamily: fontFamily,
       }}

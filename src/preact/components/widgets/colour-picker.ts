@@ -28,6 +28,7 @@ function ensureColourPickerStyles(doc: Document | undefined = typeof document !=
       margin: 0;
       font-size: 14px;
       font-weight: 500;
+      line-height: 20px;
       color: var(--nr-dashboard-widgetTextColor, inherit);
       white-space: nowrap;
       overflow: hidden;
@@ -59,7 +60,8 @@ function ensureColourPickerStyles(doc: Document | undefined = typeof document !=
       min-width: 122px;
       height: 22px;
       text-align: center;
-      font-size: 12px;
+      font-size: 13px;
+      line-height: 18px;
       padding: 2px 6px;
       border-radius: 3px;
       border: 0;

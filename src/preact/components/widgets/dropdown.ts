@@ -32,6 +32,8 @@ function ensureDropdownStyles(doc: Document | undefined = typeof document !== "u
       overflow: hidden;
       min-width: 20%;
       color: var(--nr-dashboard-widgetTextColor, inherit);
+      font-size: 14px;
+      font-weight: 500;
     }
 
     .nr-dashboard-dropdown__field {
@@ -57,7 +59,9 @@ function ensureDropdownStyles(doc: Document | undefined = typeof document !== "u
       -moz-appearance: none;
       box-sizing: border-box;
       margin-top: 6px;
-      font: inherit;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 20px;
     }
 
     .nr-dashboard-dropdown__select:focus {
