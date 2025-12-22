@@ -48,7 +48,6 @@ const appStyles: Record<string, string> = {
   color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #e9ecf1))",
   minHeight: "100vh",
   display: "grid",
-  gridTemplateRows: "56px 1fr",
 };
 
 const toolbarStyles: Record<string, string> = {
@@ -77,13 +76,14 @@ const floatingToggleStyles: Record<string, string> = {
   top: "12px",
   left: "12px",
   zIndex: "20",
-  border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.08))",
+  border: "none",
+  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
   color: "inherit",
-  borderRadius: "8px",
+  borderRadius: "50%",
   padding: "10px 12px",
   cursor: "pointer",
-  boxShadow: "0 6px 16px rgba(0,0,0,0.28)",
+  boxShadow: "0 6px 16px rgba(0,0,0,0.24)",
+  transition: "background 140ms ease, box-shadow 140ms ease",
 };
 
 const layoutStyles: Record<string, string> = {
@@ -95,9 +95,10 @@ const layoutStyles: Record<string, string> = {
 
 const navStyles: Record<string, string> = {
   borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
-  padding: "16px",
+  padding: "12px 12px 16px",
   color: "var(--nr-dashboard-sidebarTextColor, inherit)",
   background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
+  overflowY: "auto",
 };
 
 const contentStyles: Record<string, string> = {
@@ -256,10 +257,24 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const hideToolbar = site?.hideToolbar === "true" || site?.hideToolbar === true;
   const hasMultipleTabs = state.menu.length > 1;
   const hasTabs = state.menu.length > 0;
+  const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== "undefined" ? window.innerWidth : 1280);
   const [navOpen, setNavOpen] = useState<boolean>(hasMultipleTabs && (isLocked || isIconOnly));
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize, { passive: true });
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const toolbarHeight = viewportWidth < 960 ? "48px" : "64px";
+  const navMaxWidth = viewportWidth <= 660 ? 200 : 320;
+  const navBaseWidth = isIconOnly ? 72 : Math.min(260, navMaxWidth);
+  const navWidth = `${Math.max(64, navBaseWidth)}px`;
+  const navTop = "0";
+
   const shellStyles = {
     ...appStyles,
-    gridTemplateRows: hideToolbar ? "1fr" : appStyles.gridTemplateRows,
+    gridTemplateRows: hideToolbar ? "1fr" : `${toolbarHeight} 1fr`,
   } satisfies Record<string, string>;
 
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
@@ -365,7 +380,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 
   const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
   const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr";
-  const sectionMinHeight = hideToolbar ? "100vh" : "calc(100vh - 56px)";
+  const sectionMinHeight = hideToolbar ? "100vh" : `calc(100vh - ${toolbarHeight})`;
   const showToggle = isSlide && hasTabs;
   const showFloatingToggle = isSlide && hasTabs && hideToolbar;
 
@@ -382,9 +397,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   style=${{
                     ...iconButtonStyles,
                     background: navOpen
-                      ? "rgba(255,255,255,0.10)"
+                      ? "rgba(255,255,255,0.12)"
                       : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
-                    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
                   }}
                 >${navOpen ? "✕" : "☰"}</button>`
               : null}
@@ -434,9 +448,9 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 background: navOpen
                   ? "rgba(255,255,255,0.12)"
                   : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.10))",
-                border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
                 width: "44px",
                 height: "44px",
+                boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : floatingToggleStyles.boxShadow,
               }}
             >${navOpen ? "✕" : "☰"}</button>`
           : null}
@@ -452,6 +466,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                     inset: 0,
                     background: "rgba(0,0,0,0.32)",
                     zIndex: 9,
+                    animation: "nr-dashboard-nav-backdrop 160ms ease",
                   }}
                 ></div>`
               : null}
@@ -459,11 +474,13 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               style=${{
                 ...navStyles,
                 padding: isIconOnly ? "12px 10px" : navStyles.padding,
-                width: isIconOnly ? "72px" : isLocked ? "260px" : "260px",
+                width: navWidth,
+                minWidth: isIconOnly ? "72px" : "64px",
+                maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
                 background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
                 position: isSlide && !isLocked && !isIconOnly ? "absolute" : "relative",
-                left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : "-280px") : undefined,
-                top: 0,
+                left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navMaxWidth + 20}px`) : undefined,
+                top: navTop,
                 bottom: 0,
                 transition: "left 0.18s ease-out",
                 zIndex: 10,
@@ -477,8 +494,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               }}
             >
               ${isSlide && !isLocked && !isIconOnly
-                ? html`<div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                    <h3 style=${{ margin: 0 }}>${t("tabs_label", "Tabs")}</h3>
+                ? html`<div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                  <h3 style=${{ margin: 0, fontSize: "14px", fontWeight: 600 }}>${t("tabs_label", "Tabs")}</h3>
                     <button
                       type="button"
                       aria-label=${t("close_menu", "Close menu")}
@@ -494,7 +511,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   </div>`
                 : isIconOnly
                 ? null
-                : html`<h3 style=${{ marginTop: 0 }}>${t("tabs_label", "Tabs")}</h3>`}
+                : html`<h3 style=${{ marginTop: 0, marginBottom: "10px", fontSize: "14px", fontWeight: 600 }}>${t("tabs_label", "Tabs")}</h3>`}
               <${TabNav}
                 menu=${state.menu}
                 selectedIndex=${state.selectedTabIndex}

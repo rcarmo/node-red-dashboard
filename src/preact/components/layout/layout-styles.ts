@@ -44,7 +44,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       font-weight: 500;
       line-height: 20px;
       font-family: inherit;
-      transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
     }
 
     .nr-dashboard-tabs__btn.is-icon {
@@ -62,9 +62,9 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: grid;
       place-items: center;
       font-weight: 700;
-      background: rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04));
       border: 1px solid var(--nr-dashboard-nav-border);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
     }
 
     .nr-dashboard-tabs__icon i {
@@ -96,16 +96,20 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       background: var(--nr-dashboard-nav-active);
       border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
       box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
+      transform: translateX(1px);
     }
 
     .nr-dashboard-tabs__btn:disabled {
-      opacity: 0.4;
+      opacity: 0.45;
       cursor: not-allowed;
+      filter: grayscale(0.2);
     }
 
     .nr-dashboard-tabs__btn:not(:disabled):hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: var(--nr-dashboard-nav-border-active);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+      transform: translateX(1px);
     }
 
     .nr-dashboard-tabs__btn:focus-visible {
@@ -118,6 +122,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: inline-flex;
       align-items: center;
       line-height: 20px;
+      letter-spacing: 0.02em;
     }
 
     .nr-dashboard-group-card {
@@ -157,6 +162,11 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.08));
       color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
       border-radius: 8px;
+    }
+
+    @keyframes nr-dashboard-nav-backdrop {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     @keyframes nr-dashboard-skeleton {
