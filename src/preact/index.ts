@@ -94,7 +94,7 @@ const layoutStyles: Record<string, string> = {
 };
 
 const navStyles: Record<string, string> = {
-  borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
+  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08)))",
   padding: "12px 12px 16px",
   color: "var(--nr-dashboard-sidebarTextColor, inherit)",
   background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
@@ -467,9 +467,9 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   style=${{
                     position: "absolute",
                     inset: 0,
-                    background: "rgba(0,0,0,0.32)",
+                    background: "rgba(0,0,0,0.28)",
                     zIndex: 9,
-                    animation: "nr-dashboard-nav-backdrop 200ms ease-out",
+                    animation: "nr-dashboard-nav-backdrop 180ms ease-out",
                   }}
                 ></div>`
               : null}
@@ -482,18 +482,18 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
                 background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
                 position: isSlide && !isLocked && !isIconOnly ? "absolute" : "relative",
-                left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navMaxWidth + 16}px`) : undefined,
+                left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navMaxWidth + 20}px`) : undefined,
                 top: navTop,
                 bottom: 0,
-                transition: "left 0.20s ease-in-out",
+                transition: "left 0.18s ease-out",
                 zIndex: 10,
                 boxShadow:
                   isSlide && !isLocked && !isIconOnly
                     ? navOpen
-                      ? "2px 0 12px rgba(0,0,0,0.32)"
+                      ? "2px 0 10px rgba(0,0,0,0.28)"
                       : "0 0 0 rgba(0,0,0,0)"
-                    : "2px 0 8px rgba(0,0,0,0.22)",
-                backdropFilter: isSlide && !isLocked && !isIconOnly && navOpen ? "blur(1px)" : undefined,
+                    : "1px 0 5px rgba(0,0,0,0.16)",
+                backdropFilter: undefined,
               }}
             >
               ${isSlide && !isLocked && !isIconOnly
@@ -515,7 +515,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   </div>`
                 : isIconOnly
                 ? null
-                : html`<h3 style=${{ marginTop: 0, marginBottom: "10px", fontSize: "14px", fontWeight: 600 }}>${t("tabs_label", "Tabs")}</h3>`}
+                : html`<h3 style=${{ marginTop: "4px", marginBottom: "12px", fontSize: "14px", fontWeight: 600 }}>${t("tabs_label", "Tabs")}</h3>`}
               <${TabNav}
                 menu=${state.menu}
                 selectedIndex=${state.selectedTabIndex}

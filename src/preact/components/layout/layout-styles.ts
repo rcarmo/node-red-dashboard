@@ -107,7 +107,6 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     .nr-dashboard-tabs__btn:not(:disabled):hover {
       background: rgba(255, 255, 255, 0.08);
       border-color: var(--nr-dashboard-nav-border-active);
-      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
     }
 
     .nr-dashboard-tabs__btn:focus-visible {
@@ -168,9 +167,26 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       transition: transform 140ms ease, background 160ms ease;
     }
 
+    .nr-dashboard-icon-press::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 60%);
+      opacity: 0;
+      transform: scale(0.4);
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
     .nr-dashboard-icon-press:active {
       transform: scale(0.96);
       background: rgba(255, 255, 255, 0.08);
+    }
+
+    .nr-dashboard-icon-press:active::after {
+      opacity: 1;
+      transform: scale(1.6);
+      transition: opacity 120ms ease, transform 220ms ease;
     }
 
     @keyframes nr-dashboard-nav-backdrop {
