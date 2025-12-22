@@ -75,11 +75,12 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
           const icon = tab.icon ? renderIcon(tab, idx) : null;
           return html`<li key=${tab.id ?? tab.header ?? originalIndex}>
             <button
-              class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active" : ""}`.trim()}
+              class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active nr-menu-item-active" : ""}`.trim()}
               disabled=${tab.disabled}
               type="button"
               aria-label=${label}
               title=${label}
+              aria-current=${active ? "page" : undefined}
               onClick=${() => onSelect(originalIndex)}
             >
               ${icon}

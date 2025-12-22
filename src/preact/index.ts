@@ -492,7 +492,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                     right: 0,
                     top: navTop,
                     bottom: 0,
-                    background: "rgba(0,0,0,0.28)",
+                    background: "rgba(0,0,0,0.6)",
                     zIndex: 79,
                     animation: "nr-dashboard-nav-backdrop 180ms ease-out",
                   }}
@@ -646,18 +646,10 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 }
 
 function LoadingScreen({ message }: { message: string }): VNode {
-  return html`<div
-    style=${{
-      display: "grid",
-      placeItems: "center",
-      padding: "48px 16px",
-      color: "#888",
-      fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
-    }}
-  >
-    <div style=${{ display: "grid", placeItems: "center", gap: "12px" }}>
+  return html`<div class="nr-dashboard-loading">
+    <div class="nr-dashboard-loading__inner">
       <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin" style=${{ opacity: 0.9 }} />
-      <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500 }}>${message}</p>
+      <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500, textAlign: "center" }}>${message}</p>
     </div>
   </div>`;
 }

@@ -18,7 +18,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
       list-style: none;
-      padding: 0;
+      padding: 8px 0 12px 0;
       margin: 0;
     }
 
@@ -29,7 +29,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 12px 16px 12px 16px;
+      padding: 0 16px 0 12px;
       margin: 0;
       border-radius: 0;
       border: none;
@@ -38,33 +38,17 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
       min-height: 48px;
       justify-content: flex-start;
       font-size: 14px;
       font-weight: 500;
       line-height: 20px;
       font-family: inherit;
-      transition: background 120ms ease, color 120ms ease;
+      transition: background 120ms ease, color 120ms ease, border-color 140ms ease;
       position: relative;
       overflow: hidden;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle, rgba(0,0,0,0.16) 12%, rgba(0,0,0,0) 60%);
-      opacity: 0;
-      transform: scale(0.85);
-      transition: opacity 220ms ease, transform 220ms ease;
-      pointer-events: none;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:active::after,
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible::after {
-      opacity: 1;
-      transform: scale(1.15);
+      border-right: 4px solid transparent;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
@@ -72,7 +56,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 12px 8px;
+      padding: 8px 6px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
@@ -86,7 +70,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       box-shadow: none;
       flex-shrink: 0;
       color: inherit;
-      margin-left: -2px;
+      margin: 5px 12px 5px 4px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
@@ -114,11 +98,11 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
-      background: var(--nr-dashboard-nav-active, rgba(0,0,0,0.06));
-      color: var(--nr-dashboard-pageSidebarTextColor, inherit);
-      box-shadow: inset 3px 0 0 var(--nr-dashboard-nav-border-active);
+      background: transparent;
+      color: var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, inherit));
+      box-shadow: none;
+      border-right-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-pageSidebarTextColor, currentColor));
       font-weight: 600;
-      letter-spacing: 0.01em;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
@@ -128,13 +112,14 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: rgba(0, 0, 0, 0.08);
+      background: rgba(0, 0, 0, 0.06);
       color: var(--nr-dashboard-pageSidebarTextColor, inherit);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
-      outline: 2px solid var(--nr-dashboard-nav-border-active);
-      outline-offset: -2px;
+      outline: none;
+      background: rgba(0, 0, 0, 0.08);
+      border-right-color: var(--nr-dashboard-nav-border-active);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__label {
@@ -142,12 +127,13 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: inline-flex;
       align-items: center;
       line-height: 20px;
-      letter-spacing: 0.02em;
-      color: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, inherit) 87%, transparent);
+      letter-spacing: 0em;
+      color: var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, inherit));
       opacity: 1;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      margin-right: 12px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
@@ -237,6 +223,23 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       opacity: 1;
       transform: scale(1.6);
       transition: opacity 120ms ease, transform 220ms ease;
+    }
+
+    .nr-dashboard-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      color: #888;
+      font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    }
+
+    .nr-dashboard-loading__inner {
+      display: grid;
+      place-items: center;
+      gap: 12px;
     }
 
     .nr-dashboard-wheel-spin {
