@@ -46,6 +46,8 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       line-height: 20px;
       font-family: inherit;
       transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      position: relative;
+      overflow: hidden;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
@@ -108,6 +110,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
       background: rgba(0, 0, 0, 0.06);
       border-color: var(--nr-dashboard-nav-border-active);
+      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.04);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
@@ -132,7 +135,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      box-shadow: none;
       padding: 8px;
     }
 
@@ -195,7 +198,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 60%);
+      background: radial-gradient(circle, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 60%);
       opacity: 0;
       transform: scale(0.4);
       transition: opacity 220ms ease, transform 220ms ease;

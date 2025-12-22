@@ -242,6 +242,17 @@ export function App(): VNode {
     applyThemeToRoot(theme, getDashboardRoot() ?? undefined);
   }, [selectedTab, state.theme]);
 
+  // Align document.title with legacy behavior (site name when locked, tab title otherwise)
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const site = (state.site as { name?: string } | null) ?? null;
+    const tabTitle = selectedTab?.header ?? selectedTab?.name;
+    const locked = (site?.lockMenu as string | boolean | undefined) === true || (site?.lockMenu as string | undefined) === "true";
+    const iconOnly = (site?.lockMenu as string | undefined) === "icon";
+    const title = locked || iconOnly ? site?.name ?? "" : tabTitle ?? site?.name ?? "";
+    document.title = title ?? "";
+  }, [selectedTab, state.site]);
+
   return html`<${I18nProvider} lang=${lang} locales=${locales}>
     <${SizesProvider} site=${state.site} tabId=${tabId}>
       <${DashboardShell}
@@ -538,11 +549,13 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               class="nr-dashboard-fade-in"
                 style=${{
                   textAlign: "center",
-                  opacity: 0.85,
+                  opacity: 1,
                   padding: "48px 16px",
                   display: "grid",
                   placeItems: "center",
                   gap: "10px",
+                  color: "#888",
+                  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
                 }}
               >
                 <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
@@ -620,7 +633,8 @@ function LoadingScreen({ message }: { message: string }): VNode {
       display: "grid",
       placeItems: "center",
       padding: "48px 16px",
-      color: "rgba(0,0,0,0.65)",
+      color: "#888",
+      fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
     }}
   >
     <div style=${{ display: "grid", placeItems: "center", gap: "12px" }}>

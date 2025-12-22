@@ -3897,6 +3897,8 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       line-height: 20px;
       font-family: inherit;
       transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      position: relative;
+      overflow: hidden;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
@@ -3959,6 +3961,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
       background: rgba(0, 0, 0, 0.06);
       border-color: var(--nr-dashboard-nav-border-active);
+      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.04);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
@@ -3983,7 +3986,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      box-shadow: none;
       padding: 8px;
     }
 
@@ -4046,7 +4049,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 60%);
+      background: radial-gradient(circle, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 60%);
       opacity: 0;
       transform: scale(0.4);
       transition: opacity 220ms ease, transform 220ms ease;
@@ -47156,6 +47159,16 @@ function App() {
     const theme2 = getEffectiveTheme(selectedTab, state.theme);
     applyThemeToRoot(theme2, getDashboardRoot2() ?? undefined);
   }, [selectedTab, state.theme]);
+  y2(() => {
+    if (typeof document === "undefined")
+      return;
+    const site = state.site ?? null;
+    const tabTitle = selectedTab?.header ?? selectedTab?.name;
+    const locked = site?.lockMenu === true || site?.lockMenu === "true";
+    const iconOnly = site?.lockMenu === "icon";
+    const title = locked || iconOnly ? site?.name ?? "" : tabTitle ?? site?.name ?? "";
+    document.title = title ?? "";
+  }, [selectedTab, state.site]);
   return m2`<${I18nProvider} lang=${lang} locales=${locales}>
     <${SizesProvider} site=${state.site} tabId=${tabId}>
       <${DashboardShell}
@@ -47406,11 +47419,13 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
               class="nr-dashboard-fade-in"
                 style=${{
     textAlign: "center",
-    opacity: 0.85,
+    opacity: 1,
     padding: "48px 16px",
     display: "grid",
     placeItems: "center",
-    gap: "10px"
+    gap: "10px",
+    color: "#888",
+    fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif"
   }}
               >
                 <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
@@ -47467,7 +47482,8 @@ function LoadingScreen({ message }) {
     display: "grid",
     placeItems: "center",
     padding: "48px 16px",
-    color: "rgba(0,0,0,0.65)"
+    color: "#888",
+    fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif"
   }}
   >
     <div style=${{ display: "grid", placeItems: "center", gap: "12px" }}>
