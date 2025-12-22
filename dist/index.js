@@ -4404,43 +4404,47 @@ function ButtonWidget(props) {
   const { t: t4 } = useI18n();
   const label = asButton.label || asButton.name || t4("button_label", "Button {index}", { index: index + 1 });
   const color = resolveButtonColor(asButton) || "var(--nr-dashboard-widgetColor, #1f8af2)";
-  const [ref, size] = useElementSize();
-  const payload = T2(() => buildButtonEmit(asButton, label).payload, [asButton, label]);
+  const [hovered, setHovered] = d2(false);
+  const [focused, setFocused] = d2(false);
   const handleClick = () => {
-    const payload2 = buildButtonEmit(asButton, label);
-    onEmit?.("ui-control", payload2);
+    const payload = buildButtonEmit(asButton, label);
+    onEmit?.("ui-control", payload);
   };
   return m2`<button
-    ref=${ref}
     type="button"
     title=${asButton.tooltip || undefined}
     class=${asButton.className || ""}
     disabled=${Boolean(disabled)}
     onClick=${onEmit ? handleClick : undefined}
+    onMouseEnter=${() => setHovered(true)}
+    onMouseLeave=${() => setHovered(false)}
+    onFocus=${() => setFocused(true)}
+    onBlur=${() => setFocused(false)}
     style=${{
     width: "100%",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+    padding: "6px 10px",
+    borderRadius: "2px",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
     background: color,
     color: "var(--nr-dashboard-widgetTextColor, #fff)",
     fontWeight: 600,
-    cursor: onEmit ? "pointer" : "default"
+    cursor: onEmit ? "pointer" : "default",
+    outline: "none",
+    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent)" : "none",
+    filter: hovered ? "brightness(1.05)" : "none",
+    transition: "box-shadow 120ms ease, filter 120ms ease, background 120ms ease"
   }}
   >
     ${asButton.icon ? m2`<span class="fa ${asButton.icon}" style=${{ marginRight: "6px" }}></span>` : null}
     ${label}
-    <span style=${{ opacity: 0.65, fontSize: "10px", marginLeft: "8px" }}>
-      ${Math.round(size.width)}×${Math.round(size.height)} px
-    </span>
   </button>`;
 }
 
 // src/preact/components/widgets/switch.ts
 function resolveSwitchColors(ctrl, checked) {
   if (checked)
-    return ctrl.oncolor || "var(--nr-dashboard-widgetColor, #3ddc97)";
-  return ctrl.offcolor || "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))";
+    return ctrl.oncolor || "#3ddc97";
+  return ctrl.offcolor || "rgba(255,255,255,0.12)";
 }
 function buildSwitchEmit(ctrl, fallbackLabel, next) {
   return {
@@ -4473,7 +4477,8 @@ function SwitchWidget(props) {
     return Boolean(val);
   };
   const [checked, setChecked] = d2(toChecked(asSwitch.value ?? asSwitch.state));
-  const [ref, size] = useElementSize();
+  const [hovered, setHovered] = d2(false);
+  const [focused, setFocused] = d2(false);
   y2(() => {
     setChecked(toChecked(asSwitch.value ?? asSwitch.state));
   }, [asSwitch.value, asSwitch.state, asSwitch.onvalue, asSwitch.offvalue]);
@@ -4492,29 +4497,45 @@ function SwitchWidget(props) {
     const payload = buildSwitchEmit(asSwitch, label, next);
     onEmit("ui-control", payload);
   };
-  const bg = resolveSwitchColors(asSwitch, checked);
+  const resolvedColor = resolveSwitchColors(asSwitch, checked);
+  const bg = checked ? asSwitch.oncolor ?? `var(--nr-dashboard-widgetColor, ${resolvedColor})` : asSwitch.offcolor ?? `var(--nr-dashboard-widgetBorderColor, ${resolvedColor})`;
+  const isCenter = (asSwitch.className || "").split(" ").includes("center");
   return m2`<label
-    ref=${ref}
     class=${asSwitch.className || ""}
     style=${{
     display: "flex",
     alignItems: "center",
     gap: "10px",
-    cursor: !disabled && onEmit ? "pointer" : "default",
+    cursor: !disabled && onEmit ? "grab" : "default",
     userSelect: "none",
-    opacity: disabled ? 0.55 : 1
+    opacity: disabled ? 0.55 : 1,
+    paddingLeft: "12px",
+    margin: isCenter ? "0 auto" : undefined
   }}
   >
     <div
       onClick=${onEmit ? toggle : undefined}
+      onMouseEnter=${() => setHovered(true)}
+      onMouseLeave=${() => setHovered(false)}
+      onFocus=${() => setFocused(true)}
+      onBlur=${() => setFocused(false)}
+      onKeyDown=${(e3) => {
+    if (e3.key === "Enter" || e3.key === " " || e3.key === "Spacebar") {
+      e3.preventDefault();
+      toggle();
+    }
+  }}
+      tabIndex=${disabled ? -1 : 0}
+      role="switch"
+      aria-checked=${checked}
       style=${{
     width: "46px",
     height: "24px",
     borderRadius: "12px",
     background: bg,
     position: "relative",
-    transition: "background 120ms ease, transform 120ms ease",
-    boxShadow: "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))"
+    transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
+    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 30%, transparent)" : hovered ? "0 2px 6px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))" : "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))"
   }}
     >
       <div
@@ -4539,9 +4560,6 @@ function SwitchWidget(props) {
       </span>
       <span style=${{ opacity: 0.7, fontSize: "12px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${checked ? t4("switch_on", "On") : t4("switch_off", "Off")}
-      </span>
-      <span style=${{ opacity: 0.5, fontSize: "10px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
-        ${Math.round(size.width)}×${Math.round(size.height)} px
       </span>
     </div>
   </label>`;
@@ -4706,6 +4724,10 @@ function formatDateInput(value2, mode, lang) {
 }
 
 // src/preact/components/widgets/numeric.ts
+function toNumber(value2, fallback) {
+  const n3 = Number(value2);
+  return Number.isFinite(n3) ? n3 : fallback;
+}
 function clampValue(value2, min, max, wrap) {
   if (wrap) {
     if (value2 > max)
@@ -4969,9 +4991,9 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-slider {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       width: 100%;
-      align-items: center;
+      align-items: stretch;
       padding: 0 12px;
     }
 
@@ -4981,14 +5003,26 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       font-size: 12px;
     }
 
+    .nr-dashboard-slider__row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+    }
+
     .nr-dashboard-slider__label {
       font-size: 13px;
       opacity: 0.8;
       white-space: nowrap;
+      margin-right: 15px;
     }
 
     .nr-dashboard-slider__label.is-vertical {
       margin-left: 8px;
+      margin-top: 6px;
+      padding-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     .nr-dashboard-slider__range {
@@ -5033,6 +5067,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       display: flex;
       justify-content: center;
       align-items: center;
+      flex: 1;
     }
 
     .nr-dashboard-slider__track.is-vertical {
@@ -5232,42 +5267,78 @@ function SliderWidget(props) {
   };
   const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
   return m2`<div class=${containerClass}>
-    ${!isVertical ? m2`<span class="nr-dashboard-slider__label">${label}</span>` : null}
-    <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
-      <input
-        class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
-        type="range"
-        min=${min}
-        max=${max}
-        step=${step}
-        value=${sliderValue}
-        title=${asSlider.tooltip || undefined}
-        disabled=${isDisabled}
-        aria-valuetext=${t4("slider_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
-        onInput=${handleInput}
-        onChange=${handleChange}
-        onWheel=${handleWheel}
-        style=${{
+    ${!isVertical ? m2`<div class="nr-dashboard-slider__row">
+          <span class="nr-dashboard-slider__label">${label}</span>
+          <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
+            <input
+              class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+              type="range"
+              min=${min}
+              max=${max}
+              step=${step}
+              value=${sliderValue}
+              title=${asSlider.tooltip || undefined}
+              disabled=${isDisabled}
+              aria-valuetext=${t4("slider_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+              onInput=${handleInput}
+              onChange=${handleChange}
+              onWheel=${handleWheel}
+              style=${{
     ...sliderStyle,
     transform: isVertical && invert ? "rotate(180deg)" : undefined
   }}
-      />
-      ${showTicks ? m2`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-            ${Array.from({ length: stepCount + 1 }).map((_2, idx) => {
+            />
+            ${showTicks ? m2`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
+                  ${Array.from({ length: stepCount + 1 }).map((_2, idx) => {
     const pos = idx / stepCount * 100;
     const active = percent * 100 >= pos;
     const style = isVertical ? { top: `${100 - pos}%`, left: "0" } : { left: `${pos}%`, top: "0" };
     return m2`<span
-                class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
-                style=${style}
-              ></span>`;
+                      class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
+                      style=${style}
+                    ></span>`;
   })}
-          </div>` : null}
-      ${showSign ? m2`<span
-            class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
-            style=${isVertical ? { top: `${100 - percent * 100}%` } : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
-          >${formatter.format(value2)}</span>` : null}
-    </div>
+                </div>` : null}
+            ${showSign ? m2`<span
+                  class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
+                  style=${isVertical ? { top: `${100 - percent * 100}%` } : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
+                >${formatter.format(value2)}</span>` : null}
+          </div>
+        </div>` : m2`<div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
+          <input
+            class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+            type="range"
+            min=${min}
+            max=${max}
+            step=${step}
+            value=${sliderValue}
+            title=${asSlider.tooltip || undefined}
+            disabled=${isDisabled}
+            aria-valuetext=${t4("slider_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+            onInput=${handleInput}
+            onChange=${handleChange}
+            onWheel=${handleWheel}
+            style=${{
+    ...sliderStyle,
+    transform: isVertical && invert ? "rotate(180deg)" : undefined
+  }}
+          />
+          ${showTicks ? m2`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
+                ${Array.from({ length: stepCount + 1 }).map((_2, idx) => {
+    const pos = idx / stepCount * 100;
+    const active = percent * 100 >= pos;
+    const style = isVertical ? { top: `${100 - pos}%`, left: "0" } : { left: `${pos}%`, top: "0" };
+    return m2`<span
+                    class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
+                    style=${style}
+                  ></span>`;
+  })}
+              </div>` : null}
+          ${showSign ? m2`<span
+                class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
+                style=${isVertical ? { top: `${100 - percent * 100}%` } : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
+              >${formatter.format(value2)}</span>` : null}
+        </div>`}
     ${isVertical ? m2`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
     <span class="nr-dashboard-slider__value">${formatter.format(value2)}</span>
   </div>`;
@@ -46468,6 +46539,16 @@ function resolveLanguage(stateLang, site, navigatorLang) {
     return "en";
   return candidate;
 }
+function shouldShowLoading(connection) {
+  return connection !== "ready";
+}
+function findFirstFocusable(root) {
+  if (!root)
+    return null;
+  const selector = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
+  const candidate = typeof root.querySelector === "function" ? root.querySelector(selector) : null;
+  return candidate ?? root;
+}
 var themeVarMap = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
   "page-textColor": "--nr-dashboard-pageTextColor",
@@ -46983,9 +47064,11 @@ function bootstrap() {
 }
 bootstrap();
 export {
+  shouldShowLoading,
   resolveSizes,
   resolveLanguage,
   groupColumnSpan,
+  findFirstFocusable,
   bootstrap,
   applyThemeToRoot,
   applySizesToRoot,

@@ -5,6 +5,11 @@ import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { formatNumber } from "../../lib/format";
 
+function toNumber(value: unknown, fallback: number): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 export function clampValue(value: number, min: number, max: number, wrap: boolean): number {
   if (wrap) {
     if (value > max) return min;

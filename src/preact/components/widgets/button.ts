@@ -1,8 +1,7 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
-import { useMemo } from "preact/hooks";
+import { useState } from "preact/hooks";
 import type { UiControl } from "../../state";
-import { useElementSize } from "../../hooks/useElementSize";
 import { useI18n } from "../../lib/i18n";
 import { resolveTypedPayload } from "../../lib/payload";
 
@@ -40,8 +39,8 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   const { t } = useI18n();
   const label = asButton.label || asButton.name || t("button_label", "Button {index}", { index: index + 1 });
   const color = resolveButtonColor(asButton) || "var(--nr-dashboard-widgetColor, #1f8af2)";
-  const [ref, size] = useElementSize<HTMLButtonElement>();
-  const payload = useMemo(() => buildButtonEmit(asButton, label).payload, [asButton, label]);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
@@ -49,27 +48,31 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   };
 
   return html`<button
-    ref=${ref}
     type="button"
     title=${asButton.tooltip || undefined}
     class=${asButton.className || ""}
     disabled=${Boolean(disabled)}
     onClick=${onEmit ? handleClick : undefined}
+    onMouseEnter=${() => setHovered(true)}
+    onMouseLeave=${() => setHovered(false)}
+    onFocus=${() => setFocused(true)}
+    onBlur=${() => setFocused(false)}
     style=${{
       width: "100%",
-      padding: "10px 12px",
-      borderRadius: "8px",
-      border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
+      padding: "6px 10px",
+      borderRadius: "2px",
+      border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
       background: color,
       color: "var(--nr-dashboard-widgetTextColor, #fff)",
       fontWeight: 600,
       cursor: onEmit ? "pointer" : "default",
+      outline: "none",
+      boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent)" : "none",
+      filter: hovered ? "brightness(1.05)" : "none",
+      transition: "box-shadow 120ms ease, filter 120ms ease, background 120ms ease",
     }}
   >
     ${asButton.icon ? html`<span class="fa ${asButton.icon}" style=${{ marginRight: "6px" }}></span>` : null}
     ${label}
-    <span style=${{ opacity: 0.65, fontSize: "10px", marginLeft: "8px" }}>
-      ${Math.round(size.width)}×${Math.round(size.height)} px
-    </span>
   </button>`;
 }

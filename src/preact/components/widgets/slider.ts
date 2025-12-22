@@ -44,9 +44,9 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     .nr-dashboard-slider {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       width: 100%;
-      align-items: center;
+      align-items: stretch;
       padding: 0 12px;
     }
 
@@ -56,14 +56,26 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       font-size: 12px;
     }
 
+    .nr-dashboard-slider__row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      width: 100%;
+    }
+
     .nr-dashboard-slider__label {
       font-size: 13px;
       opacity: 0.8;
       white-space: nowrap;
+      margin-right: 15px;
     }
 
     .nr-dashboard-slider__label.is-vertical {
       margin-left: 8px;
+      margin-top: 6px;
+      padding-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     .nr-dashboard-slider__range {
@@ -108,6 +120,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       display: flex;
       justify-content: center;
       align-items: center;
+      flex: 1;
     }
 
     .nr-dashboard-slider__track.is-vertical {
@@ -322,50 +335,96 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
 
   return html`<div class=${containerClass}>
-    ${!isVertical ? html`<span class="nr-dashboard-slider__label">${label}</span>` : null}
-    <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
-      <input
-        class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
-        type="range"
-        min=${min}
-        max=${max}
-        step=${step}
-        value=${sliderValue}
-        title=${asSlider.tooltip || undefined}
-        disabled=${isDisabled}
-        aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
-        onInput=${handleInput}
-        onChange=${handleChange}
-        onWheel=${handleWheel}
-        style=${{
-          ...sliderStyle,
-          transform: isVertical && invert ? "rotate(180deg)" : undefined,
-        }}
-      />
-      ${showTicks
-        ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-            ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
-              const pos = (idx / stepCount) * 100;
-              const active = percent * 100 >= pos;
-              const style = isVertical
-                ? { top: `${100 - pos}%`, left: "0" }
-                : { left: `${pos}%`, top: "0" };
-              return html`<span
-                class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
-                style=${style}
-              ></span>`;
-            })}
-          </div>`
-        : null}
-      ${showSign
-        ? html`<span
-            class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
-            style=${isVertical
-              ? { top: `${100 - percent * 100}%` }
-              : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
-          >${formatter.format(value)}</span>`
-        : null}
-    </div>
+    ${!isVertical
+      ? html`<div class="nr-dashboard-slider__row">
+          <span class="nr-dashboard-slider__label">${label}</span>
+          <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
+            <input
+              class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+              type="range"
+              min=${min}
+              max=${max}
+              step=${step}
+              value=${sliderValue}
+              title=${asSlider.tooltip || undefined}
+              disabled=${isDisabled}
+              aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
+              onInput=${handleInput}
+              onChange=${handleChange}
+              onWheel=${handleWheel}
+              style=${{
+                ...sliderStyle,
+                transform: isVertical && invert ? "rotate(180deg)" : undefined,
+              }}
+            />
+            ${showTicks
+              ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
+                  ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
+                    const pos = (idx / stepCount) * 100;
+                    const active = percent * 100 >= pos;
+                    const style = isVertical
+                      ? { top: `${100 - pos}%`, left: "0" }
+                      : { left: `${pos}%`, top: "0" };
+                    return html`<span
+                      class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
+                      style=${style}
+                    ></span>`;
+                  })}
+                </div>`
+              : null}
+            ${showSign
+              ? html`<span
+                  class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
+                  style=${isVertical
+                    ? { top: `${100 - percent * 100}%` }
+                    : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
+                >${formatter.format(value)}</span>`
+              : null}
+          </div>
+        </div>`
+      : html`<div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
+          <input
+            class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+            type="range"
+            min=${min}
+            max=${max}
+            step=${step}
+            value=${sliderValue}
+            title=${asSlider.tooltip || undefined}
+            disabled=${isDisabled}
+            aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
+            onInput=${handleInput}
+            onChange=${handleChange}
+            onWheel=${handleWheel}
+            style=${{
+              ...sliderStyle,
+              transform: isVertical && invert ? "rotate(180deg)" : undefined,
+            }}
+          />
+          ${showTicks
+            ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
+                ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
+                  const pos = (idx / stepCount) * 100;
+                  const active = percent * 100 >= pos;
+                  const style = isVertical
+                    ? { top: `${100 - pos}%`, left: "0" }
+                    : { left: `${pos}%`, top: "0" };
+                  return html`<span
+                    class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
+                    style=${style}
+                  ></span>`;
+                })}
+              </div>`
+            : null}
+          ${showSign
+            ? html`<span
+                class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
+                style=${isVertical
+                  ? { top: `${100 - percent * 100}%` }
+                : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
+              >${formatter.format(value)}</span>`
+            : null}
+        </div>`}
     ${isVertical ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
     <span class="nr-dashboard-slider__value">${formatter.format(value)}</span>
   </div>`;

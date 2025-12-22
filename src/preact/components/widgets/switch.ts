@@ -2,7 +2,6 @@ import { html } from "htm/preact";
 import { useEffect, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
-import { useElementSize } from "../../hooks/useElementSize";
 import { useI18n } from "../../lib/i18n";
 
 export type SwitchControl = UiControl & {
@@ -23,8 +22,8 @@ export type SwitchControl = UiControl & {
 };
 
 export function resolveSwitchColors(ctrl: SwitchControl, checked: boolean): string {
-  if (checked) return ctrl.oncolor || "var(--nr-dashboard-widgetColor, #3ddc97)";
-  return ctrl.offcolor || "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))";
+  if (checked) return ctrl.oncolor || "#3ddc97";
+  return ctrl.offcolor || "rgba(255,255,255,0.12)";
 }
 
 export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next: boolean): Record<string, unknown> {
@@ -59,7 +58,8 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   };
 
   const [checked, setChecked] = useState<boolean>(toChecked(asSwitch.value ?? asSwitch.state));
-  const [ref, size] = useElementSize<HTMLLabelElement>();
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
     setChecked(toChecked(asSwitch.value ?? asSwitch.state));
@@ -79,30 +79,52 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     onEmit("ui-control", payload);
   };
 
-  const bg = resolveSwitchColors(asSwitch, checked);
+  const resolvedColor = resolveSwitchColors(asSwitch, checked);
+  const bg = checked
+    ? asSwitch.oncolor ?? `var(--nr-dashboard-widgetColor, ${resolvedColor})`
+    : asSwitch.offcolor ?? `var(--nr-dashboard-widgetBorderColor, ${resolvedColor})`;
+  const isCenter = (asSwitch.className || "").split(" ").includes("center");
 
   return html`<label
-    ref=${ref}
     class=${asSwitch.className || ""}
     style=${{
       display: "flex",
       alignItems: "center",
       gap: "10px",
-      cursor: !disabled && onEmit ? "pointer" : "default",
+      cursor: !disabled && onEmit ? "grab" : "default",
       userSelect: "none",
       opacity: disabled ? 0.55 : 1,
+      paddingLeft: "12px",
+      margin: isCenter ? "0 auto" : undefined,
     }}
   >
     <div
       onClick=${onEmit ? toggle : undefined}
+      onMouseEnter=${() => setHovered(true)}
+      onMouseLeave=${() => setHovered(false)}
+      onFocus=${() => setFocused(true)}
+      onBlur=${() => setFocused(false)}
+      onKeyDown=${(e: KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          e.preventDefault();
+          toggle();
+        }
+      }}
+      tabIndex=${disabled ? -1 : 0}
+      role="switch"
+      aria-checked=${checked}
       style=${{
         width: "46px",
         height: "24px",
         borderRadius: "12px",
         background: bg,
         position: "relative",
-        transition: "background 120ms ease, transform 120ms ease",
-        boxShadow: "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
+        transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
+        boxShadow: focused
+          ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 30%, transparent)"
+          : hovered
+            ? "0 2px 6px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))"
+            : "0 1px 3px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.35))",
       }}
     >
       <div
@@ -127,9 +149,6 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       </span>
       <span style=${{ opacity: 0.7, fontSize: "12px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
         ${checked ? t("switch_on", "On") : t("switch_off", "Off")}
-      </span>
-      <span style=${{ opacity: 0.5, fontSize: "10px", color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
-        ${Math.round(size.width)}×${Math.round(size.height)} px
       </span>
     </div>
   </label>`;

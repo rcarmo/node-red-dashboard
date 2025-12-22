@@ -1,7 +1,7 @@
 import { render, type VNode } from "preact";
 import { html } from "htm/preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import type { DashboardActions, DashboardState, UiGroup, UiMenuItem, UiTheme } from "./state";
+import type { ConnectionState, DashboardActions, DashboardState, UiGroup, UiMenuItem, UiTheme } from "./state";
 import { useDashboardState } from "./state";
 import { TabNav } from "./components/layout/TabNav";
 import { GroupGrid } from "./components/layout/GroupGrid";
@@ -24,6 +24,17 @@ export function resolveLanguage(
   const candidate = fromState ?? fromSite ?? navigatorLang ?? "en";
   if (typeof candidate !== "string" || candidate.length === 0) return "en";
   return candidate;
+}
+
+export function shouldShowLoading(connection: ConnectionState | undefined): boolean {
+  return connection !== "ready";
+}
+
+export function findFirstFocusable(root: HTMLElement | null | undefined): HTMLElement | null {
+  if (!root) return null;
+  const selector = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
+  const candidate = typeof root.querySelector === "function" ? (root.querySelector(selector) as HTMLElement | null) : null;
+  return candidate ?? root;
 }
 
 const themeVarMap: Record<string, string> = {
