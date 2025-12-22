@@ -30,10 +30,8 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
   const [pressed, setPressed] = useState(false);
 
   const focusRing = focused
-    ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 45%, transparent)"
-    : hovered
-      ? "0 3px 10px rgba(0,0,0,0.25)"
-      : "none";
+    ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 40%, transparent)"
+    : "none";
 
   return html`<div style=${{ display: "flex", alignItems: "center", width: "100%" }}>
     <a
@@ -63,14 +61,12 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
         gap: "10px",
         padding: "10px 12px",
         borderRadius: "8px",
-        background: hovered
-          ? "color-mix(in srgb, var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.04)) 70%, transparent)"
-          : "var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.02))",
+        background: "transparent",
         color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : "var(--nr-dashboard-widgetColor, #61dafb)",
         pointerEvents: isDisabled ? "none" : "auto",
         textDecoration: "none",
         boxShadow: focusRing,
-        transition: "box-shadow 140ms ease, background 160ms ease, color 140ms ease",
+        transition: "box-shadow 140ms ease, color 140ms ease",
         width: "100%",
         transform: pressed ? "translateY(1px)" : "none",
       }}

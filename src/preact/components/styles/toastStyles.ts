@@ -15,7 +15,7 @@ export const cardBaseStyles: Record<string, string | number> = {
   background: "var(--nr-dashboard-toastBackgroundColor, var(--nr-dashboard-groupBackgroundColor, transparent))",
   color: "var(--nr-dashboard-toastTextColor, var(--nr-dashboard-pageTextColor, inherit))",
   minWidth: "260px",
-  boxShadow: "var(--nr-dashboard-toastShadow, 0 12px 30px rgba(0,0,0,0.35))",
+  boxShadow: "var(--nr-dashboard-toastShadow, 0 4px 12px rgba(0,0,0,0.2))",
   pointerEvents: "auto",
   position: "relative",
 };

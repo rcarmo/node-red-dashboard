@@ -77,13 +77,13 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       cursor: onEmit ? "pointer" : "default",
       outline: "none",
       boxShadow: focused
-        ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent), 0 6px 16px rgba(0,0,0,0.35)"
+        ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)"
         : hovered
-          ? "0 6px 16px rgba(0,0,0,0.3)"
-          : "0 4px 12px rgba(0,0,0,0.25)",
-      filter: hovered ? "brightness(1.03)" : "none",
+          ? "0 2px 6px rgba(0,0,0,0.18)"
+          : "0 1px 3px rgba(0,0,0,0.16)",
+      filter: hovered ? "brightness(1.01)" : "none",
       transform: pressed ? "translateY(1px)" : "none",
-      transition: "box-shadow 160ms ease, filter 160ms ease, background 160ms ease, transform 120ms ease",
+      transition: "box-shadow 140ms ease, filter 140ms ease, background 140ms ease, transform 100ms ease",
       letterSpacing: "0.02em",
       position: "relative",
       overflow: "hidden",
@@ -96,9 +96,9 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       style=${{
         position: "absolute",
         inset: 0,
-        background: "radial-gradient(circle at center, rgba(255,255,255,0.24), transparent 55%)",
-        opacity: ripple ? 0.4 : 0,
-        transition: "opacity 180ms ease",
+        background: "radial-gradient(circle at center, rgba(255,255,255,0.16), transparent 60%)",
+        opacity: ripple ? 0.28 : 0,
+        transition: "opacity 150ms ease",
         pointerEvents: "none",
       }}
     ></span>

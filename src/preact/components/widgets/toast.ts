@@ -50,7 +50,7 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
     style=${{
       border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2)) 60%, transparent)",
       borderLeft: `4px solid ${toneColor}`,
-      boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
+      boxShadow: "0 3px 10px rgba(0,0,0,0.18)",
       padding: "12px 14px 12px 16px",
       background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
       position: "relative",

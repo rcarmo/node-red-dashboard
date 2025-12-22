@@ -4027,9 +4027,9 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-widget-frame {
-      background: var(--nr-dashboard-widgetBackgroundColor, #14171d);
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.08));
-      color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      background: var(--nr-dashboard-widgetBackgroundColor, transparent);
+      border: 1px solid var(--nr-dashboard-widgetBorderColor, transparent);
+      color: var(--nr-dashboard-widgetTextColor, inherit);
       border-radius: 8px;
     }
 
@@ -4461,10 +4461,10 @@ function ButtonWidget(props) {
     fontWeight: 700,
     cursor: onEmit ? "pointer" : "default",
     outline: "none",
-    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 35%, transparent), 0 6px 16px rgba(0,0,0,0.35)" : hovered ? "0 6px 16px rgba(0,0,0,0.3)" : "0 4px 12px rgba(0,0,0,0.25)",
-    filter: hovered ? "brightness(1.03)" : "none",
+    boxShadow: focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 30%, transparent)" : hovered ? "0 2px 6px rgba(0,0,0,0.18)" : "0 1px 3px rgba(0,0,0,0.16)",
+    filter: hovered ? "brightness(1.01)" : "none",
     transform: pressed ? "translateY(1px)" : "none",
-    transition: "box-shadow 160ms ease, filter 160ms ease, background 160ms ease, transform 120ms ease",
+    transition: "box-shadow 140ms ease, filter 140ms ease, background 140ms ease, transform 100ms ease",
     letterSpacing: "0.02em",
     position: "relative",
     overflow: "hidden"
@@ -4477,9 +4477,9 @@ function ButtonWidget(props) {
       style=${{
     position: "absolute",
     inset: 0,
-    background: "radial-gradient(circle at center, rgba(255,255,255,0.24), transparent 55%)",
-    opacity: ripple ? 0.4 : 0,
-    transition: "opacity 180ms ease",
+    background: "radial-gradient(circle at center, rgba(255,255,255,0.16), transparent 60%)",
+    opacity: ripple ? 0.28 : 0,
+    transition: "opacity 150ms ease",
     pointerEvents: "none"
   }}
     ></span>
@@ -4650,7 +4650,7 @@ function buildFieldStyles(opts = {}) {
     padding: dense ? "8px 10px" : "10px 12px",
     borderRadius: "8px",
     border: `1px solid ${borderColor}`,
-    background: "var(--nr-dashboard-widgetFieldBg, var(--nr-dashboard-widgetBackgroundColor, #0f1115))",
+    background: "var(--nr-dashboard-widgetFieldBg, var(--nr-dashboard-widgetBackgroundColor, transparent))",
     color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
     outline: "none",
     boxShadow: focusRing,
@@ -5143,11 +5143,11 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       --nr-dashboard-slider-track: var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18));
       --nr-dashboard-slider-fill: var(--nr-dashboard-widgetColor, #1f8af2);
       --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-thumb-shadow: 0 1px 3px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
+      --nr-dashboard-slider-thumb-shadow: 0 1px 2px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.25));
       --nr-dashboard-slider-focus: var(--nr-dashboard-widgetColor, #1f8af2);
       --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
-      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.25));
-      --nr-dashboard-slider-chip-shadow: 0 4px 12px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
+      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, transparent);
+      --nr-dashboard-slider-chip-shadow: 0 2px 6px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
     }
 
     .nr-dashboard-slider {
@@ -42140,7 +42140,7 @@ function AudioWidget(props) {
     gap: "8px",
     padding: "8px 10px",
     borderRadius: "8px",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.35))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
     border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
     marginBottom: "6px"
   }}
@@ -42198,9 +42198,9 @@ function ToastWidget(props) {
     style=${{
     border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2)) 60%, transparent)",
     borderLeft: `4px solid ${toneColor}`,
-    boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
+    boxShadow: "0 3px 10px rgba(0,0,0,0.18)",
     padding: "12px 14px 12px 16px",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.65))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
     position: "relative",
     borderRadius: "8px",
     margin: `${6 + stackOffset}px 0 6px 0`
@@ -42247,7 +42247,7 @@ function LinkWidget(props) {
   const [focused, setFocused] = d2(false);
   const [hovered, setHovered] = d2(false);
   const [pressed, setPressed] = d2(false);
-  const focusRing = focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 45%, transparent)" : hovered ? "0 3px 10px rgba(0,0,0,0.25)" : "none";
+  const focusRing = focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 40%, transparent)" : "none";
   return m2`<div style=${{ display: "flex", alignItems: "center", width: "100%" }}>
     <a
       href=${isDisabled ? undefined : href}
@@ -42274,12 +42274,12 @@ function LinkWidget(props) {
     gap: "10px",
     padding: "10px 12px",
     borderRadius: "8px",
-    background: hovered ? "color-mix(in srgb, var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.04)) 70%, transparent)" : "var(--nr-dashboard-widgetFieldBg, rgba(255,255,255,0.02))",
+    background: "transparent",
     color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : "var(--nr-dashboard-widgetColor, #61dafb)",
     pointerEvents: isDisabled ? "none" : "auto",
     textDecoration: "none",
     boxShadow: focusRing,
-    transition: "box-shadow 140ms ease, background 160ms ease, color 140ms ease",
+    transition: "box-shadow 140ms ease, color 140ms ease",
     width: "100%",
     transform: pressed ? "translateY(1px)" : "none"
   }}
@@ -42390,7 +42390,7 @@ function FormWidget(props) {
       padding: "8px 10px",
       borderRadius: "6px",
       border: errors[f3.name] ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-      background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
       color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
     }}
                 >${values[f3.name] ?? ""}</textarea>` : type === "checkbox" ? m2`<input
@@ -42417,7 +42417,7 @@ function FormWidget(props) {
       padding: "8px 10px",
       borderRadius: "6px",
       border: errors[f3.name] ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-      background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
       color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
     }}
                 >
@@ -42453,7 +42453,7 @@ function FormWidget(props) {
       padding: "8px 10px",
       borderRadius: "6px",
       border: errors[f3.name] ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-      background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
       color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
     }}
                 />`}
@@ -46877,10 +46877,10 @@ var overlayStyles = {
 var cardBaseStyles = {
   padding: "10px 12px",
   borderRadius: "8px",
-  background: "var(--nr-dashboard-groupBackgroundColor, rgba(20,22,28,0.9))",
-  color: "var(--nr-dashboard-pageTextColor, #fff)",
+  background: "var(--nr-dashboard-toastBackgroundColor, var(--nr-dashboard-groupBackgroundColor, transparent))",
+  color: "var(--nr-dashboard-toastTextColor, var(--nr-dashboard-pageTextColor, inherit))",
   minWidth: "260px",
-  boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+  boxShadow: "var(--nr-dashboard-toastShadow, 0 4px 12px rgba(0,0,0,0.2))",
   pointerEvents: "auto",
   position: "relative"
 };
