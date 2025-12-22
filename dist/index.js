@@ -4086,12 +4086,52 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       min-height: 320px;
       color: #888;
       font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      background: var(--nr-dashboard-pageBackgroundColor, #eee);
     }
 
     .nr-dashboard-loading__inner {
       display: grid;
       place-items: center;
       gap: 12px;
+    }
+
+    .nr-dashboard-loading__text {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .nr-dashboard-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      color: #888;
+      font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
+      text-align: center;
+      padding: 48px 16px;
+      background: var(--nr-dashboard-pageBackgroundColor, #eee);
+      animation: nr-dashboard-fade 2.5s ease-in;
+    }
+
+    .nr-dashboard-empty__inner {
+      display: grid;
+      place-items: center;
+      gap: 10px;
+    }
+
+    .nr-dashboard-empty__title {
+      margin: 4px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .nr-dashboard-empty__body {
+      margin: 0;
+      max-width: 420px;
     }
 
     .nr-dashboard-wheel-spin {
@@ -48095,23 +48135,12 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
             </nav>` : null}
 
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
-          ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div
-              class="nr-dashboard-fade-in"
-                style=${{
-    textAlign: "center",
-    opacity: 1,
-    padding: "48px 16px",
-    display: "grid",
-    placeItems: "center",
-    gap: "10px",
-    color: "#888",
-    fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
-    animationDuration: "2.5s"
-  }}
-              >
-                <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
-                <p style=${{ margin: "4px 0", fontSize: "18px", fontWeight: 600 }}>${t4("welcome_title", "Welcome to the Node-RED Dashboard")}</p>
-                <p style=${{ margin: 0, maxWidth: "420px" }}>${t4("welcome_body", "Please add some UI nodes to your flow and redeploy.")}</p>
+          ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div class="nr-dashboard-empty">
+                <div class="nr-dashboard-empty__inner">
+                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
+                  <p class="nr-dashboard-empty__title">${t4("welcome_title", "Welcome to the Node-RED Dashboard")}</p>
+                  <p class="nr-dashboard-empty__body">${t4("welcome_body", "Please add some UI nodes to your flow and redeploy.")}</p>
+                </div>
               </div>` : (() => {
     if (!selectedTab) {
       return m2`<div style=${{ opacity: 0.7 }}>${t4("select_tab_prompt", "Select a tab to view its content.")}</div>`;
@@ -48158,10 +48187,10 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   `;
 }
 function LoadingScreen({ message }) {
-  return m2`<div class="nr-dashboard-loading">
+  return m2`<div class="nr-dashboard-loading nr-dashboard-fade-in">
     <div class="nr-dashboard-loading__inner">
       <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin" style=${{ opacity: 0.9 }} />
-      <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500, textAlign: "center" }}>${message}</p>
+      <p class="nr-dashboard-loading__text">${message}</p>
     </div>
   </div>`;
 }
