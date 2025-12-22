@@ -18,7 +18,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
       list-style: none;
-      padding: 4px 4px;
+      padding: 0;
       margin: 0;
     }
 
@@ -29,23 +29,23 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 10px 12px;
-      margin-bottom: 4px;
-      border-radius: 4px;
-      border: 1px solid var(--nr-dashboard-nav-border);
-      background: rgba(0, 0, 0, 0.02);
+      padding: 12px 16px 12px 20px;
+      margin: 0;
+      border-radius: 0;
+      border: none;
+      background: transparent;
       color: inherit;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
       min-height: 48px;
       justify-content: flex-start;
       font-size: 14px;
       font-weight: 500;
       line-height: 20px;
       font-family: inherit;
-      transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      transition: background 120ms ease, color 120ms ease;
       position: relative;
       overflow: hidden;
     }
@@ -72,7 +72,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 8px;
+      padding: 12px 8px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
@@ -84,16 +84,19 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       background: transparent;
       border: none;
       box-shadow: none;
+      flex-shrink: 0;
+      color: inherit;
+      margin-left: -4px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
-      font-size: 20px;
+      font-size: 24px;
       line-height: 24px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon img {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       object-fit: contain;
     }
 
@@ -111,10 +114,11 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
-      border-color: var(--nr-dashboard-nav-border-active);
-      background: transparent;
-      border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: none;
+      background: var(--nr-dashboard-nav-active, rgba(0,0,0,0.06));
+      color: var(--nr-dashboard-pageSidebarTextColor, inherit);
+      box-shadow: inset 3px 0 0 var(--nr-dashboard-nav-border-active);
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
@@ -124,14 +128,13 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: rgba(0, 0, 0, 0.06);
-      border-color: var(--nr-dashboard-nav-border-active);
-      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.04);
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--nr-dashboard-pageSidebarTextColor, inherit);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: 2px solid var(--nr-dashboard-nav-border-active);
-      outline-offset: 1px;
+      outline-offset: -2px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__label {
@@ -140,6 +143,11 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       align-items: center;
       line-height: 20px;
       letter-spacing: 0.02em;
+      color: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, inherit) 87%, transparent);
+      opacity: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
@@ -197,10 +205,10 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-widget-frame {
-      background: var(--nr-dashboard-widgetBackgroundColor, transparent);
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, transparent);
+      background: transparent;
+      border: none;
       color: var(--nr-dashboard-widgetTextColor, inherit);
-      border-radius: 8px;
+      border-radius: 0;
     }
 
     .nr-dashboard-icon-press {

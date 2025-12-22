@@ -58,6 +58,11 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
       return html`<span class="nr-dashboard-tabs__icon"><i class="iconify" data-icon=${iconName} data-width=${size ?? "1.3em"} data-height=${size ?? "1.3em"} aria-hidden="true"></i></span>`;
     }
 
+    // Legacy Angular sidebar treated bare icon names as Material icons (ng-md-icon)
+    if (/^[A-Za-z0-9_-]+$/.test(icon)) {
+      return html`<span class="nr-dashboard-tabs__icon"><span class="material-icons" aria-hidden="true">${icon}</span></span>`;
+    }
+
     return html`<span class="nr-dashboard-tabs__icon">${letter}</span>`;
   };
 

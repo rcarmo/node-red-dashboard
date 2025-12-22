@@ -11,8 +11,8 @@ type WidgetFrameProps = {
 
 export function WidgetFrame({ control, disabled, children }: WidgetFrameProps): VNode {
   const sizes = useSizes();
-  const padding = Math.max(8, (sizes.py ?? 0) + 4);
-  const gap = Math.max(4, sizes.cx ?? 6);
+  const padding = Math.max(8, sizes.py ?? 8);
+  const gap = Math.max(6, sizes.cx ?? 6);
   const controlDisabled = (control as { disabled?: boolean }).disabled === true;
   const controlEnabled = (control as { enabled?: boolean }).enabled;
   const isDisabled = Boolean((disabled ?? controlDisabled) || controlEnabled === false);
@@ -20,8 +20,8 @@ export function WidgetFrame({ control, disabled, children }: WidgetFrameProps): 
   return html`<div
     class=${`nr-dashboard-widget-frame ${((control as { className?: string }).className ?? "").trim()}`.trim()}
     style=${{
-      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-      border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
+      background: "transparent",
+      border: "none",
       borderRadius: "0px",
       padding: `${padding}px`,
       display: "flex",

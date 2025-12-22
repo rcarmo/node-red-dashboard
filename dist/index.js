@@ -3870,7 +3870,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
       list-style: none;
-      padding: 4px 4px;
+      padding: 0;
       margin: 0;
     }
 
@@ -3881,23 +3881,23 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 10px 12px;
-      margin-bottom: 4px;
-      border-radius: 4px;
-      border: 1px solid var(--nr-dashboard-nav-border);
-      background: rgba(0, 0, 0, 0.02);
+      padding: 12px 16px 12px 20px;
+      margin: 0;
+      border-radius: 0;
+      border: none;
+      background: transparent;
       color: inherit;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
       min-height: 48px;
       justify-content: flex-start;
       font-size: 14px;
       font-weight: 500;
       line-height: 20px;
       font-family: inherit;
-      transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      transition: background 120ms ease, color 120ms ease;
       position: relative;
       overflow: hidden;
     }
@@ -3924,7 +3924,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 8px;
+      padding: 12px 8px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
@@ -3936,16 +3936,19 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       background: transparent;
       border: none;
       box-shadow: none;
+      flex-shrink: 0;
+      color: inherit;
+      margin-left: -4px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
-      font-size: 20px;
+      font-size: 24px;
       line-height: 24px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon img {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       object-fit: contain;
     }
 
@@ -3963,10 +3966,11 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
-      border-color: var(--nr-dashboard-nav-border-active);
-      background: transparent;
-      border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: none;
+      background: var(--nr-dashboard-nav-active, rgba(0,0,0,0.06));
+      color: var(--nr-dashboard-pageSidebarTextColor, inherit);
+      box-shadow: inset 3px 0 0 var(--nr-dashboard-nav-border-active);
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
@@ -3976,14 +3980,13 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: rgba(0, 0, 0, 0.06);
-      border-color: var(--nr-dashboard-nav-border-active);
-      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.04);
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--nr-dashboard-pageSidebarTextColor, inherit);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: 2px solid var(--nr-dashboard-nav-border-active);
-      outline-offset: 1px;
+      outline-offset: -2px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__label {
@@ -3992,6 +3995,11 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       align-items: center;
       line-height: 20px;
       letter-spacing: 0.02em;
+      color: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, inherit) 87%, transparent);
+      opacity: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
@@ -4049,10 +4057,10 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-widget-frame {
-      background: var(--nr-dashboard-widgetBackgroundColor, transparent);
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, transparent);
+      background: transparent;
+      border: none;
       color: var(--nr-dashboard-widgetTextColor, inherit);
-      border-radius: 8px;
+      border-radius: 0;
     }
 
     .nr-dashboard-icon-press {
@@ -4256,6 +4264,9 @@ function TabNav(props) {
       const [, size] = icon.split(" ");
       const iconName = icon.split(" ")[0].slice(8);
       return m2`<span class="nr-dashboard-tabs__icon"><i class="iconify" data-icon=${iconName} data-width=${size ?? "1.3em"} data-height=${size ?? "1.3em"} aria-hidden="true"></i></span>`;
+    }
+    if (/^[A-Za-z0-9_-]+$/.test(icon)) {
+      return m2`<span class="nr-dashboard-tabs__icon"><span class="material-icons" aria-hidden="true">${icon}</span></span>`;
     }
     return m2`<span class="nr-dashboard-tabs__icon">${letter}</span>`;
   };
@@ -4493,9 +4504,10 @@ function ButtonWidget(props) {
     onFocus=${() => setFocused(true)}
     style=${{
     width: "100%",
+    minWidth: "64px",
     minHeight: "38px",
     padding: "10px 14px",
-    borderRadius: "4px",
+    borderRadius: "2px",
     border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.18)) 80%, transparent)",
     background: color,
     color: "var(--nr-dashboard-widgetTextColor, #fff)",
@@ -4620,9 +4632,9 @@ function SwitchWidget(props) {
       role="switch"
       aria-checked=${checked}
       style=${{
-    width: "46px",
-    height: "26px",
-    borderRadius: "13px",
+    width: "40px",
+    height: "22px",
+    borderRadius: "11px",
     background: bg,
     position: "relative",
     transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
@@ -4645,12 +4657,12 @@ function SwitchWidget(props) {
         style=${{
     position: "absolute",
     top: "3px",
-    left: checked ? "24px" : "3px",
-    width: "20px",
-    height: "20px",
+    left: checked ? "21px" : "3px",
+    width: "16px",
+    height: "16px",
     borderRadius: "50%",
     background: "var(--nr-dashboard-widgetTextColor, #fff)",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+    boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
     transition: "left 120ms ease"
   }}
       ></div>
@@ -4684,23 +4696,23 @@ var fieldHelperStyles = {
 };
 function buildFieldStyles(opts = {}) {
   const { error, focused, disabled, hasAdornment, dense } = opts;
-  const borderColor = error ? "var(--nr-dashboard-errorColor, #f87171)" : "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))";
-  const focusRing = error ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-errorColor, #f87171) 55%, transparent)" : focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 55%, transparent)" : "none";
+  const borderColor = error ? "var(--nr-dashboard-errorColor, #f87171)" : focused ? "var(--nr-dashboard-widgetColor, #1f8af2)" : "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))";
   return {
     width: "100%",
-    padding: dense ? "8px 10px" : "10px 12px",
-    borderRadius: "4px",
-    border: `1px solid ${borderColor}`,
-    background: "var(--nr-dashboard-widgetFieldBg, #fff)",
+    padding: dense ? "6px 0" : "8px 0",
+    borderRadius: "0px",
+    border: "none",
+    borderBottom: `1px solid ${borderColor}`,
+    background: "transparent",
     color: "var(--nr-dashboard-widgetTextColor, #000)",
     outline: "none",
-    boxShadow: focusRing,
-    transition: "box-shadow 140ms ease, border-color 140ms ease, background 140ms ease",
+    boxShadow: "none",
+    transition: "border-color 140ms ease, background 140ms ease",
     appearance: "none",
     WebkitAppearance: "none",
     opacity: disabled ? 0.55 : 1,
     cursor: disabled ? "not-allowed" : "text",
-    paddingRight: hasAdornment ? "40px" : dense ? "10px" : "12px"
+    paddingRight: hasAdornment ? "36px" : "0px"
   };
 }
 var adornmentStyles = {
@@ -5145,7 +5157,10 @@ function DropdownWidget(props) {
     ...fieldStyles,
     paddingRight: "36px",
     cursor: Boolean(disabled) ? "not-allowed" : "pointer",
-    display: "block"
+    display: "block",
+    background: "transparent",
+    borderBottom: fieldStyles.borderBottom,
+    color: "var(--nr-dashboard-widgetTextColor, #000)"
   }}
       >
         ${asDrop.place && !multiple ? m2`<option value="" disabled selected=${value2 == null || value2 === ""}>${asDrop.place}</option>` : null}
@@ -5250,7 +5265,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
-      height: 6px;
+      height: 4px;
     }
 
     .nr-dashboard-slider__range.is-vertical {
@@ -5261,15 +5276,15 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 16px;
-      width: 16px;
+      height: 14px;
+      width: 14px;
       margin-top: -5px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
@@ -5298,13 +5313,13 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-slider__range::-moz-range-track {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
-      height: 6px;
+      height: 4px;
       border-radius: 999px;
       background: var(--nr-dashboard-slider-fill);
     }
@@ -46565,17 +46580,17 @@ function useSizes() {
 // src/preact/components/WidgetFrame.ts
 function WidgetFrame({ control, disabled, children }) {
   const sizes = useSizes();
-  const padding = Math.max(8, (sizes.py ?? 0) + 4);
-  const gap = Math.max(4, sizes.cx ?? 6);
+  const padding = Math.max(8, sizes.py ?? 8);
+  const gap = Math.max(6, sizes.cx ?? 6);
   const controlDisabled = control.disabled === true;
   const controlEnabled = control.enabled;
   const isDisabled = Boolean((disabled ?? controlDisabled) || controlEnabled === false);
   return m2`<div
     class=${`nr-dashboard-widget-frame ${(control.className ?? "").trim()}`.trim()}
     style=${{
-    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
-    borderRadius: "8px",
+    background: "transparent",
+    border: "none",
+    borderRadius: "0px",
     padding: `${padding}px`,
     display: "flex",
     flexDirection: "column",
@@ -47032,7 +47047,8 @@ var toolbarStyles = {
   alignItems: "center",
   gap: "12px",
   padding: "0 16px",
-  borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08))",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+  borderBottom: "none",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
   color: "#fff",
   fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
@@ -47075,14 +47091,15 @@ var layoutStyles2 = {
   position: "relative"
 };
 var navStyles = {
-  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08)))",
-  padding: "12px 12px 16px",
+  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.12)))",
+  padding: "0 0 8px 0",
   color: "var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, #00A4DE))",
   background: "var(--nr-dashboard-pageSidebarBackgroundColor, #eee)",
   overflowY: "auto"
 };
 var contentStyles = {
-  padding: "0"
+  padding: "0",
+  background: "var(--nr-dashboard-pageBackgroundColor, #eee)"
 };
 function getEffectiveTheme(tab, globalTheme) {
   if (tab?.theme)
@@ -47241,9 +47258,11 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   }, []);
   const toolbarHeight = viewportWidth < 960 ? "48px" : "64px";
   const navMaxWidth = viewportWidth <= 660 ? 200 : 320;
+  const navMinWidth = 64;
   const navBaseWidth = isIconOnly ? 72 : navMaxWidth;
-  const navWidth = `${Math.max(64, navBaseWidth)}px`;
-  const navTop = "0";
+  const navWidthNum = Math.max(navMinWidth, navBaseWidth);
+  const navWidth = `${navWidthNum}px`;
+  const navTop = hideToolbar ? "0" : toolbarHeight;
   const shellStyles = {
     ...appStyles,
     gridTemplateRows: hideToolbar ? "1fr" : `${toolbarHeight} 1fr`
@@ -47342,8 +47361,8 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     return tabTitle ?? siteTitle ?? "";
   })();
   const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
-  const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr";
-  const sectionMinHeight = hideToolbar ? "100vh" : `calc(100vh - ${toolbarHeight})`;
+  const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : `${navMaxWidth}px`} 1fr` : "1fr";
+  const sectionMinHeight = "100vh";
   const showToggle = isSlide && hasTabs;
   const showFloatingToggle = isSlide && hasTabs && hideToolbar;
   return m2`
@@ -47359,7 +47378,9 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     background: navOpen ? "rgba(0,0,0,0.10)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.04))",
     transform: navOpen ? "scale(0.98)" : "scale(1)"
   }}
-                >${navOpen ? "✕" : "☰"}</button>` : null}
+                >
+                  <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
+                </button>` : null}
             <strong>${toolbarTitle}</strong>
             <span style=${{ marginLeft: "auto" }}></span>
           </header>`}
@@ -47383,7 +47404,9 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     height: "44px",
     boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : floatingToggleStyles.boxShadow
   }}
-            >${navOpen ? "✕" : "☰"}</button>` : null}
+            >
+              <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
+            </button>` : null}
 
         ${shouldRenderNav ? m2`${isSlide && !isLocked && !isIconOnly && navOpen ? m2`<div
                   role="button"
@@ -47391,9 +47414,12 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
                   onClick=${() => setNavOpen(false)}
                   style=${{
     position: "absolute",
-    inset: 0,
+    left: 0,
+    right: 0,
+    top: navTop,
+    bottom: 0,
     background: "rgba(0,0,0,0.28)",
-    zIndex: 9,
+    zIndex: 79,
     animation: "nr-dashboard-nav-backdrop 180ms ease-out"
   }}
                 ></div>` : null}
@@ -47405,13 +47431,13 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     minWidth: isIconOnly ? "72px" : "64px",
     maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
     background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
-    position: isSlide && !isLocked && !isIconOnly ? "absolute" : "relative",
-    left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : `-${navMaxWidth + 20}px` : undefined,
+    position: isSlide && !isLocked && !isIconOnly ? "fixed" : "relative",
+    left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : `-${navWidthNum}px` : undefined,
     top: navTop,
     bottom: 0,
     transition: "left 0.18s ease-out",
-    zIndex: 10,
-    boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "0 0 0 rgba(0,0,0,0)" : "1px 0 5px rgba(0,0,0,0.16)",
+    zIndex: 80,
+    boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "0 0 0 rgba(0,0,0,0)" : "2px 0 6px rgba(0,0,0,0.26)",
     backdropFilter: undefined
   }}
             >
