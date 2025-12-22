@@ -51,7 +51,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
     return true;
   };
 
-  return html`<label style=${{ display: "grid", gap: "6px" }}>
+  return html`<label style=${{ display: "grid", gap: "4px" }}>
     <span style=${{ fontSize: "12px", opacity: 0.8 }}>${label}</span>
     <input
       class=${c.className || ""}
@@ -70,13 +70,26 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
         onEmit?.("ui-change", { payload: v });
       }}
       style=${{
-        padding: "8px 10px",
-        borderRadius: "6px",
-        border: error
-          ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
-          : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-        background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+        padding: "8px 4px",
+        borderRadius: "2px",
+        border: "none",
+        borderBottom: error
+          ? "2px solid var(--nr-dashboard-errorColor, #f87171)"
+          : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+        background: "transparent",
         color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+        outline: "none",
+        transition: "border-color 120ms ease",
+      }}
+      onFocus=${(e: FocusEvent) => {
+        const el = e.target as HTMLInputElement;
+        if (error) return;
+        el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
+      }}
+      onBlur=${(e: FocusEvent) => {
+        const el = e.target as HTMLInputElement;
+        if (error) return;
+        el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
       }}
       min=${c.min || undefined}
       max=${c.max || undefined}

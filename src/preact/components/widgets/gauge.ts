@@ -29,10 +29,10 @@ export type GaugeControl = UiControl & {
 
 function computeGaugeHeight(ctrl: GaugeControl): number {
   const gtype = (ctrl.gtype || "gage").toString().toLowerCase();
-  if (gtype === "wave") return 260;
-  if (gtype === "compass") return 240;
-  if (gtype === "donut") return 220;
-  return 220;
+  if (gtype === "wave") return 240;
+  if (gtype === "compass") return 220;
+  if (gtype === "donut") return 200;
+  return 200;
 }
 
 function toNumber(value: unknown, fallback: number): number {
@@ -96,7 +96,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
 
   const segments = useMemo(() => buildSegments(asGauge, min, max), [asGauge, min, max]);
   const showMinMax = !asGauge.hideMinMax;
-  const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "donut" || asGauge.gtype === "compass" || !asGauge.gtype;
+  const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "compass" || !asGauge.gtype;
   const gtype = (asGauge.gtype || "gage").toString().toLowerCase();
   const isDonut = gtype === "donut";
   const isWave = gtype === "wave";
@@ -128,10 +128,10 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           max,
           startAngle: isCompass ? 90 : reverse ? 45 : 225,
           endAngle: isCompass ? -270 : reverse ? -225 : -45,
-          splitNumber: isCompass ? 8 : showTicks ? 10 : 0,
+          splitNumber: isCompass ? 8 : showTicks ? 6 : 0,
           progress: {
             show: true,
-            width: isDonut || isWave ? 16 : 10,
+            width: isDonut || isWave ? 12 : 8,
             roundCap: true,
             itemStyle: {
               color: segments[segments.length - 1][1],
@@ -139,15 +139,15 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           },
           axisLine: {
             lineStyle: {
-              width: isDonut ? 16 : 10,
+              width: isDonut ? 12 : 8,
               color: segments,
             },
           },
-          axisTick: { show: showTicks, distance: isCompass ? -8 : -12, length: isCompass ? 8 : 6 },
-          splitLine: { show: showTicks, length: isCompass ? 12 : 10, distance: isCompass ? -10 : -14 },
+          axisTick: { show: showTicks, distance: isCompass ? -6 : -8, length: isCompass ? 8 : 6 },
+          splitLine: { show: showTicks, length: isCompass ? 10 : 8, distance: isCompass ? -10 : -12 },
           axisLabel: {
             show: showMinMax || isCompass,
-            distance: isCompass ? 22 : 16,
+            distance: isCompass ? 18 : 12,
             color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
             formatter: (val: number) => {
               if (!isCompass) return formatter.format(val);
@@ -156,14 +156,14 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
               return dirs[idx];
             },
           },
-          pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
-          anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+          pointer: { show: !isDonut && !isWave, width: 3, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+          anchor: { show: !isDonut && !isWave, showAbove: true, size: 8, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
           detail: {
             valueAnimation: true,
             formatter: () => formatted,
             color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-            fontSize: 16,
-            offsetCenter: isWave ? [0, "40%"] : [0, "60%"],
+            fontSize: 14,
+            offsetCenter: isWave ? [0, "36%"] : [0, "60%"],
           },
           data: [
             {

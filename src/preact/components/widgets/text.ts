@@ -60,7 +60,7 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
   const color = typeof asText.color === "string" ? asText.color : undefined;
   const fontSize = asText.fontSize ? `${asText.fontSize}px` : undefined;
   const fontFamily = asText.font;
-  const [ref, size] = useElementSize<HTMLDivElement>();
+  const [ref] = useElementSize<HTMLDivElement>();
 
   const container = mergeStyleString(
     {
@@ -84,9 +84,6 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
       }}
     >
       ${formatted}
-    </div>
-    <div style=${{ opacity: 0.45, fontSize: "10px" }}>
-      ${t("dimensions_px", "{width}×{height} px", { width: Math.round(size.width), height: Math.round(size.height) })}
     </div>
   </div>`;
 }

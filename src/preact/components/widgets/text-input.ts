@@ -106,7 +106,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
     }
   };
 
-  return html`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
+  return html`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
     <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     ${asInput.required
       ? html`<span style=${{ fontSize: "11px", opacity: 0.72 }}>${t("required_label", "Required")}</span>`
@@ -126,13 +126,27 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
       onBlur=${handleBlur}
       style=${{
         width: "100%",
-        padding: "10px 12px",
-        borderRadius: "8px",
-        border: error
-          ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
-          : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
-        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+        padding: "8px 4px",
+        borderRadius: "2px",
+        border: "none",
+        borderBottom: error
+          ? "2px solid var(--nr-dashboard-errorColor, #f87171)"
+          : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+        background: "transparent",
         color: "var(--nr-dashboard-widgetTextColor, inherit)",
+        outline: "none",
+        transition: "border-color 120ms ease",
+      }}
+      onFocus=${(e: FocusEvent) => {
+        const el = e.target as HTMLInputElement;
+        if (error) return;
+        el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
+      }}
+      onBlur=${(e: FocusEvent) => {
+        handleBlur();
+        const el = e.target as HTMLInputElement;
+        if (error) return;
+        el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
       }}
     />
     ${typeof maxLength === "number"

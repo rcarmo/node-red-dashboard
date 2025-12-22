@@ -41,10 +41,12 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
     return undefined;
   }, [c.message, c.label, c.level, displayMs]);
 
-  if (!visible) return null;
-
-  return html`<div
-    class=${c.className || ""}
+        border: "1px solid transparent",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+        padding: "10px 12px",
+        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.55))",
+        position: "relative",
+        borderRadius: "4px",
     style=${{
       border: `1px solid ${toneColor}`,
       padding: "8px 10px",
@@ -60,11 +62,12 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
       ? html`<button
           type="button"
           aria-label=${t("toast_close", "Close notification")}
-          onClick=${() => setVisible(false)}
-          style=${{
-            position: "absolute",
-            top: "6px",
-            right: "6px",
+              background: "transparent",
+              border: "none",
+              color: toneColor,
+              cursor: "pointer",
+              fontWeight: 700,
+              padding: 0,
             background: "transparent",
             border: "none",
             color: toneColor,

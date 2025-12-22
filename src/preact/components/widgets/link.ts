@@ -41,7 +41,23 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
             e.stopPropagation();
           }
         : undefined}
-      style=${{ color: "var(--nr-dashboard-widgetColor, #61dafb)", pointerEvents: isDisabled ? "none" : "auto" }}
+      style=${{
+        color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.4))" : "var(--nr-dashboard-widgetColor, #61dafb)",
+        pointerEvents: isDisabled ? "none" : "auto",
+        textDecoration: "none",
+        borderBottom: isDisabled ? "none" : "1px solid transparent",
+        transition: "color 120ms ease, border-color 120ms ease",
+      }}
+      onMouseEnter=${(e: MouseEvent) => {
+        const el = e.currentTarget as HTMLAnchorElement;
+        if (isDisabled) return;
+        el.style.borderBottom = "1px solid currentColor";
+      }}
+      onMouseLeave=${(e: MouseEvent) => {
+        const el = e.currentTarget as HTMLAnchorElement;
+        if (isDisabled) return;
+        el.style.borderBottom = "1px solid transparent";
+      }}
     >
       ${label}
     </a>

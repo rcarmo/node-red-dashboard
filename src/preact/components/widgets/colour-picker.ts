@@ -39,9 +39,9 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
       }}
       style=${{
         width: "100%",
-        minHeight: "38px",
+        minHeight: "28px",
         padding: "0",
-        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2))",
         background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
       }}
     />

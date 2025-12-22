@@ -141,7 +141,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
     }
   };
 
-  return html`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
+  return html`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
     <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <select
       multiple=${multiple}
@@ -152,11 +152,22 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
       onChange=${handleChange}
       style=${{
         width: "100%",
-        padding: "10px 12px",
-        borderRadius: "8px",
-        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
-        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
+        padding: multiple ? "8px 4px" : "8px 4px",
+        borderRadius: "2px",
+        border: "none",
+        borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+        background: "transparent",
         color: "var(--nr-dashboard-widgetTextColor, inherit)",
+        outline: "none",
+        transition: "border-color 120ms ease",
+      }}
+      onFocus=${(e: FocusEvent) => {
+        const el = e.target as HTMLSelectElement;
+        el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
+      }}
+      onBlur=${(e: FocusEvent) => {
+        const el = e.target as HTMLSelectElement;
+        el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
       }}
     >
       ${asDrop.place && !multiple
