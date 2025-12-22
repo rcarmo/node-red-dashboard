@@ -6,6 +6,7 @@ import { useDashboardState } from "./state";
 import { TabNav } from "./components/layout/TabNav";
 import { GroupGrid } from "./components/layout/GroupGrid";
 import { useLayoutAnnouncements } from "./components/layout/utils";
+import { ensureLayoutStyles } from "./components/layout/layout-styles";
 import { ToastOverlay } from "./components/ToastOverlay";
 import { SizesProvider, useSizes } from "./hooks/useSizes";
 import { I18nProvider, hydrateLocales, useI18n } from "./lib/i18n";
@@ -40,9 +41,9 @@ export function findFirstFocusable(root: HTMLElement | null | undefined): HTMLEl
 const themeVarMap: Record<string, string> = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
   "page-textColor": "--nr-dashboard-pageTextColor",
-  "page-titlebar-backgroundColor": "--nr-dashboard-titlebarBackgroundColor",
-  "page-sidebar-backgroundColor": "--nr-dashboard-sidebarBackgroundColor",
-  "page-sidebarTextColor": "--nr-dashboard-sidebarTextColor",
+  "page-titlebar-backgroundColor": "--nr-dashboard-pageTitlebarBackgroundColor",
+  "page-sidebarBackgroundColor": "--nr-dashboard-pageSidebarBackgroundColor",
+  "page-sidebarTextColor": "--nr-dashboard-pageSidebarTextColor",
   "group-backgroundColor": "--nr-dashboard-groupBackgroundColor",
   "group-textColor": "--nr-dashboard-groupTextColor",
   "group-borderColor": "--nr-dashboard-groupBorderColor",
@@ -54,9 +55,9 @@ const themeVarMap: Record<string, string> = {
 };
 
 const appStyles: Record<string, string> = {
-  fontFamily: "'Inter', system-ui, sans-serif",
-  background: "var(--nr-dashboard-pageBackgroundColor, #0f1115)",
-  color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #e9ecf1))",
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
+  color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
   minHeight: "100vh",
   display: "grid",
 };
@@ -66,7 +67,9 @@ const toolbarStyles: Record<string, string> = {
   alignItems: "center",
   gap: "12px",
   padding: "0 16px",
-  borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
+  borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08))",
+  background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
+  color: "#fff",
 };
 
 const iconButtonStyles: Record<string, string> = {
@@ -88,7 +91,7 @@ const floatingToggleStyles: Record<string, string> = {
   left: "12px",
   zIndex: "20",
   border: "none",
-  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
+  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
   color: "inherit",
   borderRadius: "50%",
   padding: "10px 12px",
@@ -105,10 +108,10 @@ const layoutStyles: Record<string, string> = {
 };
 
 const navStyles: Record<string, string> = {
-  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08)))",
+  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08)))",
   padding: "12px 12px 16px",
-  color: "var(--nr-dashboard-sidebarTextColor, inherit)",
-  background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
+  color: "var(--nr-dashboard-pageSidebarTextColor, inherit)",
+  background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
   overflowY: "auto",
 };
 
@@ -168,9 +171,15 @@ function relativeLuminance({ r, g, b }: Rgb): number {
   return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
 }
 
+function getDashboardRoot(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  return document.getElementById("nr-dashboard-root") ?? document.getElementById("app") ?? document.documentElement;
+}
+
 export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): void {
   if (!root && typeof document === "undefined") return;
-  const target = root ?? document.documentElement;
+  const target = root ?? getDashboardRoot();
+  if (!target) return;
 
   if (!theme?.themeState) {
     Object.values(themeVarMap).forEach((cssVar) => {
@@ -203,6 +212,7 @@ export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): voi
 }
 
 export function App(): VNode {
+  ensureLayoutStyles();
   const { state, selectedTab, actions } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
   const locales = useMemo(() => state.locales ?? hydrateLocales(), [state.locales]);
@@ -229,7 +239,7 @@ export function App(): VNode {
   // Apply theme variables whenever selection or global theme changes
   useEffect(() => {
     const theme = getEffectiveTheme(selectedTab, state.theme);
-    applyThemeToRoot(theme);
+    applyThemeToRoot(theme, getDashboardRoot() ?? undefined);
   }, [selectedTab, state.theme]);
 
   return html`<${I18nProvider} lang=${lang} locales=${locales}>
@@ -383,10 +393,11 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const toolbarTitle = (() => {
     const tabTitle = selectedTab?.header ?? selectedTab?.name;
     const siteTitle = site?.name;
+    // Legacy: when menu locked, show site title; otherwise show tab header (or site fallback)
     if (isLocked || isIconOnly) {
-      return siteTitle ?? t("app_title", "Node-RED Dashboard v2");
+      return siteTitle ?? "";
     }
-    return tabTitle ?? siteTitle ?? t("app_title", "Node-RED Dashboard v2");
+    return tabTitle ?? siteTitle ?? "";
   })();
 
   const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
@@ -409,39 +420,14 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   style=${{
                     ...iconButtonStyles,
                     background: navOpen
-                      ? "rgba(255,255,255,0.12)"
-                      : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+                      ? "rgba(0,0,0,0.10)"
+                      : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.04))",
                     transform: navOpen ? "scale(0.98)" : "scale(1)",
                   }}
                 >${navOpen ? "✕" : "☰"}</button>`
               : null}
             <strong>${toolbarTitle}</strong>
-            <span
-              style=${{
-                marginLeft: "auto",
-                fontSize: "13px",
-                opacity: 0.8,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
-              <span
-                aria-hidden="true"
-                style=${{
-                  width: "10px",
-                  height: "10px",
-                  borderRadius: "50%",
-                  background:
-                    state.connection === "ready"
-                      ? "#46e18a"
-                      : state.connection === "connecting"
-                      ? "#f5c74f"
-                      : "#f26b6b",
-                }}
-              ></span>
-              ${statusLabel}
-            </span>
+            <span style=${{ marginLeft: "auto" }}></span>
           </header>`}
       <section
         style=${{
@@ -460,8 +446,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 ...floatingToggleStyles,
                 ...iconButtonStyles,
                 background: navOpen
-                  ? "rgba(255,255,255,0.12)"
-                  : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.10))",
+                  ? "rgba(0,0,0,0.10)"
+                  : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
                 width: "44px",
                 height: "44px",
                 boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : floatingToggleStyles.boxShadow,
@@ -491,7 +477,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 width: navWidth,
                 minWidth: isIconOnly ? "72px" : "64px",
                 maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
-                background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
+                background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
                 position: isSlide && !isLocked && !isIconOnly ? "absolute" : "relative",
                 left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navMaxWidth + 20}px`) : undefined,
                 top: navTop,
@@ -519,8 +505,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                         ...iconButtonStyles,
                         width: "36px",
                         height: "36px",
-                        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.20))",
-                        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
+                        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
+                        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
                       }}
                     >✕</button>
                   </div>`
@@ -546,13 +532,26 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
           ${shouldShowLoading(state.connection)
-            ? html`<${LoadingSkeleton} columns=${sizes.columns} />`
+            ? html`<${LoadingScreen} message=${t("loading", "Loading dashboard...")} />`
             : state.menu.length === 0
-            ? html`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
-                <p style=${{ margin: "0 0 8px" }}>${t("no_tabs_defined_title", "No tabs defined yet.")}</p>
-                <p style=${{ margin: 0 }}>${t(
-                  "no_tabs_defined_body",
-                  "Add UI nodes in Node-RED and deploy to see them here.",
+            ? html`<div
+                style=${{
+                  textAlign: "center",
+                  opacity: 0.85,
+                  padding: "48px 16px",
+                  display: "grid",
+                  placeItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
+                <p style=${{ margin: "4px 0", fontSize: "18px", fontWeight: 600 }}>${t(
+                  "welcome_title",
+                  "Welcome to the Node-RED Dashboard",
+                )}</p>
+                <p style=${{ margin: 0, maxWidth: "420px" }}>${t(
+                  "welcome_body",
+                  "Please add some UI nodes to your flow and redeploy.",
                 )}</p>
               </div>`
             : (() => {
@@ -564,15 +563,16 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 }
 
                 if (selectedTab.link) {
-                  return html`<div style=${{ height: "100%", minHeight: "320px" }}>
+                  return html`<div style=${{ width: "100%", minHeight: "70vh" }}>
                     <iframe
                       src=${selectedTab.link}
                       style=${{
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "10px",
+                        border: "none",
+                        borderRadius: "0",
                         width: "100%",
-                        height: "80vh",
-                        background: "#0b0d11",
+                        height: "100%",
+                        background: "transparent",
+                        display: "block",
                       }}
                       allowfullscreen
                     ></iframe>
@@ -611,37 +611,28 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   `;
 }
 
-function LoadingSkeleton({ columns }: { columns: number }): VNode {
-  const cards = Array.from({ length: Math.max(3, Math.min(columns, 6)) });
+function LoadingScreen({ message }: { message: string }): VNode {
   return html`<div
     style=${{
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-      gap: "12px",
+      placeItems: "center",
+      padding: "48px 16px",
+      color: "rgba(0,0,0,0.65)",
     }}
   >
-    ${cards.map(
-      (_v, idx) => html`<div
-        key=${idx}
-        style=${{
-          minHeight: "140px",
-          borderRadius: "10px",
-          background: "linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
-          backgroundSize: "200% 100%",
-          animation: "nr-dashboard-skeleton 1.2s ease-in-out infinite",
-          border: "1px solid rgba(255,255,255,0.08)",
-        }}
-      ></div>`,
-    )}
+    <div style=${{ display: "grid", placeItems: "center", gap: "12px" }}>
+      <img src="./wheel.png" alt=${message} width="72" height="72" style=${{ opacity: 0.9 }} />
+      <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500 }}>${message}</p>
+    </div>
   </div>`;
 }
 
 export function bootstrap(): void {
   if (typeof document === "undefined") return;
 
-  const root = document.getElementById("app") ?? (() => {
+  const root = document.getElementById("nr-dashboard-root") ?? (() => {
     const el = document.createElement("div");
-    el.id = "app";
+    el.id = "nr-dashboard-root";
     document.body.appendChild(el);
     return el;
   })();

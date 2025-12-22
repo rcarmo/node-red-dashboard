@@ -15,6 +15,7 @@ type SizesProviderProps = {
 
 export function SizesProvider({ site, tabId, children }: SizesProviderProps): VNode {
   const [sizes, setSizes] = useState<SiteSizes>(() => resolveSizes(site));
+  const root = typeof document !== "undefined" ? (document.getElementById("nr-dashboard-root") ?? document.getElementById("app")) : null;
 
   useEffect(() => {
     setSizes(resolveSizes(site));
@@ -28,11 +29,11 @@ export function SizesProvider({ site, tabId, children }: SizesProviderProps): VN
   }, [site]);
 
   useEffect(() => {
-    applySizesToRoot(sizes);
+    applySizesToRoot(sizes, root ?? undefined);
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("dashboard:size", { detail: sizes }));
     }
-  }, [sizes]);
+  }, [sizes, root]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {

@@ -62,9 +62,9 @@ export function GroupCard(props: {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: "12px",
-        minHeight: "32px",
-        padding: "10px 12px 6px 12px",
+        gap: "10px",
+        minHeight: "28px",
+        padding: "6px 8px 4px 8px",
       }}
     >
       <span style=${{ fontWeight: 500, lineHeight: "20px", paddingRight: "8px" }}>${title}</span>
@@ -83,20 +83,20 @@ export function GroupCard(props: {
     ${collapsed
       ? html`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t("collapsed", "Collapsed")}</div>`
       : items.length === 0
-      ? html`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t("no_widgets", "No widgets in this group yet.")}</div>`
+      ? html`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 8px 8px 8px" }}>${t("no_widgets", "No widgets in this group yet.")}</div>`
       : html`<ul
           class="nr-dashboard-group-card__list"
           style=${{
             rowGap: `${sizes.cy}px`,
             columnGap: `${sizes.cx}px`,
-            padding: "0 12px 12px 12px",
+            padding: "0 8px 8px 8px",
           }}
         >
           ${items.map((control, ctrlIdx) => html`<li
                 class="nr-dashboard-group-card__item"
                 key=${(control as { id?: string | number })?.id ?? ctrlIdx}
                 style=${{
-                  padding: `${Math.max(0, padding.y - 4)}px ${Math.max(0, padding.x - 2)}px`,
+                  padding: `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`,
                 }}
               >
                 <${WidgetRenderer}

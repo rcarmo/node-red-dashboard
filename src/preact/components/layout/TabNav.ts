@@ -67,7 +67,7 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
       : visibleMenu.map(({ tab, originalIndex }, idx) => {
           const active = originalIndex === selectedIndex;
           const label = (tab.header || tab.name || t("tab_label", "Tab {index}", { index: idx + 1 })) as string;
-          const icon = renderIcon(tab, idx);
+          const icon = tab.icon ? renderIcon(tab, idx) : null;
           return html`<li key=${tab.id ?? tab.header ?? originalIndex}>
             <button
               class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active" : ""}`.trim()}

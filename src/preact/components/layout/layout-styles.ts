@@ -1,4 +1,5 @@
 const LAYOUT_STYLE_ID = "nr-dashboard-layout-style";
+const DASHBOARD_SCOPE = "#nr-dashboard-root";
 
 export function ensureLayoutStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
   if (!doc) return;
@@ -6,33 +7,33 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
   const style = doc.createElement("style");
   style.id = LAYOUT_STYLE_ID;
   style.textContent = `
-    :root {
+    ${DASHBOARD_SCOPE} {
       --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, transparent);
       --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, transparent);
       --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, inherit));
-      --nr-dashboard-nav-active: var(--nr-dashboard-sidebarBackgroundColor, rgba(255, 255, 255, 0.08));
-      --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.35));
-      --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.12));
+      --nr-dashboard-nav-active: var(--nr-dashboard-pageSidebarBackgroundColor, rgba(0, 0, 0, 0.04));
+      --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.24));
+      --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.12));
     }
 
-    .nr-dashboard-tabs {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
       list-style: none;
       padding: 4px 4px;
       margin: 0;
     }
 
-    .nr-dashboard-tabs li:last-child .nr-dashboard-tabs__btn {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs li:last-child .nr-dashboard-tabs__btn {
       margin-bottom: 0;
     }
 
-    .nr-dashboard-tabs__btn {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
       padding: 10px 12px;
       margin-bottom: 4px;
       border-radius: 4px;
       border: 1px solid var(--nr-dashboard-nav-border);
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(0, 0, 0, 0.02);
       color: inherit;
       cursor: pointer;
       display: flex;
@@ -47,7 +48,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
     }
 
-    .nr-dashboard-tabs__btn.is-icon {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -55,30 +56,30 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       padding: 8px;
     }
 
-    .nr-dashboard-tabs__icon {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
       width: 32px;
       height: 32px;
       border-radius: 999px;
       display: grid;
       place-items: center;
       font-weight: 700;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.06);
       border: 1px solid var(--nr-dashboard-nav-border);
       box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
     }
 
-    .nr-dashboard-tabs__icon i {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
       font-size: 18px;
       line-height: 1;
     }
 
-    .nr-dashboard-tabs__icon img {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon img {
       width: 22px;
       height: 22px;
       object-fit: contain;
     }
 
-    .nr-dashboard-tabs__icon-glyph {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon-glyph {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -87,34 +88,34 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       height: 100%;
     }
 
-    .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
       display: none;
     }
 
-    .nr-dashboard-tabs__btn.is-active {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);
       border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
+      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.06);
     }
 
-    .nr-dashboard-tabs__btn:disabled {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
       filter: grayscale(0.2);
     }
 
-    .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: rgba(255, 255, 255, 0.08);
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
+      background: rgba(0, 0, 0, 0.06);
       border-color: var(--nr-dashboard-nav-border-active);
     }
 
-    .nr-dashboard-tabs__btn:focus-visible {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: 2px solid var(--nr-dashboard-nav-border-active);
       outline-offset: 1px;
     }
 
-    .nr-dashboard-tabs__label {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__label {
       min-width: 120px;
       display: inline-flex;
       align-items: center;
@@ -122,7 +123,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       letter-spacing: 0.02em;
     }
 
-    .nr-dashboard-group-card {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
       border: 1px solid var(--nr-dashboard-card-border);
       border-radius: 10px;
       background: var(--nr-dashboard-card-bg);
@@ -131,14 +132,15 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      padding: 8px;
     }
 
-    .nr-dashboard-group-card__header {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__header {
       font-weight: 500;
     }
 
-    .nr-dashboard-group-card__collapse {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse {
       border: none;
       background: transparent;
       color: inherit;
@@ -153,29 +155,29 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       transition: background 120ms ease;
     }
 
-    .nr-dashboard-group-card__collapse:hover {
-      background: rgba(255, 255, 255, 0.08);
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:hover {
+      background: rgba(0, 0, 0, 0.06);
     }
 
-    .nr-dashboard-group-card__collapse:focus-visible {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:focus-visible {
       outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
       outline-offset: 2px;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.06);
     }
 
-    .nr-dashboard-group-card__list {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__list {
       list-style: none;
       margin: 0;
       padding: 0;
       display: grid;
     }
 
-    .nr-dashboard-group-card__item {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__item {
       font-size: 12px;
       opacity: 0.9;
     }
 
-    .nr-dashboard-widget-frame {
+    ${DASHBOARD_SCOPE} .nr-dashboard-widget-frame {
       background: var(--nr-dashboard-widgetBackgroundColor, transparent);
       border: 1px solid var(--nr-dashboard-widgetBorderColor, transparent);
       color: var(--nr-dashboard-widgetTextColor, inherit);
@@ -193,7 +195,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 60%);
+      background: radial-gradient(circle, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 60%);
       opacity: 0;
       transform: scale(0.4);
       transition: opacity 220ms ease, transform 220ms ease;
@@ -210,6 +212,14 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       transition: opacity 120ms ease, transform 220ms ease;
     }
 
+    .nr-dashboard-wheel-spin {
+      animation: nr-dashboard-wheel 1.05s linear infinite;
+    }
+
+    .nr-dashboard-fade-in {
+      animation: nr-dashboard-fade 1.2s ease-in;
+    }
+
     @keyframes nr-dashboard-nav-backdrop {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -218,6 +228,17 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     @keyframes nr-dashboard-skeleton {
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
+    }
+
+    @keyframes nr-dashboard-wheel {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes nr-dashboard-fade {
+      0% { opacity: 0; }
+      30% { opacity: 0; }
+      100% { opacity: 1; }
     }
   `;
   doc.head.appendChild(style);

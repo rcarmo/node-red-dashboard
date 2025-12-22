@@ -3849,6 +3849,7 @@ function handleAudioEvent(payload) {
 
 // src/preact/components/layout/layout-styles.ts
 var LAYOUT_STYLE_ID = "nr-dashboard-layout-style";
+var DASHBOARD_SCOPE = "#nr-dashboard-root";
 function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : undefined) {
   if (!doc)
     return;
@@ -3857,33 +3858,33 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
   const style = doc.createElement("style");
   style.id = LAYOUT_STYLE_ID;
   style.textContent = `
-    :root {
+    ${DASHBOARD_SCOPE} {
       --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, transparent);
       --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, transparent);
       --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, inherit));
-      --nr-dashboard-nav-active: var(--nr-dashboard-sidebarBackgroundColor, rgba(255, 255, 255, 0.08));
-      --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.35));
-      --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.12));
+      --nr-dashboard-nav-active: var(--nr-dashboard-pageSidebarBackgroundColor, rgba(0, 0, 0, 0.04));
+      --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.24));
+      --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.12));
     }
 
-    .nr-dashboard-tabs {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
       list-style: none;
       padding: 4px 4px;
       margin: 0;
     }
 
-    .nr-dashboard-tabs li:last-child .nr-dashboard-tabs__btn {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs li:last-child .nr-dashboard-tabs__btn {
       margin-bottom: 0;
     }
 
-    .nr-dashboard-tabs__btn {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
       padding: 10px 12px;
       margin-bottom: 4px;
       border-radius: 4px;
       border: 1px solid var(--nr-dashboard-nav-border);
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(0, 0, 0, 0.02);
       color: inherit;
       cursor: pointer;
       display: flex;
@@ -3898,7 +3899,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
     }
 
-    .nr-dashboard-tabs__btn.is-icon {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -3906,30 +3907,30 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       padding: 8px;
     }
 
-    .nr-dashboard-tabs__icon {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
       width: 32px;
       height: 32px;
       border-radius: 999px;
       display: grid;
       place-items: center;
       font-weight: 700;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.06);
       border: 1px solid var(--nr-dashboard-nav-border);
       box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
     }
 
-    .nr-dashboard-tabs__icon i {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
       font-size: 18px;
       line-height: 1;
     }
 
-    .nr-dashboard-tabs__icon img {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon img {
       width: 22px;
       height: 22px;
       object-fit: contain;
     }
 
-    .nr-dashboard-tabs__icon-glyph {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon-glyph {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -3938,34 +3939,34 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       height: 100%;
     }
 
-    .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
       display: none;
     }
 
-    .nr-dashboard-tabs__btn.is-active {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);
       border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
+      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.06);
     }
 
-    .nr-dashboard-tabs__btn:disabled {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
       filter: grayscale(0.2);
     }
 
-    .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: rgba(255, 255, 255, 0.08);
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
+      background: rgba(0, 0, 0, 0.06);
       border-color: var(--nr-dashboard-nav-border-active);
     }
 
-    .nr-dashboard-tabs__btn:focus-visible {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: 2px solid var(--nr-dashboard-nav-border-active);
       outline-offset: 1px;
     }
 
-    .nr-dashboard-tabs__label {
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__label {
       min-width: 120px;
       display: inline-flex;
       align-items: center;
@@ -3973,7 +3974,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       letter-spacing: 0.02em;
     }
 
-    .nr-dashboard-group-card {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
       border: 1px solid var(--nr-dashboard-card-border);
       border-radius: 10px;
       background: var(--nr-dashboard-card-bg);
@@ -3982,14 +3983,15 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      padding: 8px;
     }
 
-    .nr-dashboard-group-card__header {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__header {
       font-weight: 500;
     }
 
-    .nr-dashboard-group-card__collapse {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse {
       border: none;
       background: transparent;
       color: inherit;
@@ -4004,29 +4006,29 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       transition: background 120ms ease;
     }
 
-    .nr-dashboard-group-card__collapse:hover {
-      background: rgba(255, 255, 255, 0.08);
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:hover {
+      background: rgba(0, 0, 0, 0.06);
     }
 
-    .nr-dashboard-group-card__collapse:focus-visible {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:focus-visible {
       outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
       outline-offset: 2px;
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.06);
     }
 
-    .nr-dashboard-group-card__list {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__list {
       list-style: none;
       margin: 0;
       padding: 0;
       display: grid;
     }
 
-    .nr-dashboard-group-card__item {
+    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__item {
       font-size: 12px;
       opacity: 0.9;
     }
 
-    .nr-dashboard-widget-frame {
+    ${DASHBOARD_SCOPE} .nr-dashboard-widget-frame {
       background: var(--nr-dashboard-widgetBackgroundColor, transparent);
       border: 1px solid var(--nr-dashboard-widgetBorderColor, transparent);
       color: var(--nr-dashboard-widgetTextColor, inherit);
@@ -4044,7 +4046,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 60%);
+      background: radial-gradient(circle, rgba(0,0,0,0.14) 0%, rgba(0,0,0,0) 60%);
       opacity: 0;
       transform: scale(0.4);
       transition: opacity 220ms ease, transform 220ms ease;
@@ -4222,7 +4224,7 @@ function TabNav(props) {
     ${visibleMenu.length === 0 ? m2`<li style=${{ opacity: 0.6 }}>${t4("no_tabs", "No tabs yet")}</li>` : visibleMenu.map(({ tab, originalIndex }, idx) => {
     const active = originalIndex === selectedIndex;
     const label = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
-    const icon = renderIcon(tab, idx);
+    const icon = tab.icon ? renderIcon(tab, idx) : null;
     return m2`<li key=${tab.id ?? tab.header ?? originalIndex}>
             <button
               class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active" : ""}`.trim()}
@@ -46452,10 +46454,17 @@ function resolveSizes(site) {
     layoutMode: sizes.layoutMode || base2.layoutMode
   };
 }
+function getDashboardRoot() {
+  if (typeof document === "undefined")
+    return null;
+  return document.getElementById("nr-dashboard-root") ?? document.getElementById("app") ?? document.documentElement;
+}
 function applySizesToRoot(sizes, root) {
   if (!root && typeof document === "undefined")
     return;
-  const target = root ?? document.documentElement;
+  const target = root ?? getDashboardRoot();
+  if (!target)
+    return;
   const entries = [
     ["--nr-dashboard-sx", `${sizes.sx}`],
     ["--nr-dashboard-sy", `${sizes.sy}`],
@@ -46474,6 +46483,7 @@ function applySizesToRoot(sizes, root) {
 var SizesContext = Q(null);
 function SizesProvider({ site, tabId, children }) {
   const [sizes, setSizes] = d2(() => resolveSizes(site));
+  const root = typeof document !== "undefined" ? document.getElementById("nr-dashboard-root") ?? document.getElementById("app") : null;
   y2(() => {
     setSizes(resolveSizes(site));
   }, [site]);
@@ -46485,11 +46495,11 @@ function SizesProvider({ site, tabId, children }) {
     return () => window.removeEventListener("resize", handleResize);
   }, [site]);
   y2(() => {
-    applySizesToRoot(sizes);
+    applySizesToRoot(sizes, root ?? undefined);
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("dashboard:size", { detail: sizes }));
     }
-  }, [sizes]);
+  }, [sizes, root]);
   y2(() => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("resize"));
@@ -46630,9 +46640,9 @@ function GroupCard(props) {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: "12px",
-    minHeight: "32px",
-    padding: "10px 12px 6px 12px"
+    gap: "10px",
+    minHeight: "28px",
+    padding: "6px 8px 4px 8px"
   }}
     >
       <span style=${{ fontWeight: 500, lineHeight: "20px", paddingRight: "8px" }}>${title}</span>
@@ -46646,19 +46656,19 @@ function GroupCard(props) {
             <i class=${collapsed ? "fa fa-caret-down" : "fa fa-caret-up"}></i>
           </button>` : null}
     </header>
-    ${collapsed ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul
+    ${collapsed ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 8px 8px 8px" }}>${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul
           class="nr-dashboard-group-card__list"
           style=${{
     rowGap: `${sizes.cy}px`,
     columnGap: `${sizes.cx}px`,
-    padding: "0 12px 12px 12px"
+    padding: "0 8px 8px 8px"
   }}
         >
           ${items.map((control, ctrlIdx) => m2`<li
                 class="nr-dashboard-group-card__item"
                 key=${control?.id ?? ctrlIdx}
                 style=${{
-    padding: `${Math.max(0, padding.y - 4)}px ${Math.max(0, padding.x - 2)}px`
+    padding: `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`
   }}
               >
                 <${WidgetRenderer}
@@ -46949,9 +46959,9 @@ function findFirstFocusable(root) {
 var themeVarMap = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
   "page-textColor": "--nr-dashboard-pageTextColor",
-  "page-titlebar-backgroundColor": "--nr-dashboard-titlebarBackgroundColor",
-  "page-sidebar-backgroundColor": "--nr-dashboard-sidebarBackgroundColor",
-  "page-sidebarTextColor": "--nr-dashboard-sidebarTextColor",
+  "page-titlebar-backgroundColor": "--nr-dashboard-pageTitlebarBackgroundColor",
+  "page-sidebarBackgroundColor": "--nr-dashboard-pageSidebarBackgroundColor",
+  "page-sidebarTextColor": "--nr-dashboard-pageSidebarTextColor",
   "group-backgroundColor": "--nr-dashboard-groupBackgroundColor",
   "group-textColor": "--nr-dashboard-groupTextColor",
   "group-borderColor": "--nr-dashboard-groupBorderColor",
@@ -46962,9 +46972,9 @@ var themeVarMap = {
   "base-color": "--nr-dashboard-baseColor"
 };
 var appStyles = {
-  fontFamily: "'Inter', system-ui, sans-serif",
-  background: "var(--nr-dashboard-pageBackgroundColor, #0f1115)",
-  color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #e9ecf1))",
+  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
+  color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
   minHeight: "100vh",
   display: "grid"
 };
@@ -46973,7 +46983,9 @@ var toolbarStyles = {
   alignItems: "center",
   gap: "12px",
   padding: "0 16px",
-  borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))"
+  borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08))",
+  background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
+  color: "#fff"
 };
 var iconButtonStyles = {
   border: "none",
@@ -46993,7 +47005,7 @@ var floatingToggleStyles = {
   left: "12px",
   zIndex: "20",
   border: "none",
-  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
+  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
   color: "inherit",
   borderRadius: "50%",
   padding: "10px 12px",
@@ -47008,10 +47020,10 @@ var layoutStyles2 = {
   position: "relative"
 };
 var navStyles = {
-  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08)))",
+  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08)))",
   padding: "12px 12px 16px",
-  color: "var(--nr-dashboard-sidebarTextColor, inherit)",
-  background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
+  color: "var(--nr-dashboard-pageSidebarTextColor, inherit)",
+  background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
   overflowY: "auto"
 };
 var contentStyles = {
@@ -47063,10 +47075,17 @@ function relativeLuminance({ r: r3, g: g2, b }) {
   const bl = channel(b);
   return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
 }
+function getDashboardRoot2() {
+  if (typeof document === "undefined")
+    return null;
+  return document.getElementById("nr-dashboard-root") ?? document.getElementById("app") ?? document.documentElement;
+}
 function applyThemeToRoot(theme2, root) {
   if (!root && typeof document === "undefined")
     return;
-  const target = root ?? document.documentElement;
+  const target = root ?? getDashboardRoot2();
+  if (!target)
+    return;
   if (!theme2?.themeState) {
     Object.values(themeVarMap).forEach((cssVar) => {
       target.style.removeProperty(cssVar);
@@ -47115,7 +47134,7 @@ function App() {
   }, [state.menu.length]);
   y2(() => {
     const theme2 = getEffectiveTheme(selectedTab, state.theme);
-    applyThemeToRoot(theme2);
+    applyThemeToRoot(theme2, getDashboardRoot2() ?? undefined);
   }, [selectedTab, state.theme]);
   return m2`<${I18nProvider} lang=${lang} locales=${locales}>
     <${SizesProvider} site=${state.site} tabId=${tabId}>
@@ -47271,7 +47290,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
                   class="nr-dashboard-icon-press"
                   style=${{
     ...iconButtonStyles,
-    background: navOpen ? "rgba(255,255,255,0.12)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+    background: navOpen ? "rgba(0,0,0,0.10)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.04))",
     transform: navOpen ? "scale(0.98)" : "scale(1)"
   }}
                 >${navOpen ? "✕" : "☰"}</button>` : null}
@@ -47313,7 +47332,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
               style=${{
     ...floatingToggleStyles,
     ...iconButtonStyles,
-    background: navOpen ? "rgba(255,255,255,0.12)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.10))",
+    background: navOpen ? "rgba(0,0,0,0.10)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
     width: "44px",
     height: "44px",
     boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : floatingToggleStyles.boxShadow
@@ -47339,7 +47358,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     width: navWidth,
     minWidth: isIconOnly ? "72px" : "64px",
     maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
-    background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
+    background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
     position: isSlide && !isLocked && !isIconOnly ? "absolute" : "relative",
     left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : `-${navMaxWidth + 20}px` : undefined,
     top: navTop,
@@ -47361,8 +47380,8 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     ...iconButtonStyles,
     width: "36px",
     height: "36px",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.20))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))"
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))"
   }}
                     >✕</button>
                   </div>` : isIconOnly ? null : m2`<h3 style=${{ marginTop: "4px", marginBottom: "12px", fontSize: "14px", fontWeight: 600 }}>${t4("tabs_label", "Tabs")}</h3>`}
@@ -47383,23 +47402,34 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
             </nav>` : null}
 
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
-          ${shouldShowLoading(state.connection) ? m2`<${LoadingSkeleton} columns=${sizes.columns} />` : state.menu.length === 0 ? m2`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
-                <p style=${{ margin: "0 0 8px" }}>${t4("no_tabs_defined_title", "No tabs defined yet.")}</p>
-                <p style=${{ margin: 0 }}>${t4("no_tabs_defined_body", "Add UI nodes in Node-RED and deploy to see them here.")}</p>
+          ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div
+                style=${{
+    textAlign: "center",
+    opacity: 0.85,
+    padding: "48px 16px",
+    display: "grid",
+    placeItems: "center",
+    gap: "10px"
+  }}
+              >
+                <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
+                <p style=${{ margin: "4px 0", fontSize: "18px", fontWeight: 600 }}>${t4("welcome_title", "Welcome to the Node-RED Dashboard")}</p>
+                <p style=${{ margin: 0, maxWidth: "420px" }}>${t4("welcome_body", "Please add some UI nodes to your flow and redeploy.")}</p>
               </div>` : (() => {
     if (!selectedTab) {
       return m2`<div style=${{ opacity: 0.7 }}>${t4("select_tab_prompt", "Select a tab to view its content.")}</div>`;
     }
     if (selectedTab.link) {
-      return m2`<div style=${{ height: "100%", minHeight: "320px" }}>
+      return m2`<div style=${{ width: "100%", minHeight: "70vh" }}>
                     <iframe
                       src=${selectedTab.link}
                       style=${{
-        border: "1px solid rgba(255,255,255,0.1)",
-        borderRadius: "10px",
+        border: "none",
+        borderRadius: "0",
         width: "100%",
-        height: "80vh",
-        background: "#0b0d11"
+        height: "100%",
+        background: "transparent",
+        display: "block"
       }}
                       allowfullscreen
                     ></iframe>
@@ -47428,34 +47458,27 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     </div>
   `;
 }
-function LoadingSkeleton({ columns }) {
-  const cards = Array.from({ length: Math.max(3, Math.min(columns, 6)) });
+function LoadingScreen({ message }) {
   return m2`<div
     style=${{
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-    gap: "12px"
+    placeItems: "center",
+    padding: "48px 16px",
+    color: "rgba(0,0,0,0.65)"
   }}
   >
-    ${cards.map((_v, idx) => m2`<div
-        key=${idx}
-        style=${{
-    minHeight: "140px",
-    borderRadius: "10px",
-    background: "linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
-    backgroundSize: "200% 100%",
-    animation: "nr-dashboard-skeleton 1.2s ease-in-out infinite",
-    border: "1px solid rgba(255,255,255,0.08)"
-  }}
-      ></div>`)}
+    <div style=${{ display: "grid", placeItems: "center", gap: "12px" }}>
+      <img src="./wheel.png" alt=${message} width="72" height="72" style=${{ opacity: 0.9 }} />
+      <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500 }}>${message}</p>
+    </div>
   </div>`;
 }
 function bootstrap() {
   if (typeof document === "undefined")
     return;
-  const root = document.getElementById("app") ?? (() => {
+  const root = document.getElementById("nr-dashboard-root") ?? (() => {
     const el = document.createElement("div");
-    el.id = "app";
+    el.id = "nr-dashboard-root";
     document.body.appendChild(el);
     return el;
   })();

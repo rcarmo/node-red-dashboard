@@ -43,9 +43,15 @@ export function resolveSizes(site: unknown): SiteSizes {
   };
 }
 
+function getDashboardRoot(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  return document.getElementById("nr-dashboard-root") ?? document.getElementById("app") ?? document.documentElement;
+}
+
 export function applySizesToRoot(sizes: SiteSizes, root?: HTMLElement): void {
   if (!root && typeof document === "undefined") return;
-  const target = root ?? document.documentElement;
+  const target = root ?? getDashboardRoot();
+  if (!target) return;
   const entries: Array<[string, string]> = [
     ["--nr-dashboard-sx", `${sizes.sx}`],
     ["--nr-dashboard-sy", `${sizes.sy}`],

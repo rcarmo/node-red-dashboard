@@ -4,18 +4,23 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Node-RED Dashboard v2 (Preact)</title>
+    <link rel="stylesheet" href="./icons/material-design-icons.css" />
+    <link rel="stylesheet" href="./icons/font-awesome.css" />
+    <link rel="stylesheet" href="./icons/weather-icons-lite.css" />
     <style>
       html,
       body {
         margin: 0;
         padding: 0;
-        background: var(--nr-dashboard-pageBackgroundColor, #0f1115);
-        color: var(--nr-dashboard-pageTextColor, #e9ecf1);
+      }
+      #nr-dashboard-root {
+        background: var(--nr-dashboard-pageBackgroundColor, #eee);
+        color: var(--nr-dashboard-pageTextColor, #000);
       }
     </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="nr-dashboard-root"></div>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
