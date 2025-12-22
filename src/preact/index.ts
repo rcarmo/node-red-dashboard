@@ -289,7 +289,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 
   const toolbarHeight = viewportWidth < 960 ? "48px" : "64px";
   const navMaxWidth = viewportWidth <= 660 ? 200 : 320;
-  const navBaseWidth = isIconOnly ? 72 : Math.min(260, navMaxWidth);
+  const navBaseWidth = isIconOnly ? 72 : navMaxWidth;
   const navWidth = `${Math.max(64, navBaseWidth)}px`;
   const navTop = "0";
 
@@ -535,6 +535,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
             ? html`<${LoadingScreen} message=${t("loading", "Loading dashboard...")} />`
             : state.menu.length === 0
             ? html`<div
+              class="nr-dashboard-fade-in"
                 style=${{
                   textAlign: "center",
                   opacity: 0.85,
@@ -563,7 +564,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 }
 
                 if (selectedTab.link) {
-                  return html`<div style=${{ width: "100%", minHeight: "70vh" }}>
+                  return html`<div style=${{ width: "100%", minHeight: "80vh", position: "relative" }}>
                     <iframe
                       src=${selectedTab.link}
                       style=${{
@@ -573,6 +574,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                         height: "100%",
                         background: "transparent",
                         display: "block",
+                        position: "absolute",
+                        inset: 0,
                       }}
                       allowfullscreen
                     ></iframe>
@@ -621,7 +624,7 @@ function LoadingScreen({ message }: { message: string }): VNode {
     }}
   >
     <div style=${{ display: "grid", placeItems: "center", gap: "12px" }}>
-      <img src="./wheel.png" alt=${message} width="72" height="72" style=${{ opacity: 0.9 }} />
+      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin" style=${{ opacity: 0.9 }} />
       <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500 }}>${message}</p>
     </div>
   </div>`;

@@ -4063,6 +4063,14 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       transition: opacity 120ms ease, transform 220ms ease;
     }
 
+    .nr-dashboard-wheel-spin {
+      animation: nr-dashboard-wheel 1.05s linear infinite;
+    }
+
+    .nr-dashboard-fade-in {
+      animation: nr-dashboard-fade 1.2s ease-in;
+    }
+
     @keyframes nr-dashboard-nav-backdrop {
       from { opacity: 0; }
       to { opacity: 1; }
@@ -4071,6 +4079,17 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     @keyframes nr-dashboard-skeleton {
       0% { background-position: 200% 0; }
       100% { background-position: -200% 0; }
+    }
+
+    @keyframes nr-dashboard-wheel {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes nr-dashboard-fade {
+      0% { opacity: 0; }
+      30% { opacity: 0; }
+      100% { opacity: 1; }
     }
   `;
   doc.head.appendChild(style);
@@ -47112,6 +47131,7 @@ function applyThemeToRoot(theme2, root) {
   }
 }
 function App() {
+  ensureLayoutStyles();
   const { state, selectedTab, actions: actions2 } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
   const locales = T2(() => state.locales ?? hydrateLocales(), [state.locales]);
@@ -47271,9 +47291,9 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     const tabTitle = selectedTab?.header ?? selectedTab?.name;
     const siteTitle = site?.name;
     if (isLocked || isIconOnly) {
-      return siteTitle ?? t4("app_title", "Node-RED Dashboard v2");
+      return siteTitle ?? "";
     }
-    return tabTitle ?? siteTitle ?? t4("app_title", "Node-RED Dashboard v2");
+    return tabTitle ?? siteTitle ?? "";
   })();
   const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
   const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : "260px"} 1fr` : "1fr";
@@ -47295,27 +47315,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   }}
                 >${navOpen ? "✕" : "☰"}</button>` : null}
             <strong>${toolbarTitle}</strong>
-            <span
-              style=${{
-    marginLeft: "auto",
-    fontSize: "13px",
-    opacity: 0.8,
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "6px"
-  }}
-            >
-              <span
-                aria-hidden="true"
-                style=${{
-    width: "10px",
-    height: "10px",
-    borderRadius: "50%",
-    background: state.connection === "ready" ? "#46e18a" : state.connection === "connecting" ? "#f5c74f" : "#f26b6b"
-  }}
-              ></span>
-              ${statusLabel}
-            </span>
+            <span style=${{ marginLeft: "auto" }}></span>
           </header>`}
       <section
         style=${{
@@ -47403,6 +47403,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
 
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
           ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div
+              class="nr-dashboard-fade-in"
                 style=${{
     textAlign: "center",
     opacity: 0.85,
@@ -47420,7 +47421,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       return m2`<div style=${{ opacity: 0.7 }}>${t4("select_tab_prompt", "Select a tab to view its content.")}</div>`;
     }
     if (selectedTab.link) {
-      return m2`<div style=${{ width: "100%", minHeight: "70vh" }}>
+      return m2`<div style=${{ width: "100%", minHeight: "80vh", position: "relative" }}>
                     <iframe
                       src=${selectedTab.link}
                       style=${{
@@ -47429,7 +47430,9 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
         width: "100%",
         height: "100%",
         background: "transparent",
-        display: "block"
+        display: "block",
+        position: "absolute",
+        inset: 0
       }}
                       allowfullscreen
                     ></iframe>
@@ -47468,7 +47471,7 @@ function LoadingScreen({ message }) {
   }}
   >
     <div style=${{ display: "grid", placeItems: "center", gap: "12px" }}>
-      <img src="./wheel.png" alt=${message} width="72" height="72" style=${{ opacity: 0.9 }} />
+      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin" style=${{ opacity: 0.9 }} />
       <p style=${{ margin: 0, fontSize: "14px", fontWeight: 500 }}>${message}</p>
     </div>
   </div>`;
