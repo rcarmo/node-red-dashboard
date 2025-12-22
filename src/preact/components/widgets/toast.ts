@@ -52,7 +52,7 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
       borderLeft: `4px solid ${toneColor}`,
       boxShadow: "0 10px 26px rgba(0,0,0,0.35)",
       padding: "12px 14px 12px 16px",
-      background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.65))",
+      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
       position: "relative",
       borderRadius: "8px",
       margin: `${6 + stackOffset}px 0 6px 0`,

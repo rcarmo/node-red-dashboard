@@ -41,7 +41,7 @@ export function buildFieldStyles(opts: FieldStyleOptions = {}): Record<string, s
     padding: dense ? "8px 10px" : "10px 12px",
     borderRadius: "8px",
     border: `1px solid ${borderColor}`,
-    background: "var(--nr-dashboard-widgetFieldBg, var(--nr-dashboard-widgetBackgroundColor, #0f1115))",
+    background: "var(--nr-dashboard-widgetFieldBg, var(--nr-dashboard-widgetBackgroundColor, transparent))",
     color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
     outline: "none",
     boxShadow: focusRing,

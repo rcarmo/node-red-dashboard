@@ -38,7 +38,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       --nr-dashboard-slider-thumb-shadow: 0 1px 3px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
       --nr-dashboard-slider-focus: var(--nr-dashboard-widgetColor, #1f8af2);
       --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #e9ecf1);
-      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.25));
+      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, transparent);
       --nr-dashboard-slider-chip-shadow: 0 4px 12px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.35));
     }
 

@@ -176,9 +176,9 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     .nr-dashboard-widget-frame {
-      background: var(--nr-dashboard-widgetBackgroundColor, #14171d);
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.08));
-      color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      background: var(--nr-dashboard-widgetBackgroundColor, transparent);
+      border: 1px solid var(--nr-dashboard-widgetBorderColor, transparent);
+      color: var(--nr-dashboard-widgetTextColor, inherit);
       border-radius: 8px;
     }
 

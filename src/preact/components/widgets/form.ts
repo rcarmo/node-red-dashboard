@@ -104,7 +104,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                     border: errors[f.name]
                       ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
                       : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-                    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+                    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
                     color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
                   }}
                 >${values[f.name] ?? ""}</textarea>`
@@ -137,7 +137,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                     border: errors[f.name]
                       ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
                       : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-                    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+                    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
                     color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
                   }}
                 >
@@ -180,7 +180,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                     border: errors[f.name]
                       ? "1px solid var(--nr-dashboard-errorColor, #f87171)"
                       : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-                    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
+                    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
                     color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
                   }}
                 />`}

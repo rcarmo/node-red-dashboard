@@ -65,7 +65,7 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
         gap: "8px",
         padding: "8px 10px",
         borderRadius: "8px",
-        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.35))",
+        background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
         border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
         marginBottom: "6px",
       }}
