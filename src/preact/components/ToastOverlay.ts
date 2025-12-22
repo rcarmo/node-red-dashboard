@@ -15,12 +15,23 @@ export function ToastOverlay(props: { toasts: ToastMessage[]; onDismiss: (id: st
   >
     ${toasts.map((toast) => {
       const toneColor = resolveToastToneColor(toast.level ?? "info");
+      const borderColor = toast.highlight || toneColor;
+      const liveMode = toast.level === "error" ? "assertive" : "polite";
+      const messageNode =
+        typeof toast.message === "string"
+          ? html`<div style=${messageStyles} dangerouslySetInnerHTML=${{ __html: toast.message }}></div>`
+          : html`<div style=${messageStyles}>${String(toast.message ?? "")}</div>`;
+
       return html`<div
         key=${toast.id}
-        style=${{ ...cardBaseStyles, border: `4px solid ${toneColor}` }}
+        class=${toast.className || ""}
+        style=${{ ...cardBaseStyles, border: `4px solid ${borderColor}` }}
+        role="status"
+        aria-live=${liveMode}
+        aria-atomic="true"
       >
         <div style=${titleStyles}>${toast.title || t("toast_overlay_title", "Notification")}</div>
-        <div style=${messageStyles}>${String(toast.message ?? "")}</div>
+        ${messageNode}
       </div>`;
     })}
   </div>`;

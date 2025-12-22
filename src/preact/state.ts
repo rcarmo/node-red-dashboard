@@ -65,6 +65,7 @@ export type ToastMessage = {
   message?: unknown;
   level?: "info" | "warn" | "error";
   displayTime?: number;
+  highlight?: string;
   className?: string;
 };
 
@@ -301,7 +302,15 @@ function applyGroupVisibility(menu: UiMenuItem[], groupMsg: Record<string, unkno
 }
 
 function pushToast(prev: DashboardState, payload: unknown): DashboardState {
-  const msg = payload as { id?: string; title?: string; message?: unknown; level?: string; displayTime?: number; className?: string };
+  const msg = payload as {
+    id?: string;
+    title?: string;
+    message?: unknown;
+    level?: string;
+    displayTime?: number;
+    className?: string;
+    highlight?: string;
+  };
   const id = msg.id?.toString() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const toast = {
     id,
@@ -309,6 +318,7 @@ function pushToast(prev: DashboardState, payload: unknown): DashboardState {
     message: msg.message,
     level: msg.level === "error" || msg.level === "warn" ? msg.level : undefined,
     displayTime: typeof msg.displayTime === "number" ? msg.displayTime : 3000,
+    highlight: typeof msg.highlight === "string" ? msg.highlight : undefined,
     className: msg.className,
   } satisfies ToastMessage;
   const nextToasts = [...prev.toasts.filter((t) => t.id !== id), toast];

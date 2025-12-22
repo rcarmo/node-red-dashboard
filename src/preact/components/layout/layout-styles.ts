@@ -76,15 +76,14 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
+      width: 24px;
+      height: 24px;
       display: grid;
       place-items: center;
-      font-weight: 600;
-      background: rgba(0, 0, 0, 0.04);
-      border: 1px solid var(--nr-dashboard-nav-border);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+      font-weight: 500;
+      background: transparent;
+      border: none;
+      box-shadow: none;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
@@ -113,9 +112,9 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
-      background: var(--nr-dashboard-nav-active);
+      background: transparent;
       border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.05);
+      box-shadow: none;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {

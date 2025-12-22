@@ -3776,6 +3776,7 @@ function pushToast(prev, payload) {
     message: msg.message,
     level: msg.level === "error" || msg.level === "warn" ? msg.level : undefined,
     displayTime: typeof msg.displayTime === "number" ? msg.displayTime : 3000,
+    highlight: typeof msg.highlight === "string" ? msg.highlight : undefined,
     className: msg.className
   };
   const nextToasts = [...prev.toasts.filter((t4) => t4.id !== id), toast];
@@ -3927,15 +3928,14 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
+      width: 24px;
+      height: 24px;
       display: grid;
       place-items: center;
-      font-weight: 600;
-      background: rgba(0, 0, 0, 0.04);
-      border: 1px solid var(--nr-dashboard-nav-border);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+      font-weight: 500;
+      background: transparent;
+      border: none;
+      box-shadow: none;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
@@ -3964,9 +3964,9 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
-      background: var(--nr-dashboard-nav-active);
+      background: transparent;
       border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.05);
+      box-shadow: none;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
@@ -46957,12 +46957,19 @@ function ToastOverlay(props) {
   >
     ${toasts.map((toast) => {
     const toneColor = resolveToastToneColor(toast.level ?? "info");
+    const borderColor = toast.highlight || toneColor;
+    const liveMode = toast.level === "error" ? "assertive" : "polite";
+    const messageNode = typeof toast.message === "string" ? m2`<div style=${messageStyles} dangerouslySetInnerHTML=${{ __html: toast.message }}></div>` : m2`<div style=${messageStyles}>${String(toast.message ?? "")}</div>`;
     return m2`<div
         key=${toast.id}
-        style=${{ ...cardBaseStyles, border: `4px solid ${toneColor}` }}
+        class=${toast.className || ""}
+        style=${{ ...cardBaseStyles, border: `4px solid ${borderColor}` }}
+        role="status"
+        aria-live=${liveMode}
+        aria-atomic="true"
       >
         <div style=${titleStyles}>${toast.title || t4("toast_overlay_title", "Notification")}</div>
-        <div style=${messageStyles}>${String(toast.message ?? "")}</div>
+        ${messageNode}
       </div>`;
   })}
   </div>`;
