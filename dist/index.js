@@ -3978,15 +3978,30 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       display: flex;
       flex-direction: column;
       gap: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
     }
 
     .nr-dashboard-group-card__header {
-      font-weight: 600;
+      font-weight: 500;
     }
 
-    .nr-dashboard-group-card__meta {
-      opacity: 0.8;
-      font-size: 13px;
+    .nr-dashboard-group-card__collapse {
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      min-width: 28px;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 120ms ease;
+    }
+
+    .nr-dashboard-group-card__collapse:hover {
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .nr-dashboard-group-card__list {
@@ -46380,66 +46395,55 @@ function GroupCard(props) {
   const header = group.header;
   const title = header?.name || t4("group_label", "Group {index}", { index: index + 1 });
   const items = group.items ?? [];
+  const collapseEnabled = Boolean(header?.config?.collapse);
   const groupKey = T2(() => {
     const base2 = `${tabName ?? ""} ${header?.name ?? ""}`.trim();
     return (base2 || header?.id || `group-${index}`).toString().replace(/ /g, "_");
   }, [tabName, header?.name, header?.id, index]);
   const initialCollapsed = T2(() => {
     const flag = header?.config?.collapsed ?? header?.config?.collapse ?? false;
-    if (typeof window !== "undefined" && groupKey) {
-      const stored = window.localStorage.getItem(`gc${groupKey}`);
-      if (stored === "true")
-        return true;
-    }
     return flag;
-  }, [header?.config, groupKey]);
+  }, [header?.config]);
   const [collapsed, setCollapsed] = d2(initialCollapsed);
   const toggleCollapse = () => {
     const next = !collapsed;
     setCollapsed(next);
-    if (typeof window !== "undefined" && groupKey) {
-      if (next) {
-        window.localStorage.setItem(`gc${groupKey}`, "true");
-      } else {
-        window.localStorage.removeItem(`gc${groupKey}`);
-      }
-    }
-    if (onEmit) {
-      onEmit("ui-collapse", { group: groupKey, state: !next });
-    }
   };
   return m2`<section
-    class="nr-dashboard-group-card"
+    class=${`nr-dashboard-group-card ${header?.config?.className ?? ""}`.trim()}
     style=${{
     gridColumn: `span ${columnSpan}`,
     padding: `${padding.y}px ${padding.x}px`
   }}
   >
-    <header class="nr-dashboard-group-card__header" style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <button
-        type="button"
-        aria-expanded=${!collapsed}
-        aria-label=${collapsed ? t4("expand_group", "Expand group") : t4("collapse_group", "Collapse group")}
-        onClick=${toggleCollapse}
-        style=${{
-    border: "1px solid rgba(255,255,255,0.16)",
-    background: "transparent",
-    color: "inherit",
-    borderRadius: "6px",
-    padding: "2px 8px",
-    cursor: "pointer"
+    <header
+      class="nr-dashboard-group-card__header"
+      style=${{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: "12px",
+    minHeight: "32px",
+    padding: "10px 12px 6px 12px"
   }}
-      >${collapsed ? "+" : "-"}</button>
-      <span>${title}</span>
+    >
+      <span style=${{ fontWeight: 500, lineHeight: "20px", paddingRight: "8px" }}>${title}</span>
+      ${collapseEnabled ? m2`<button
+            type="button"
+            aria-expanded=${!collapsed}
+            aria-label=${collapsed ? t4("expand_group", "Expand group") : t4("collapse_group", "Collapse group")}
+            onClick=${toggleCollapse}
+            class="nr-dashboard-group-card__collapse"
+          >
+            <i class=${collapsed ? "fa fa-caret-down" : "fa fa-caret-up"}></i>
+          </button>` : null}
     </header>
-    <div class="nr-dashboard-group-card__meta">
-      ${items.length === 1 ? t4("widget_count_one", "{count} widget", { count: items.length }) : t4("widget_count_other", "{count} widgets", { count: items.length })}
-    </div>
-    ${collapsed ? m2`<div style=${{ opacity: 0.6, fontSize: "12px" }}>${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div style=${{ opacity: 0.6, fontSize: "12px" }}>${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul
+    ${collapsed ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul
           class="nr-dashboard-group-card__list"
           style=${{
     rowGap: `${sizes.cy}px`,
-    columnGap: `${sizes.cx}px`
+    columnGap: `${sizes.cx}px`,
+    padding: "0 12px 12px 12px"
   }}
         >
           ${items.map((control, ctrlIdx) => m2`<li

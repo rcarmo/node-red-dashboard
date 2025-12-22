@@ -22,6 +22,7 @@ export function GroupCard(props: {
   const header = group.header;
   const title = header?.name || t("group_label", "Group {index}", { index: index + 1 });
   const items = (group.items ?? []) as UiControl[];
+  const collapseEnabled = Boolean((header?.config as { collapse?: boolean } | undefined)?.collapse);
   const groupKey = useMemo(() => {
     const base = `${tabName ?? ""} ${header?.name ?? ""}`.trim();
     return (base || header?.id || `group-${index}`).toString().replace(/ /g, "_");
@@ -31,68 +32,57 @@ export function GroupCard(props: {
     const flag = (header?.config as { collapsed?: boolean; collapse?: boolean } | undefined)?.collapsed ??
       (header?.config as { collapse?: boolean } | undefined)?.collapse ??
       false;
-    if (typeof window !== "undefined" && groupKey) {
-      const stored = window.localStorage.getItem(`gc${groupKey}`);
-      if (stored === "true") return true;
-    }
     return flag;
-  }, [header?.config, groupKey]);
+  }, [header?.config]);
 
   const [collapsed, setCollapsed] = useState<boolean>(initialCollapsed);
 
   const toggleCollapse = () => {
     const next = !collapsed;
     setCollapsed(next);
-    if (typeof window !== "undefined" && groupKey) {
-      if (next) {
-        window.localStorage.setItem(`gc${groupKey}`, "true");
-      } else {
-        window.localStorage.removeItem(`gc${groupKey}`);
-      }
-    }
-    if (onEmit) {
-      onEmit("ui-collapse", { group: groupKey, state: !next });
-    }
   };
 
   return html`<section
-    class="nr-dashboard-group-card"
+    class=${`nr-dashboard-group-card ${header?.config?.className ?? ""}`.trim()}
     style=${{
       gridColumn: `span ${columnSpan}`,
       padding: `${padding.y}px ${padding.x}px`,
     }}
   >
-    <header class="nr-dashboard-group-card__header" style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
-      <button
-        type="button"
-        aria-expanded=${!collapsed}
-        aria-label=${collapsed ? t("expand_group", "Expand group") : t("collapse_group", "Collapse group")}
-        onClick=${toggleCollapse}
-        style=${{
-          border: "1px solid rgba(255,255,255,0.16)",
-          background: "transparent",
-          color: "inherit",
-          borderRadius: "6px",
-          padding: "2px 8px",
-          cursor: "pointer",
-        }}
-      >${collapsed ? "+" : "-"}</button>
-      <span>${title}</span>
+    <header
+      class="nr-dashboard-group-card__header"
+      style=${{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "12px",
+        minHeight: "32px",
+        padding: "10px 12px 6px 12px",
+      }}
+    >
+      <span style=${{ fontWeight: 500, lineHeight: "20px", paddingRight: "8px" }}>${title}</span>
+      ${collapseEnabled
+        ? html`<button
+            type="button"
+            aria-expanded=${!collapsed}
+            aria-label=${collapsed ? t("expand_group", "Expand group") : t("collapse_group", "Collapse group")}
+            onClick=${toggleCollapse}
+            class="nr-dashboard-group-card__collapse"
+          >
+            <i class=${collapsed ? "fa fa-caret-down" : "fa fa-caret-up"}></i>
+          </button>`
+        : null}
     </header>
-    <div class="nr-dashboard-group-card__meta">
-      ${items.length === 1
-        ? t("widget_count_one", "{count} widget", { count: items.length })
-        : t("widget_count_other", "{count} widgets", { count: items.length })}
-    </div>
     ${collapsed
-      ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>${t("collapsed", "Collapsed")}</div>`
+      ? html`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t("collapsed", "Collapsed")}</div>`
       : items.length === 0
-      ? html`<div style=${{ opacity: 0.6, fontSize: "12px" }}>${t("no_widgets", "No widgets in this group yet.")}</div>`
+      ? html`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t("no_widgets", "No widgets in this group yet.")}</div>`
       : html`<ul
           class="nr-dashboard-group-card__list"
           style=${{
             rowGap: `${sizes.cy}px`,
             columnGap: `${sizes.cx}px`,
+            padding: "0 12px 12px 12px",
           }}
         >
           ${items.map((control, ctrlIdx) => html`<li

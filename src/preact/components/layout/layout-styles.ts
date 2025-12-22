@@ -131,15 +131,30 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: flex;
       flex-direction: column;
       gap: 8px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
     }
 
     .nr-dashboard-group-card__header {
-      font-weight: 600;
+      font-weight: 500;
     }
 
-    .nr-dashboard-group-card__meta {
-      opacity: 0.8;
-      font-size: 13px;
+    .nr-dashboard-group-card__collapse {
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      min-width: 28px;
+      min-height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 120ms ease;
+    }
+
+    .nr-dashboard-group-card__collapse:hover {
+      background: rgba(255, 255, 255, 0.08);
     }
 
     .nr-dashboard-group-card__list {

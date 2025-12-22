@@ -120,3 +120,20 @@
 - [ ] Add streaming helpers + option mapping for charts (after loader in place).
 - [ ] Remove gulp/legacy build once parity is acceptable; point Node-RED runtime to `dist/` by default.
 - [ ] Restore legacy dashboard layout behaviors: honor `hideToolbar`, reuse site/tab titles in the toolbar, gate menu toggle/nav on tab count, auto-close the nav on tab select when unlocked, render real tab icons (not letter-only), and add swipe handling that respects `allowSwipe` (`menu` to open/close nav; `true`/`mouse` to switch tabs; disable mouse swipes unless explicitly allowed).
+
+## Widget Fit-Gap (non-chart widgets)
+- Button: height/padding smaller than legacy MD raised button; no ripple or hover elevation; 2px radius vs pillier legacy; disabled border always shown; tooltip spacing differs. Rec: raise min-height (~36–40px), add subtle elevation/ripple, slightly larger radius, stronger disabled contrast.
+- Switch: track/knob smaller and tight left padding; no ripple; label weight 600 vs legacy regular; label fixed to the right; focus ring subtle; disabled opacity light. Rec: enlarge track/knob, add ripple/focus ring token, lighten label weight, restore legacy padding and disabled tint.
+- Slider: slimmer track/thumb; value chip always present and styled differently; label/value font smaller; vertical height 160px vs ~200px; no ticks; weak hover/active shadow. Rec: thicken track/thumb, taller vertical track, add tick/active shadow, show value bubble on drag only.
+- Numeric: underline-only field; label now shows "Label: value" inline; no +/- controls; focus underline manual; lacks boxed MD-style input. Rec: boxed input with consistent border/background, separate value display, optional spinner buttons.
+- Text Input: underline style with tight padding/radius; no filled background; focus underline manual; color mode lacks inline swatch. Rec: boxed field with filled token, standard focus ring, optional leading swatch/icon for color mode.
+- Dropdown: underline select, missing chevron and filled background; native menu styling; padding tight. Rec: add chevron, boxed select with background, styled menu surface/elevation.
+- Date Picker: plain native input with underline; no calendar affordance or overlay styling; focus underline manual. Rec: add calendar icon/button, boxed field, styled picker overlay matching legacy.
+- Colour Picker: plain `<input type=color>` only; no hue/lightness/alpha controls or popover; flat 28px field. Rec: swatch + popover picker with hue/alpha sliders and taller padded field.
+- Text: value always bold 600/16px; label opacity 0.8 may under-contrast; limited layout nuance vs legacy options. Rec: honor font/size/weight tokens, adjust gaps per layout preset, allow normal weight and optional secondary line styling.
+- Link: plain text + icon; minimal padding; focus ring absent. Rec: padded header-style link with 18–20px icon, hover/focus ring, align to toolbar spacing.
+- Toast: soft card (transparent border, dark bg) vs legacy brighter border/stripe; no per-corner margin; small monochrome close icon. Rec: tone border/stripe, corner-aware margin, larger close affordance with hover tint.
+- Gauge: thinner strokes/pointer, smaller labels; no card/padding; title only above. Rec: bump stroke/label sizes, optional card background, align title/units with legacy JustGage look.
+- Form: inputs boxed with 6px radius but spacing differs from legacy MD rhythm; select/radio styling simplified; submit button matches compact button. Rec: harmonize input style choice, add helper/error spacing per legacy, size submit to MD raised button.
+- Audio: runtime styling minimal; legacy had padded row with icon/status. Rec: style playback row with padding/icon/text consistent with group spacing.
+- Template: no default padding/background; legacy widget had container context. Rec: add default padding/background unless overridden.
