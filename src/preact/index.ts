@@ -68,7 +68,7 @@ const iconButtonStyles: Record<string, string> = {
   display: "inline-grid",
   placeItems: "center",
   cursor: "pointer",
-  transition: "background 120ms ease, color 120ms ease",
+  transition: "background 120ms ease, color 120ms ease, transform 140ms ease",
 };
 
 const floatingToggleStyles: Record<string, string> = {
@@ -89,7 +89,7 @@ const floatingToggleStyles: Record<string, string> = {
 const layoutStyles: Record<string, string> = {
   display: "grid",
   gridTemplateColumns: "260px 1fr",
-  minHeight: "calc(100vh - 56px)",
+  minHeight: "100vh",
   position: "relative",
 };
 
@@ -399,6 +399,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                     background: navOpen
                       ? "rgba(255,255,255,0.12)"
                       : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+                    transform: navOpen ? "scale(0.98)" : "scale(1)",
                   }}
                 >${navOpen ? "✕" : "☰"}</button>`
               : null}
@@ -466,7 +467,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                     inset: 0,
                     background: "rgba(0,0,0,0.32)",
                     zIndex: 9,
-                    animation: "nr-dashboard-nav-backdrop 160ms ease",
+                    animation: "nr-dashboard-nav-backdrop 200ms ease-out",
                   }}
                 ></div>`
               : null}
@@ -482,14 +483,14 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navMaxWidth + 20}px`) : undefined,
                 top: navTop,
                 bottom: 0,
-                transition: "left 0.18s ease-out",
+                transition: "left 0.20s ease-in-out",
                 zIndex: 10,
                 boxShadow:
                   isSlide && !isLocked && !isIconOnly
                     ? navOpen
-                      ? "2px 0 12px rgba(0,0,0,0.35)"
+                      ? "2px 0 12px rgba(0,0,0,0.32)"
                       : "0 0 0 rgba(0,0,0,0)"
-                    : "1px 0 10px rgba(0,0,0,0.28)",
+                    : "2px 0 8px rgba(0,0,0,0.22)",
                 backdropFilter: isSlide && !isLocked && !isIconOnly && navOpen ? "blur(2px)" : undefined,
               }}
             >
