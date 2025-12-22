@@ -41,38 +41,38 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
     return undefined;
   }, [c.message, c.label, c.level, displayMs]);
 
-        border: "1px solid transparent",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-        padding: "10px 12px",
-        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.55))",
-        position: "relative",
-        borderRadius: "4px",
+  if (!visible) return null;
+
+  return html`<div
+    class=${c.className || ""}
     style=${{
-      border: `1px solid ${toneColor}`,
-      padding: "8px 10px",
-      background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
+      border: "1px solid transparent",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+      padding: "10px 12px",
+      background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.55))",
       position: "relative",
+      borderRadius: "4px",
     }}
     role="status"
     aria-live="polite"
   >
-    <div style=${{ fontWeight: 600, marginBottom: "4px" }}>${label}</div>
+    <div style=${{ fontWeight: 600, marginBottom: "4px", color: toneColor }}>${label}</div>
     <div style=${{ fontSize: "13px" }}>${msg}</div>
     ${dismissible
       ? html`<button
           type="button"
           aria-label=${t("toast_close", "Close notification")}
-              background: "transparent",
-              border: "none",
-              color: toneColor,
-              cursor: "pointer",
-              fontWeight: 700,
-              padding: 0,
+          onClick=${() => setVisible(false)}
+          style=${{
+            position: "absolute",
+            top: "6px",
+            right: "6px",
             background: "transparent",
             border: "none",
             color: toneColor,
             cursor: "pointer",
             fontWeight: 700,
+            padding: 0,
           }}
         >×</button>`
       : null}

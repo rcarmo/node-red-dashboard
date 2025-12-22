@@ -4311,7 +4311,7 @@ function TextWidget(props) {
   const color = typeof asText.color === "string" ? asText.color : undefined;
   const fontSize = asText.fontSize ? `${asText.fontSize}px` : undefined;
   const fontFamily = asText.font;
-  const [ref, size] = useElementSize();
+  const [ref] = useElementSize();
   const container = mergeStyleString({
     ...layoutStyles(asText),
     width: "100%",
@@ -4330,9 +4330,6 @@ function TextWidget(props) {
   }}
     >
       ${formatted}
-    </div>
-    <div style=${{ opacity: 0.45, fontSize: "10px" }}>
-      ${t4("dimensions_px", "{width}×{height} px", { width: Math.round(size.width), height: Math.round(size.height) })}
     </div>
   </div>`;
 }
@@ -4653,7 +4650,7 @@ function TextInputWidget(props) {
       emitValue(value2);
     }
   };
-  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
+  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
     <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     ${asInput.required ? m2`<span style=${{ fontSize: "11px", opacity: 0.72 }}>${t4("required_label", "Required")}</span>` : null}
     <input
@@ -4671,11 +4668,27 @@ function TextInputWidget(props) {
       onBlur=${handleBlur}
       style=${{
     width: "100%",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    border: error ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)"
+    padding: "8px 4px",
+    borderRadius: "2px",
+    border: "none",
+    borderBottom: error ? "2px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+    background: "transparent",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)",
+    outline: "none",
+    transition: "border-color 120ms ease"
+  }}
+      onFocus=${(e3) => {
+    const el = e3.target;
+    if (error)
+      return;
+    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
+  }}
+      onBlur=${(e3) => {
+    handleBlur();
+    const el = e3.target;
+    if (error)
+      return;
+    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
   }}
     />
     ${typeof maxLength === "number" ? m2`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
@@ -4774,8 +4787,9 @@ function NumericWidget(props) {
   const [, postPart = ""] = (rest || "").split("}}");
   const pre = prePart || "";
   const post = postPart || "";
-  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
+  const labeledValue = `${label}: ${formatter.format(value2)}`;
+  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${labeledValue}</span>
     <div style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
       ${pre ? m2`<span style=${{ opacity: 0.7 }}>${pre}</span>` : null}
       <input
@@ -4791,18 +4805,26 @@ function NumericWidget(props) {
         onInput=${handleChange}
         style=${{
     width: "100%",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)"
+    padding: "8px 4px",
+    borderRadius: "2px",
+    border: "none",
+    borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+    background: "transparent",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)",
+    outline: "none",
+    transition: "border-color 120ms ease"
+  }}
+        onFocus=${(e3) => {
+    const el = e3.target;
+    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
+  }}
+        onBlur=${(e3) => {
+    const el = e3.target;
+    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
   }}
       />
       ${post ? m2`<span style=${{ opacity: 0.7 }}>${post}</span>` : null}
     </div>
-    <span style=${{ opacity: 0.65, fontSize: "11px", alignSelf: "flex-end" }}>
-      ${t4("number_value_label", "{label}: {value}", { label, value: formatter.format(value2) })}
-    </span>
   </label>`;
 }
 
@@ -4927,7 +4949,7 @@ function DropdownWidget(props) {
         onEmit("ui-control", buildDropdownEmit(asDrop, label, parsed));
     }
   };
-  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "6px", width: "100%" }}>
+  return m2`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
     <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
     <select
       multiple=${multiple}
@@ -4938,11 +4960,22 @@ function DropdownWidget(props) {
       onChange=${handleChange}
       style=${{
     width: "100%",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.05))",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)"
+    padding: multiple ? "8px 4px" : "8px 4px",
+    borderRadius: "2px",
+    border: "none",
+    borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+    background: "transparent",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)",
+    outline: "none",
+    transition: "border-color 120ms ease"
+  }}
+      onFocus=${(e3) => {
+    const el = e3.target;
+    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
+  }}
+      onBlur=${(e3) => {
+    const el = e3.target;
+    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
   }}
     >
       ${asDrop.place && !multiple ? m2`<option value="" disabled selected=${value2 == null || value2 === ""}>${asDrop.place}</option>` : null}
@@ -41603,12 +41636,12 @@ registerEChartsModules([install7]);
 function computeGaugeHeight(ctrl) {
   const gtype = (ctrl.gtype || "gage").toString().toLowerCase();
   if (gtype === "wave")
-    return 260;
-  if (gtype === "compass")
     return 240;
-  if (gtype === "donut")
+  if (gtype === "compass")
     return 220;
-  return 220;
+  if (gtype === "donut")
+    return 200;
+  return 200;
 }
 function toNumber3(value2, fallback) {
   const n3 = Number(value2);
@@ -41663,7 +41696,7 @@ function GaugeWidget(props) {
   }, [asGauge.value, min3, max3]);
   const segments = T2(() => buildSegments(asGauge, min3, max3), [asGauge, min3, max3]);
   const showMinMax = !asGauge.hideMinMax;
-  const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "donut" || asGauge.gtype === "compass" || !asGauge.gtype;
+  const showTicks = asGauge.gtype === "gage" || asGauge.gtype === "compass" || !asGauge.gtype;
   const gtype = (asGauge.gtype || "gage").toString().toLowerCase();
   const isDonut = gtype === "donut";
   const isWave = gtype === "wave";
@@ -41690,10 +41723,10 @@ function GaugeWidget(props) {
         max: max3,
         startAngle: isCompass ? 90 : reverse ? 45 : 225,
         endAngle: isCompass ? -270 : reverse ? -225 : -45,
-        splitNumber: isCompass ? 8 : showTicks ? 10 : 0,
+        splitNumber: isCompass ? 8 : showTicks ? 6 : 0,
         progress: {
           show: true,
-          width: isDonut || isWave ? 16 : 10,
+          width: isDonut || isWave ? 12 : 8,
           roundCap: true,
           itemStyle: {
             color: segments[segments.length - 1][1]
@@ -41701,15 +41734,15 @@ function GaugeWidget(props) {
         },
         axisLine: {
           lineStyle: {
-            width: isDonut ? 16 : 10,
+            width: isDonut ? 12 : 8,
             color: segments
           }
         },
-        axisTick: { show: showTicks, distance: isCompass ? -8 : -12, length: isCompass ? 8 : 6 },
-        splitLine: { show: showTicks, length: isCompass ? 12 : 10, distance: isCompass ? -10 : -14 },
+        axisTick: { show: showTicks, distance: isCompass ? -6 : -8, length: isCompass ? 8 : 6 },
+        splitLine: { show: showTicks, length: isCompass ? 10 : 8, distance: isCompass ? -10 : -12 },
         axisLabel: {
           show: showMinMax || isCompass,
-          distance: isCompass ? 22 : 16,
+          distance: isCompass ? 18 : 12,
           color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
           formatter: (val) => {
             if (!isCompass)
@@ -41719,14 +41752,14 @@ function GaugeWidget(props) {
             return dirs[idx];
           }
         },
-        pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
-        anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        pointer: { show: !isDonut && !isWave, width: 3, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        anchor: { show: !isDonut && !isWave, showAbove: true, size: 8, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
         detail: {
           valueAnimation: true,
           formatter: () => formatted,
           color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-          fontSize: 16,
-          offsetCenter: isWave ? [0, "40%"] : [0, "60%"]
+          fontSize: 14,
+          offsetCenter: isWave ? [0, "36%"] : [0, "60%"]
         },
         data: [
           {
@@ -41788,7 +41821,7 @@ function DatePickerWidget(props) {
     setError("");
     return true;
   };
-  return m2`<label style=${{ display: "grid", gap: "6px" }}>
+  return m2`<label style=${{ display: "grid", gap: "4px" }}>
     <span style=${{ fontSize: "12px", opacity: 0.8 }}>${label}</span>
     <input
       class=${c3.className || ""}
@@ -41809,11 +41842,26 @@ function DatePickerWidget(props) {
     onEmit?.("ui-change", { payload: v3 });
   }}
       style=${{
-    padding: "8px 10px",
-    borderRadius: "6px",
-    border: error2 ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)",
-    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
+    padding: "8px 4px",
+    borderRadius: "2px",
+    border: "none",
+    borderBottom: error2 ? "2px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
+    background: "transparent",
+    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+    outline: "none",
+    transition: "border-color 120ms ease"
+  }}
+      onFocus=${(e4) => {
+    const el = e4.target;
+    if (error2)
+      return;
+    el.style.borderBottom = "2px solid var(--nr-dashboard-widgetColor, #1f8af2)";
+  }}
+      onBlur=${(e4) => {
+    const el = e4.target;
+    if (error2)
+      return;
+    el.style.borderBottom = "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))";
   }}
       min=${c3.min || undefined}
       max=${c3.max || undefined}
@@ -41855,9 +41903,9 @@ function ColourPickerWidget(props) {
   }}
       style=${{
     width: "100%",
-    minHeight: "38px",
+    minHeight: "28px",
     padding: "0",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2))",
     background: "var(--nr-dashboard-widgetBackgroundColor, #0f1115)"
   }}
     />
@@ -41954,15 +42002,17 @@ function ToastWidget(props) {
   return m2`<div
     class=${c3.className || ""}
     style=${{
-    border: `1px solid ${toneColor}`,
-    padding: "8px 10px",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
-    position: "relative"
+    border: "1px solid transparent",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+    padding: "10px 12px",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.55))",
+    position: "relative",
+    borderRadius: "4px"
   }}
     role="status"
     aria-live="polite"
   >
-    <div style=${{ fontWeight: 600, marginBottom: "4px" }}>${label}</div>
+    <div style=${{ fontWeight: 600, marginBottom: "4px", color: toneColor }}>${label}</div>
     <div style=${{ fontSize: "13px" }}>${msg}</div>
     ${dismissible ? m2`<button
           type="button"
@@ -41976,7 +42026,8 @@ function ToastWidget(props) {
     border: "none",
     color: toneColor,
     cursor: "pointer",
-    fontWeight: 700
+    fontWeight: 700,
+    padding: 0
   }}
         >×</button>` : null}
   </div>`;
@@ -42009,7 +42060,25 @@ function LinkWidget(props) {
     e4.preventDefault();
     e4.stopPropagation();
   } : undefined}
-      style=${{ color: "var(--nr-dashboard-widgetColor, #61dafb)", pointerEvents: isDisabled ? "none" : "auto" }}
+      style=${{
+    color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.4))" : "var(--nr-dashboard-widgetColor, #61dafb)",
+    pointerEvents: isDisabled ? "none" : "auto",
+    textDecoration: "none",
+    borderBottom: isDisabled ? "none" : "1px solid transparent",
+    transition: "color 120ms ease, border-color 120ms ease"
+  }}
+      onMouseEnter=${(e4) => {
+    const el = e4.currentTarget;
+    if (isDisabled)
+      return;
+    el.style.borderBottom = "1px solid currentColor";
+  }}
+      onMouseLeave=${(e4) => {
+    const el = e4.currentTarget;
+    if (isDisabled)
+      return;
+    el.style.borderBottom = "1px solid transparent";
+  }}
     >
       ${label}
     </a>

@@ -64,8 +64,10 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
   const pre = prePart || "";
   const post = postPart || "";
 
+  const labeledValue = `${label}: ${formatter.format(value)}`;
+
   return html`<label style=${{ display: "flex", flexDirection: "column", gap: "4px", width: "100%" }}>
-    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</span>
+    <span style=${{ fontSize: "13px", opacity: 0.8, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${labeledValue}</span>
     <div style=${{ display: "flex", alignItems: "center", gap: "8px" }}>
       ${pre ? html`<span style=${{ opacity: 0.7 }}>${pre}</span>` : null}
       <input
