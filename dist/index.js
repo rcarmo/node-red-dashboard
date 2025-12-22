@@ -4383,32 +4383,47 @@ function TextWidget(props) {
   const asText = control;
   const { t: t4 } = useI18n();
   const label = asText.label || asText.name || t4("text_label", "Text {index}", { index: index + 1 });
+  const labelHtml = { __html: label };
   const raw = asText.value ?? asText.text ?? "";
   const formatted = applyFormat(asText.format, raw);
   const color = typeof asText.color === "string" ? asText.color : undefined;
   const fontSize = asText.fontSize ? `${asText.fontSize}px` : undefined;
   const fontFamily = asText.font;
-  const fontWeight = asText.fontWeight ?? 500;
+  const fontWeight = asText.fontWeight ?? 700;
   const [ref] = useElementSize();
   const container = mergeStyleString({
     ...layoutStyles(asText),
     width: "100%",
-    padding: "4px 2px"
+    padding: "0 12px"
   }, asText.style);
-  return m2`<div ref=${ref} class=${asText.className || ""} style=${container}>
-    <div style=${{ fontSize: "13px", opacity: 0.75, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
-    <div
+  const isColumn = container.flexDirection === "column";
+  return m2`<div ref=${ref} class=${`nr-dashboard-text ${asText.className || ""}`.trim()} style=${container}>
+    <p
+      class="nr-dashboard-text__label"
       style=${{
-    fontSize: fontSize || "16px",
+    margin: "0.1em 0.25em 0.1em 0",
+    fontSize: "14px",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)",
+    opacity: 0.85,
+    lineHeight: 1.3,
+    display: label ? "block" : "none"
+  }}
+      dangerouslySetInnerHTML=${labelHtml}
+    ></p>
+    <p
+      class="nr-dashboard-text__value"
+      style=${{
+    margin: "0.1em 0.25em 0.1em 0",
+    fontSize: fontSize || (isColumn ? "16px" : "15px"),
     fontWeight,
     color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
-    lineHeight: 1.4,
+    lineHeight: 1.3,
     wordBreak: "break-word",
     fontFamily
   }}
     >
       ${formatted}
-    </div>
+    </p>
   </div>`;
 }
 
@@ -4593,8 +4608,8 @@ function ButtonWidget(props) {
 // src/preact/components/widgets/switch.ts
 function resolveSwitchColors(ctrl, checked) {
   if (checked)
-    return ctrl.oncolor || "#3ddc97";
-  return ctrl.offcolor || "rgba(255,255,255,0.12)";
+    return ctrl.oncolor || "var(--nr-dashboard-widgetBackgroundColor, #0094d9)";
+  return ctrl.offcolor || "rgba(111,111,111,0.5)";
 }
 function buildSwitchEmit(ctrl, fallbackLabel, next) {
   return {
@@ -4617,6 +4632,7 @@ function SwitchWidget(props) {
   const asSwitch = control;
   const { t: t4 } = useI18n();
   const label = asSwitch.label || asSwitch.name || t4("switch_label", "Switch {index}", { index: index + 1 });
+  const labelHtml = { __html: label };
   const toChecked = (val) => {
     if (asSwitch.onvalue !== undefined || asSwitch.offvalue !== undefined) {
       if (matchesValue(val, asSwitch.onvalue))
@@ -4627,7 +4643,6 @@ function SwitchWidget(props) {
     return Boolean(val);
   };
   const [checked, setChecked] = d2(toChecked(asSwitch.value ?? asSwitch.state));
-  const [hovered, setHovered] = d2(false);
   const [focused, setFocused] = d2(false);
   y2(() => {
     setChecked(toChecked(asSwitch.value ?? asSwitch.state));
@@ -4647,139 +4662,223 @@ function SwitchWidget(props) {
     const payload = buildSwitchEmit(asSwitch, label, next);
     onEmit("ui-control", payload);
   };
-  const resolvedColor = resolveSwitchColors(asSwitch, checked);
-  const bg = checked ? asSwitch.oncolor ?? `var(--nr-dashboard-widgetColor, ${resolvedColor})` : asSwitch.offcolor ?? `var(--nr-dashboard-widgetBorderColor, ${resolvedColor})`;
   const isCenter = (asSwitch.className || "").split(" ").includes("center");
-  const [ripple, setRipple] = d2(false);
-  return m2`<label
-    class=${asSwitch.className || ""}
-    style=${{
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    cursor: "default",
-    userSelect: "none",
-    opacity: disabled ? 0.55 : 1,
-    paddingLeft: "14px",
-    margin: isCenter ? "0 auto" : undefined
-  }}
-  >
-    <div
-      onClick=${onEmit ? toggle : undefined}
-      onMouseEnter=${() => setHovered(true)}
-      onMouseLeave=${() => setHovered(false)}
-      onFocus=${() => setFocused(true)}
-      onBlur=${() => setFocused(false)}
-      onMouseDown=${() => setRipple(true)}
-      onMouseUp=${() => setRipple(false)}
-      onMouseOut=${() => setRipple(false)}
-      onKeyDown=${(e3) => {
+  const showLabel = !(Number(asSwitch.width) === 1);
+  const renderIcon = (icon) => {
+    if (!icon)
+      return null;
+    const trimmed = icon.trim();
+    if (!trimmed)
+      return null;
+    const isUrl = /^https?:\/\//i.test(trimmed);
+    if (isUrl)
+      return m2`<img src=${trimmed} alt="" style=${{ width: "20px", height: "20px", display: "block" }} />`;
+    if (trimmed.startsWith("mi-")) {
+      const glyph = trimmed.slice(3);
+      return m2`<span class=${`material-icons ${trimmed}`} aria-hidden="true">${glyph}</span>`;
+    }
+    if (trimmed.startsWith("fa-"))
+      return m2`<i class=${`fa fa-fw ${trimmed}`} aria-hidden="true"></i>`;
+    if (trimmed.startsWith("wi-"))
+      return m2`<i class=${`wi wi-fw ${trimmed}`} aria-hidden="true"></i>`;
+    if (trimmed.startsWith("icofont-"))
+      return m2`<i class=${`icofont icofont-fw ${trimmed}`} aria-hidden="true"></i>`;
+    if (trimmed.startsWith("iconify-")) {
+      const [, size] = trimmed.split(" ");
+      const iconName = trimmed.split(" ")[0].slice(8);
+      return m2`<i class="iconify" data-icon=${iconName} data-width=${size ?? "1.3em"} data-height=${size ?? "1.3em"} aria-hidden="true"></i>`;
+    }
+    if (/^[A-Za-z0-9_-]+$/.test(trimmed))
+      return m2`<span class="material-icons" aria-hidden="true">${trimmed}</span>`;
+    return null;
+  };
+  const resolvedColor = resolveSwitchColors(asSwitch, checked);
+  const bg = checked ? resolvedColor : resolveSwitchColors(asSwitch, false);
+  const track = m2`<div
+    onClick=${onEmit ? toggle : undefined}
+    onFocus=${() => setFocused(true)}
+    onBlur=${() => setFocused(false)}
+    onKeyDown=${(e3) => {
     if (e3.key === "Enter" || e3.key === " " || e3.key === "Spacebar") {
       e3.preventDefault();
       toggle();
     }
   }}
-      tabIndex=${disabled ? -1 : 0}
-      role="switch"
-      aria-checked=${checked}
-      style=${{
-    width: "40px",
-    height: "22px",
-    borderRadius: "11px",
+    tabIndex=${disabled ? -1 : 0}
+    role="switch"
+    aria-checked=${checked}
+    style=${{
+    width: "36px",
+    height: "20px",
+    borderRadius: "10px",
     background: bg,
     position: "relative",
-    transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
-    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)" : hovered ? "0 1px 2px rgba(0,0,0,0.18)" : "0 1px 2px rgba(0,0,0,0.12)",
-    overflow: "hidden"
+    transition: "background 120ms ease, box-shadow 120ms ease",
+    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 32%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
+    overflow: "hidden",
+    cursor: disabled ? "default" : "grab"
   }}
-    >
-      <span
-        aria-hidden="true"
-        style=${{
+  >
+    <div
+      style=${{
     position: "absolute",
-    inset: 0,
-    background: "radial-gradient(circle at center, rgba(255,255,255,0.22), transparent 55%)",
-    opacity: ripple ? 0.28 : 0,
-    transition: "opacity 180ms ease",
-    pointerEvents: "none"
-  }}
-      ></span>
-      <div
-        style=${{
-    position: "absolute",
-    top: "3px",
-    left: checked ? "21px" : "3px",
-    width: "16px",
-    height: "16px",
+    top: "-2px",
+    left: checked ? "18px" : "-2px",
+    width: "20px",
+    height: "20px",
     borderRadius: "50%",
-    background: "var(--nr-dashboard-widgetTextColor, #fff)",
+    background: checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)",
     boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
-    transition: "left 120ms ease"
+    transition: "left 120ms ease, background 120ms ease"
   }}
-      ></div>
-    </div>
-    <div style=${{ display: "flex", flexDirection: "column", gap: "0" }}>
-      <span style=${{ fontWeight: 500, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
-        ${checked && asSwitch.onicon ? m2`<span class="fa ${asSwitch.onicon}" style=${{ marginRight: "6px" }}></span>` : null}
-        ${!checked && asSwitch.officon ? m2`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
-        ${label}
-      </span>
-    </div>
-  </label>`;
-}
-
-// src/preact/components/styles/fieldStyles.ts
-var fieldWrapperStyles = {
-  display: "grid",
-  gap: "6px",
-  width: "100%"
-};
-var fieldLabelStyles = {
-  fontSize: "13px",
-  opacity: 0.85,
-  color: "var(--nr-dashboard-widgetTextColor, inherit)",
-  lineHeight: 1.3
-};
-var fieldHelperStyles = {
-  fontSize: "11px",
-  opacity: 0.7,
-  color: "var(--nr-dashboard-widgetTextColor, inherit)"
-};
-function buildFieldStyles(opts = {}) {
-  const { error, focused, disabled, hasAdornment, dense } = opts;
-  const borderColor = error ? "var(--nr-dashboard-errorColor, #f87171)" : focused ? "var(--nr-dashboard-widgetColor, #1f8af2)" : "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))";
-  return {
+    ></div>
+  </div>`;
+  const customIconsActive = Boolean(asSwitch.onicon && asSwitch.officon && asSwitch.oncolor && asSwitch.offcolor);
+  const customIcons = customIconsActive ? m2`<div
+        onClick=${onEmit ? toggle : undefined}
+        style=${{
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "36px",
+    height: "20px",
+    cursor: disabled ? "default" : "grab",
+    padding: "0 8px",
+    position: "relative"
+  }}
+      >
+        <span
+          class=${asSwitch.animate || ""}
+          style=${{
+    color: checked ? asSwitch.oncolor : "transparent",
+    transition: "opacity 120ms ease, color 120ms ease",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center"
+  }}
+        >${renderIcon(asSwitch.onicon)}</span>
+        <span
+          class=${asSwitch.animate || ""}
+          style=${{
+    color: !checked ? asSwitch.offcolor : "transparent",
+    transition: "opacity 120ms ease, color 120ms ease",
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center"
+  }}
+        >${renderIcon(asSwitch.officon)}</span>
+      </div>` : track;
+  return m2`<div
+    class=${`nr-dashboard-switch ${asSwitch.className || ""}`.trim()}
+    style=${{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: isCenter ? "center" : "space-between",
     width: "100%",
-    padding: dense ? "6px 0" : "8px 0",
-    borderRadius: "0px",
-    border: "none",
-    borderBottom: `1px solid ${borderColor}`,
-    background: "transparent",
-    color: "var(--nr-dashboard-widgetTextColor, #000)",
-    outline: "none",
-    boxShadow: "none",
-    transition: "border-color 140ms ease, background 140ms ease",
-    appearance: "none",
-    WebkitAppearance: "none",
-    opacity: disabled ? 0.55 : 1,
-    cursor: disabled ? "not-allowed" : "text",
-    paddingRight: hasAdornment ? "36px" : "0px"
-  };
+    height: "100%",
+    gap: "0",
+    padding: "0 8px 0 8px",
+    cursor: disabled ? "default" : "grab",
+    opacity: disabled ? 0.55 : 1
+  }}
+    title=${asSwitch.tooltip || undefined}
+  >
+    ${showLabel ? m2`<p style=${{ margin: 0, padding: "0 0 0 12px", whiteSpace: "nowrap", overflow: "hidden", color: "var(--nr-dashboard-widgetTextColor, inherit)", fontWeight: 400 }} dangerouslySetInnerHTML=${labelHtml}></p>` : null}
+    ${customIcons}
+  </div>`;
 }
-var adornmentStyles = {
-  position: "absolute",
-  right: "10px",
-  top: "50%",
-  transform: "translateY(-50%)",
-  pointerEvents: "none",
-  color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.6))",
-  fontSize: "12px",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center"
-};
 
 // src/preact/components/widgets/text-input.ts
+var TEXT_INPUT_STYLE_ID = "nr-dashboard-textinput-style";
+function ensureTextInputStyles(doc = typeof document !== "undefined" ? document : undefined) {
+  if (!doc)
+    return;
+  if (doc.getElementById(TEXT_INPUT_STYLE_ID))
+    return;
+  const style = doc.createElement("style");
+  style.id = TEXT_INPUT_STYLE_ID;
+  style.textContent = `
+    .nr-dashboard-textinput {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-textinput__container {
+      flex: 1;
+      padding: 0 12px;
+      margin: 15px 0;
+      transition: margin 0.3s ease;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--focused,
+    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--has-value {
+      margin: 15px 0 5px;
+    }
+
+    .nr-dashboard-textinput__label {
+      display: block;
+      padding-left: 12px;
+      margin-bottom: 3px;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .nr-dashboard-textinput__container--focused .nr-dashboard-textinput__label {
+      color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
+    }
+
+    .nr-dashboard-textinput__field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
+      padding: 8px 0;
+      background: transparent;
+      box-sizing: border-box;
+      opacity: 1;
+    }
+
+    .nr-dashboard-textinput__field.is-focused {
+      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
+    }
+
+    .nr-dashboard-textinput__field.is-disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .nr-dashboard-textinput__input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--nr-dashboard-widgetTextColor, #000);
+      outline: none;
+      padding: 0 0 0 8px;
+      font-size: 14px;
+      min-width: 0;
+    }
+
+    .nr-dashboard-textinput__input:focus {
+      outline: none;
+    }
+
+    .nr-dashboard-textinput__input[type="color"] {
+      border: none;
+      padding-left: 0;
+    }
+  `;
+  doc.head.appendChild(style);
+}
 function inputType(mode) {
   if (!mode)
     return "text";
@@ -4810,6 +4909,7 @@ function TextInputWidget(props) {
   const { t: t4 } = useI18n();
   const label = asInput.label || asInput.name || t4("input_label", "Input {index}", { index: index + 1 });
   const [value2, setValue] = d2(asInput.value ?? "");
+  const labelHtml = { __html: label };
   const [error, setError] = d2("");
   const [focused, setFocused] = d2(false);
   const maxLength = control.maxlength;
@@ -4819,6 +4919,8 @@ function TextInputWidget(props) {
   const type = T2(() => inputType(asInput.mode), [asInput.mode]);
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
   const isColorMode = asInput.mode === "color";
+  const hasLabel = Boolean(asInput.label);
+  ensureTextInputStyles();
   const validate = (next) => {
     if (asInput.required && next.trim().length === 0) {
       setError(asInput.error || t4("error_required", "This field is required."));
@@ -4872,7 +4974,6 @@ function TextInputWidget(props) {
       emitValue(value2);
     }
   };
-  const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: Boolean(disabled), hasAdornment: isColorMode });
   const colorSwatch = isColorMode ? m2`<span
         aria-hidden="true"
         style=${{
@@ -4884,21 +4985,19 @@ function TextInputWidget(props) {
     boxShadow: "inset 0 0 0 1px rgba(0,0,0,0.15)"
   }}
       ></span>` : null;
-  return m2`<label style=${fieldWrapperStyles}>
-    <span style=${fieldLabelStyles}>${label}</span>
-    ${asInput.required ? m2`<span style=${fieldHelperStyles}>${t4("required_label", "Required")}</span>` : null}
-    <div style=${{ position: "relative", width: "100%" }}>
+  return m2`<div class=${`nr-dashboard-textinput ${asInput.className || ""}`.trim()}>
+    <div
+      class=${`nr-dashboard-textinput__container ${hasLabel ? "has-label" : ""} ${focused ? "nr-dashboard-textinput__container--focused" : ""} ${value2 ? "nr-dashboard-textinput__container--has-value" : ""}`.trim()}
+      title=${asInput.tooltip || undefined}
+    >
+      ${hasLabel ? m2`<label class="nr-dashboard-textinput__label" dangerouslySetInnerHTML=${labelHtml}></label>` : null}
+      ${asInput.required ? m2`<span style=${fieldHelperStyles}>${t4("required_label", "Required")}</span>` : null}
       <div
-        style=${{
-    ...fieldStyles,
-    display: "flex",
-    alignItems: "center",
-    gap: "8px"
-  }}
+        class=${`nr-dashboard-textinput__field ${focused ? "is-focused" : ""} ${disabled ? "is-disabled" : ""}`.trim()}
       >
         ${colorSwatch}
         <input
-          class=${asInput.className || ""}
+          class=${`nr-dashboard-textinput__input ${asInput.className || ""}`.trim()}
           type=${type}
           value=${value2}
           title=${asInput.tooltip || undefined}
@@ -4915,27 +5014,20 @@ function TextInputWidget(props) {
   }}
           onFocus=${() => setFocused(true)}
           style=${{
-    flex: 1,
-    background: "transparent",
-    border: "none",
-    color: "var(--nr-dashboard-widgetTextColor, #000)",
-    outline: "none",
-    padding: 0,
-    fontSize: "14px",
-    minWidth: 0
+    paddingLeft: isColorMode ? "25%" : undefined
   }}
         />
       </div>
     </div>
-    ${typeof maxLength === "number" ? m2`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end" }}>
+    ${typeof maxLength === "number" ? m2`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end", padding: "0 12px" }}>
           ${t4("char_counter", "{used}/{max}", { used: value2.length, max: maxLength })}
         </span>` : null}
     ${error ? m2`<span
           id=${`err-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px" }}
+          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", padding: "0 12px" }}
         >${error}</span>` : null}
-  </label>`;
+  </div>`;
 }
 
 // src/preact/lib/format.ts
@@ -4970,6 +5062,104 @@ function formatDateInput(value2, mode, lang) {
 }
 
 // src/preact/components/widgets/numeric.ts
+var NUMERIC_STYLE_ID = "nr-dashboard-numeric-style";
+function ensureNumericStyles(doc = typeof document !== "undefined" ? document : undefined) {
+  if (!doc)
+    return;
+  if (doc.getElementById(NUMERIC_STYLE_ID))
+    return;
+  const style = doc.createElement("style");
+  style.id = NUMERIC_STYLE_ID;
+  style.textContent = `
+    .nr-dashboard-numeric {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 0 0 12px;
+      box-sizing: border-box;
+      gap: 12px;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+    }
+
+    .nr-dashboard-numeric .label {
+      margin: 0 8px 0 0;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nr-dashboard-numeric__controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nr-dashboard-numeric__button {
+      margin: 0;
+      width: 34px;
+      height: 34px;
+      border: none;
+      background: transparent;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .nr-dashboard-numeric__button:hover,
+    .nr-dashboard-numeric__button:focus-visible {
+      background: rgba(255, 255, 255, 0.08);
+      outline: none;
+    }
+
+    .nr-dashboard-numeric__button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: transparent;
+    }
+
+    .nr-dashboard-numeric__value {
+      font-weight: 700;
+      text-align: center;
+      border: 0;
+      min-width: 64px;
+      padding: 6px 8px;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+    }
+
+    .nr-dashboard-numeric__input {
+      text-align: center;
+      font-weight: 700;
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
+      background: transparent;
+      min-width: 70px;
+      padding: 6px 4px;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      outline: none;
+    }
+
+    .nr-dashboard-numeric__input:focus {
+      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
+    }
+
+    .nr-dashboard-numeric__adorn {
+      font-size: 13px;
+      opacity: 0.9;
+      padding: 0 2px;
+    }
+  `;
+  doc.head.appendChild(style);
+}
 function toNumber(value2, fallback) {
   const n3 = Number(value2);
   return Number.isFinite(n3) ? n3 : fallback;
@@ -4995,17 +5185,23 @@ function NumericWidget(props) {
   const { control, index, disabled, onEmit } = props;
   const asNum = control;
   const { t: t4, lang } = useI18n();
-  const label = asNum.label || asNum.name || t4("number_label", "Number {index}", { index: index + 1 });
+  const label = asNum.label ?? asNum.name ?? t4("number_label", "Number {index}", { index: index + 1 });
   const min = toNumber(asNum.min, Number.MIN_SAFE_INTEGER);
   const max = toNumber(asNum.max, Number.MAX_SAFE_INTEGER);
   const step = toNumber(asNum.step, 1) || 1;
   const [value2, setValue] = d2(clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap));
-  const [focused, setFocused] = d2(false);
   const formatter = T2(() => new Intl.NumberFormat(lang || undefined), [lang]);
+  const holdTimer = A2(undefined);
+  ensureNumericStyles();
   y2(() => {
     const next = clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap);
     setValue(next);
   }, [asNum.value, asNum.min, min, max, asNum.wrap]);
+  y2(() => () => {
+    if (holdTimer.current !== undefined) {
+      clearInterval(holdTimer.current);
+    }
+  }, []);
   const update = (next) => {
     const clamped = clampValue(next, min, max, !!asNum.wrap);
     setValue(clamped);
@@ -5019,57 +5215,179 @@ function NumericWidget(props) {
     const next = toNumber(target.value, value2);
     update(next);
   };
-  const format = asNum.format || "";
+  const format = asNum.format ?? "{{value}}";
   const [prePart, rest] = format.split("{{");
   const [, postPart = ""] = (rest || "").split("}}");
   const pre = prePart || "";
   const post = postPart || "";
-  const fieldStyles = buildFieldStyles({ focused, disabled: Boolean(disabled), hasAdornment: Boolean(post || pre) });
-  return m2`<label style=${fieldWrapperStyles}>
-    <span style=${fieldLabelStyles}>${label}</span>
-    <div style=${{ position: "relative", width: "100%" }}>
-      <div
-        style=${{
-    ...fieldStyles,
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    paddingRight: post ? "48px" : fieldStyles.paddingRight
-  }}
+  const isEditable = asNum.ed ?? !format.includes("{{value}}");
+  const displayText = format && format.includes("{{value}}") ? format.replace("{{value}}", formatter.format(value2)) : format || formatter.format(value2);
+  const labelHtml = { __html: label };
+  const stepOnce = (delta) => {
+    if (disabled)
+      return;
+    update(value2 + delta);
+  };
+  const startHold = (delta) => {
+    stepOnce(delta);
+    if (disabled)
+      return;
+    holdTimer.current = window.setInterval(() => stepOnce(delta), 150);
+  };
+  const stopHold = () => {
+    if (holdTimer.current !== undefined) {
+      clearInterval(holdTimer.current);
+      holdTimer.current = undefined;
+    }
+  };
+  return m2`<div class=${`nr-dashboard-numeric ${asNum.className || ""}`.trim()} title=${asNum.tooltip || undefined}>
+    <p class="label" dangerouslySetInnerHTML=${labelHtml}></p>
+    <div class="nr-dashboard-numeric__controls">
+      <button
+        type="button"
+        class="nr-dashboard-numeric__button nr-dashboard-numeric__button--down"
+        aria-label=${t4("decrement", "Decrement")}
+        disabled=${Boolean(disabled)}
+        onMouseDown=${() => startHold(-step)}
+        onMouseUp=${stopHold}
+        onMouseLeave=${stopHold}
       >
-        ${pre ? m2`<span style=${fieldHelperStyles}>${pre}</span>` : null}
-        <input
-          class=${asNum.className || ""}
-          type="number"
-          min=${min}
-          max=${max}
-          step=${step}
-          value=${value2}
-          title=${asNum.tooltip || undefined}
-          disabled=${Boolean(disabled)}
-          aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
-          onInput=${handleChange}
-          onFocus=${() => setFocused(true)}
-          onBlur=${() => setFocused(false)}
-          style=${{
-    flex: 1,
-    background: "transparent",
+        <span class="material-icons" aria-hidden="true">expand_more</span>
+      </button>
+
+      ${isEditable ? m2`<div style=${{ display: "flex", alignItems: "center", gap: "4px" }}>
+            ${pre ? m2`<span class="nr-dashboard-numeric__adorn">${pre}</span>` : null}
+            <input
+              class=${`nr-dashboard-numeric__input ${asNum.className || ""}`.trim()}
+              type="number"
+              min=${min}
+              max=${max}
+              step=${step}
+              value=${value2}
+              disabled=${Boolean(disabled)}
+              aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+              onInput=${handleChange}
+            />
+            ${post ? m2`<span class="nr-dashboard-numeric__adorn">${post}</span>` : null}
+          </div>` : m2`<div style=${{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <p
+              class="nr-dashboard-numeric__value"
+              aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+            >${displayText}</p>
+            <input
+              type="number"
+              value=${value2}
+              aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+              readOnly
+              tabIndex=${-1}
+              style=${{
+    position: "absolute",
+    opacity: 0,
+    width: "1px",
+    height: "1px",
+    pointerEvents: "none",
     border: "none",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)",
-    outline: "none",
     padding: 0,
-    fontSize: "14px",
-    minWidth: 0
+    margin: 0
   }}
-        />
-        ${post ? m2`<span style=${{ ...adornmentStyles, position: "static", transform: "none" }}>${post}</span>` : null}
-      </div>
+            />
+          </div>`}
+
+      <button
+        type="button"
+        class="nr-dashboard-numeric__button nr-dashboard-numeric__button--up"
+        aria-label=${t4("increment", "Increment")}
+        disabled=${Boolean(disabled)}
+        onMouseDown=${() => startHold(step)}
+        onMouseUp=${stopHold}
+        onMouseLeave=${stopHold}
+      >
+        <span class="material-icons" aria-hidden="true">expand_less</span>
+      </button>
     </div>
-    <span style=${{ ...fieldHelperStyles, alignSelf: "flex-end" }}>${t4("number_value_label", "{label}: {value}", { label, value: formatter.format(value2) })}</span>
-  </label>`;
+  </div>`;
 }
 
 // src/preact/components/widgets/dropdown.ts
+var DROPDOWN_STYLE_ID = "nr-dashboard-dropdown-style";
+function ensureDropdownStyles(doc = typeof document !== "undefined" ? document : undefined) {
+  if (!doc)
+    return;
+  if (doc.getElementById(DROPDOWN_STYLE_ID))
+    return;
+  const style = doc.createElement("style");
+  style.id = DROPDOWN_STYLE_ID;
+  style.textContent = `
+    .nr-dashboard-dropdown {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px 0 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-dropdown__label {
+      margin: 0;
+      line-height: 34px;
+      margin-right: 4px;
+      margin-top: 3px;
+      padding-right: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 20%;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+    }
+
+    .nr-dashboard-dropdown__field {
+      flex: 1 1 auto;
+      height: 90%;
+      padding-left: 8px;
+      padding-right: 4px;
+      margin: 0 4px 0 0;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .nr-dashboard-dropdown__select {
+      width: 100%;
+      height: 34px;
+      padding: 0 28px 0 8px;
+      background: transparent;
+      color: var(--nr-dashboard-widgetTextColor, #000);
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      box-sizing: border-box;
+      margin-top: 6px;
+      font: inherit;
+    }
+
+    .nr-dashboard-dropdown__select:focus {
+      outline: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+    }
+
+    .nr-dashboard-dropdown__select:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .nr-dashboard-dropdown__chevron {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-35%);
+      font-size: 11px;
+      color: rgba(0,0,0,0.54);
+      pointer-events: none;
+    }
+  `;
+  doc.head.appendChild(style);
+}
 function parseOptionValue(val, type) {
   if (!type || type.startsWith("str"))
     return val;
@@ -5147,11 +5465,13 @@ function DropdownWidget(props) {
   const asDrop = control;
   const { t: t4 } = useI18n();
   const label = asDrop.label || asDrop.name || t4("dropdown_label", "Select {index}", { index: index + 1 });
+  const labelHtml = { __html: label };
   const opts = T2(() => asDrop.options ?? [], [asDrop.options]);
   const multiple = Boolean(asDrop.multiple);
   const [value2, setValue] = d2(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = A2(false);
   const [focused, setFocused] = d2(false);
+  ensureDropdownStyles();
   y2(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
     if (multiple) {
@@ -5191,13 +5511,13 @@ function DropdownWidget(props) {
         onEmit("ui-control", buildDropdownEmit(asDrop, label, parsed));
     }
   };
-  const fieldStyles = buildFieldStyles({ focused, disabled: Boolean(disabled), hasAdornment: true });
-  return m2`<label style=${fieldWrapperStyles}>
-    <span style=${fieldLabelStyles}>${label}</span>
-    <div style=${{ position: "relative", width: "100%" }}>
+  const showLabel = !(Number(asDrop.width) === 1) && label.length > 0;
+  return m2`<div class=${`nr-dashboard-dropdown ${asDrop.className || ""}`.trim()} title=${asDrop.tooltip || undefined}>
+    ${showLabel ? m2`<p class="nr-dashboard-dropdown__label" dangerouslySetInnerHTML=${labelHtml}></p>` : null}
+    <div class="nr-dashboard-dropdown__field">
       <select
         multiple=${multiple}
-        class=${asDrop.className || ""}
+        class="nr-dashboard-dropdown__select"
         title=${asDrop.tooltip || undefined}
         disabled=${Boolean(disabled)}
         value=${!multiple ? serializeOptionValue(value2) : undefined}
@@ -5205,13 +5525,8 @@ function DropdownWidget(props) {
         onFocus=${() => setFocused(true)}
         onBlur=${() => setFocused(false)}
         style=${{
-    ...fieldStyles,
-    paddingRight: "36px",
-    cursor: Boolean(disabled) ? "not-allowed" : "pointer",
-    display: "block",
-    background: "transparent",
-    borderBottom: fieldStyles.borderBottom,
-    color: "var(--nr-dashboard-widgetTextColor, #000)"
+    borderBottomColor: focused ? "var(--nr-dashboard-widgetBackgroundColor, #1f8af2)" : undefined,
+    cursor: Boolean(disabled) ? "not-allowed" : "pointer"
   }}
       >
         ${asDrop.place && !multiple ? m2`<option value="" disabled selected=${value2 == null || value2 === ""}>${asDrop.place}</option>` : null}
@@ -5229,23 +5544,14 @@ function DropdownWidget(props) {
           </option>`;
   })}
       </select>
-      <span
-        aria-hidden="true"
-        style=${{
-    ...adornmentStyles,
-    right: "12px",
-    fontSize: "11px",
-    color: "rgba(0,0,0,0.54)"
-  }}
-      >▼</span>
+      <span class="nr-dashboard-dropdown__chevron" aria-hidden="true">▼</span>
     </div>
-  </label>`;
+  </div>`;
 }
 
 // src/preact/components/widgets/slider.ts
 var DEFAULT_THROTTLE_MS = 10;
 var SLIDER_STYLE_ID = "nr-dashboard-slider-style";
-var MAX_TICKS = 10;
 function ensureSliderStyles(doc = typeof document !== "undefined" ? document : undefined) {
   if (!doc)
     return;
@@ -5255,29 +5561,27 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
   style.id = SLIDER_STYLE_ID;
   style.textContent = `
     :root {
-      --nr-dashboard-slider-track: var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18));
-      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-thumb-shadow: 0 1px 2px rgba(0,0,0,0.18);
-      --nr-dashboard-slider-focus: color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 70%, transparent);
-      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #000);
-      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, transparent);
-      --nr-dashboard-slider-chip-shadow: 0 2px 6px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
+      --nr-dashboard-slider-track: rgba(111, 111, 111, 0.5);
+      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #fff);
     }
 
     .nr-dashboard-slider {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      flex-direction: row;
+      align-items: center;
+      gap: 0;
       width: 100%;
-      align-items: stretch;
       padding: 0 12px;
     }
 
     .nr-dashboard-slider.is-vertical {
-      flex-direction: row;
+      flex-direction: column;
       padding: 0;
       font-size: 12px;
+      align-items: center;
     }
 
     .nr-dashboard-slider__row {
@@ -5295,20 +5599,10 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-slider__label.is-vertical {
-      margin-left: 8px;
       margin-top: 6px;
       padding-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
-    }
-
-    .nr-dashboard-slider__minmax {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      opacity: 0.7;
-      color: var(--nr-dashboard-slider-text);
-      padding: 0 2px;
     }
 
     .nr-dashboard-slider__range {
@@ -5316,36 +5610,35 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
-      height: 4px;
+      height: 2px;
     }
 
     .nr-dashboard-slider__range.is-vertical {
-      width: 24px;
-      height: 200px;
+      width: 32px;
+      height: 180px;
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
     }
 
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 4px;
+      height: 2px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
+      background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 14px;
-      width: 14px;
+      height: 12px;
+      width: 12px;
       margin-top: -5px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
-      box-shadow: var(--nr-dashboard-slider-thumb-shadow);
       border: 1px solid transparent;
     }
 
     .nr-dashboard-slider__range:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px var(--nr-dashboard-slider-focus);
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--nr-dashboard-slider-focus) 40%, transparent);
     }
 
     .nr-dashboard-slider__track {
@@ -5366,7 +5659,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-slider__range::-moz-range-track {
       height: 4px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
+      background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
@@ -5376,35 +5669,36 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-slider__range::-moz-range-thumb {
-      height: 14px;
-      width: 14px;
+      height: 12px;
+      width: 12px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
-      box-shadow: var(--nr-dashboard-slider-thumb-shadow);
       border: 1px solid transparent;
+    }
+
+    .nr-dashboard-slider__value {
+      font-weight: 700;
+      min-width: 48px;
+      text-align: center;
+      color: var(--nr-dashboard-slider-text);
+      font-size: 12px;
     }
 
     .nr-dashboard-slider__sign {
       position: absolute;
       padding: 4px 8px;
       border-radius: 12px;
-        background: var(--nr-dashboard-slider-chip-bg);
-        color: var(--nr-dashboard-slider-text);
+      background: var(--nr-dashboard-slider-fill);
+      color: var(--nr-dashboard-slider-text);
       font-size: 11px;
-      box-shadow: var(--nr-dashboard-slider-chip-shadow);
       pointer-events: none;
       white-space: nowrap;
+      transform: translate(-50%, -140%);
     }
 
     .nr-dashboard-slider__sign.is-vertical {
-      left: calc(50% + 14px);
-      transform: translate(-50%, -50%);
-    }
-
-    .nr-dashboard-slider__value {
-      opacity: 0.6;
-      font-size: 12px;
-      color: var(--nr-dashboard-slider-text);
+      left: 50%;
+      transform: translate(-50%, -120%);
     }
   `;
   doc.head.appendChild(style);
@@ -5443,7 +5737,6 @@ function SliderWidget(props) {
   const outs = asSlider.outs === "end" ? "end" : "all";
   const isVertical = toNumber2(asSlider.width ?? 0, 0) < toNumber2(asSlider.height ?? 0, 0);
   const isDiscrete = outs === "end";
-  const forceSign = Boolean(asSlider.showSign);
   const formatter = new Intl.NumberFormat(lang || undefined);
   const initial = clampSliderValue(toNumber2(asSlider.value ?? min, min), min, max);
   const [value2, setValue] = d2(initial);
@@ -5508,12 +5801,10 @@ function SliderWidget(props) {
   const sliderValue = toDisplayValue(value2);
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
-  const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
-  const showTicks = stepCount > 0 && stepCount <= MAX_TICKS;
-  const showSign = forceSign || dragging;
+  const showSign = Boolean(asSlider.showSign) || outs === "end" && !isDisabled;
   const sliderStyle = isVertical ? {
     width: "32px",
-    height: "200px",
+    height: "180px",
     writingMode: "bt-lr",
     WebkitAppearance: "slider-vertical",
     background: `linear-gradient(to top, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`
@@ -5522,95 +5813,50 @@ function SliderWidget(props) {
     background: `linear-gradient(to right, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`
   };
   const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
+  const showHorizontalLabel = !isVertical && Number(asSlider.width ?? 0) >= Number(asSlider.height ?? 0) && Boolean(label);
+  const showVerticalLabel = isVertical && Boolean(label);
+  const sliderInput = m2`<input
+    class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+    type="range"
+    min=${min}
+    max=${max}
+    step=${step}
+    value=${sliderValue}
+    title=${asSlider.tooltip || undefined}
+    disabled=${isDisabled}
+    aria-valuetext=${t4("slider_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+    onInput=${handleInput}
+    onChange=${handleChange}
+    onWheel=${handleWheel}
+    onPointerDown=${() => setDragging(true)}
+    onPointerUp=${() => setDragging(false)}
+    onPointerCancel=${() => setDragging(false)}
+    onBlur=${() => setDragging(false)}
+    onMouseLeave=${() => setDragging(false)}
+    style=${{
+    ...sliderStyle,
+    transform: isVertical && invert ? "rotate(180deg)" : undefined
+  }}
+  />`;
+  const bubble = showSign ? m2`<span
+        class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
+        style=${isVertical ? { top: `${100 - percent * 100}%` } : { left: `${percent * 100}%` }}
+      >${formatter.format(value2)}</span>` : null;
+  const valueDisplay = m2`<span class="nr-dashboard-slider__value">${formatter.format(value2)}</span>`;
   return m2`<div class=${containerClass}>
     ${!isVertical ? m2`<div class="nr-dashboard-slider__row">
-          <span class="nr-dashboard-slider__label">${label}</span>
+          ${showHorizontalLabel ? m2`<span class="nr-dashboard-slider__label">${label}</span>` : null}
           <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
-            <input
-              class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
-              type="range"
-              min=${min}
-              max=${max}
-              step=${step}
-              value=${sliderValue}
-              title=${asSlider.tooltip || undefined}
-              disabled=${isDisabled}
-              aria-valuetext=${t4("slider_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
-              onInput=${handleInput}
-              onChange=${handleChange}
-              onWheel=${handleWheel}
-              onPointerDown=${() => setDragging(true)}
-              onPointerUp=${() => setDragging(false)}
-              onPointerCancel=${() => setDragging(false)}
-              onBlur=${() => setDragging(false)}
-              onMouseLeave=${() => setDragging(false)}
-              style=${{
-    ...sliderStyle,
-    transform: isVertical && invert ? "rotate(180deg)" : undefined
-  }}
-            />
-            ${showTicks ? m2`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-                  ${Array.from({ length: stepCount + 1 }).map((_3, idx) => {
-    const pos = idx / stepCount * 100;
-    const active = percent * 100 >= pos;
-    const style = isVertical ? { top: `${100 - pos}%`, left: "0" } : { left: `${pos}%`, top: "0" };
-    return m2`<span
-                      class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
-                      style=${style}
-                    ></span>`;
-  })}
-                </div>` : null}
-            ${showSign ? m2`<span
-                  class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
-                  style=${isVertical ? { top: `${100 - percent * 100}%` } : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
-                >${formatter.format(value2)}</span>` : null}
+            ${sliderInput}
+            ${bubble}
           </div>
+          ${valueDisplay}
         </div>` : m2`<div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
-          <input
-            class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
-            type="range"
-            min=${min}
-            max=${max}
-            step=${step}
-            value=${sliderValue}
-            title=${asSlider.tooltip || undefined}
-            disabled=${isDisabled}
-            aria-valuetext=${t4("slider_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
-            onInput=${handleInput}
-            onChange=${handleChange}
-            onWheel=${handleWheel}
-            onPointerDown=${() => setDragging(true)}
-            onPointerUp=${() => setDragging(false)}
-            onPointerCancel=${() => setDragging(false)}
-            onBlur=${() => setDragging(false)}
-            onMouseLeave=${() => setDragging(false)}
-            style=${{
-    ...sliderStyle,
-    transform: isVertical && invert ? "rotate(180deg)" : undefined
-  }}
-          />
-          ${showTicks ? m2`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-                ${Array.from({ length: stepCount + 1 }).map((_3, idx) => {
-    const pos = idx / stepCount * 100;
-    const active = percent * 100 >= pos;
-    const style = isVertical ? { top: `${100 - pos}%`, left: "0" } : { left: `${pos}%`, top: "0" };
-    return m2`<span
-                    class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
-                    style=${style}
-                  ></span>`;
-  })}
-              </div>` : null}
-          ${showSign ? m2`<span
-                class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
-                style=${isVertical ? { top: `${100 - percent * 100}%` } : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
-              >${formatter.format(value2)}</span>` : null}
-        </div>`}
-    ${!isVertical ? m2`<div class="nr-dashboard-slider__minmax">
-          <span>${formatter.format(min)}</span>
-          <span>${formatter.format(max)}</span>
-        </div>` : null}
-    ${isVertical ? m2`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
-    <span class="nr-dashboard-slider__value">${formatter.format(value2)}</span>
+          ${sliderInput}
+          ${bubble}
+        </div>
+        ${showVerticalLabel ? m2`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
+        ${valueDisplay}`}
   </div>`;
 }
 
@@ -42060,6 +42306,40 @@ function GaugeWidget(props) {
   </div>`;
 }
 
+// src/preact/components/styles/fieldStyles.ts
+var fieldWrapperStyles = {
+  display: "grid",
+  gap: "6px",
+  width: "100%"
+};
+var fieldLabelStyles = {
+  fontSize: "13px",
+  opacity: 0.85,
+  color: "var(--nr-dashboard-widgetTextColor, inherit)",
+  lineHeight: 1.3
+};
+function buildFieldStyles(opts = {}) {
+  const { error: error2, focused, disabled, hasAdornment, dense } = opts;
+  const borderColor = error2 ? "var(--nr-dashboard-errorColor, #f87171)" : focused ? "var(--nr-dashboard-widgetColor, #1f8af2)" : "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))";
+  return {
+    width: "100%",
+    padding: dense ? "6px 0" : "8px 0",
+    borderRadius: "0px",
+    border: "none",
+    borderBottom: `1px solid ${borderColor}`,
+    background: "transparent",
+    color: "var(--nr-dashboard-widgetTextColor, #000)",
+    outline: "none",
+    boxShadow: "none",
+    transition: "border-color 140ms ease, background 140ms ease",
+    appearance: "none",
+    WebkitAppearance: "none",
+    opacity: disabled ? 0.55 : 1,
+    cursor: disabled ? "not-allowed" : "text",
+    paddingRight: hasAdornment ? "36px" : "0px"
+  };
+}
+
 // src/preact/components/widgets/date-picker.ts
 function resolveDateInputType(mode) {
   if (mode === "time")
@@ -42148,6 +42428,72 @@ function DatePickerWidget(props) {
 }
 
 // src/preact/components/widgets/colour-picker.ts
+var COLOUR_PICKER_STYLE_ID = "nr-dashboard-colour-picker-style";
+function ensureColourPickerStyles(doc = typeof document !== "undefined" ? document : undefined) {
+  if (!doc)
+    return;
+  if (doc.getElementById(COLOUR_PICKER_STYLE_ID))
+    return;
+  const style = doc.createElement("style");
+  style.id = COLOUR_PICKER_STYLE_ID;
+  style.textContent = `
+    .nr-dashboard-colour-picker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 12px;
+      box-sizing: border-box;
+      gap: 8px;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+    }
+
+    .nr-dashboard-colour-picker__label {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nr-dashboard-colour-picker__field {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nr-dashboard-colour-picker__input {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35));
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .nr-dashboard-colour-picker__input:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .nr-dashboard-colour-picker__value {
+      min-width: 122px;
+      height: 22px;
+      text-align: center;
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 0;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      background: transparent;
+      box-sizing: border-box;
+    }
+  `;
+  doc.head.appendChild(style);
+}
 function resolveColourValue(value2, fallback = "#ff0000") {
   if (typeof value2 === "string" && value2.trim().length > 0)
     return value2;
@@ -42163,19 +42509,15 @@ function ColourPickerWidget(props) {
   const [focused, setFocused] = d2(false);
   const inputId = T2(() => `nr-dashboard-colour-${index}`, [index]);
   const fieldStyles = buildFieldStyles({ focused, disabled: isDisabled, hasAdornment: true });
-  return m2`<label style=${fieldWrapperStyles} htmlFor=${inputId}>
-    <span style=${fieldLabelStyles}>${label}</span>
+  ensureColourPickerStyles();
+  return m2`<div class=${`nr-dashboard-colour-picker ${c3.className || ""}`.trim()}>
+    <span class="nr-dashboard-colour-picker__label">${label}</span>
     <div
-      style=${{
-    ...fieldStyles,
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    paddingRight: "16px"
-  }}
+      class="nr-dashboard-colour-picker__field"
+      style=${fieldStyles}
     >
       <input
-        class=${c3.className || ""}
+        class="nr-dashboard-colour-picker__input"
         type="color"
         value=${value2}
         disabled=${isDisabled}
@@ -42190,19 +42532,10 @@ function ColourPickerWidget(props) {
   }}
         onFocus=${() => setFocused(true)}
         onBlur=${() => setFocused(false)}
-        style=${{
-    width: "46px",
-    height: "32px",
-    padding: 0,
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35))",
-    borderRadius: "6px",
-    background: "transparent",
-    cursor: isDisabled ? "not-allowed" : "pointer"
-  }}
       />
-      <span style=${{ fontSize: "13px", opacity: 0.9, wordBreak: "break-all" }}>${value2}</span>
+      <span class="nr-dashboard-colour-picker__value" aria-live="polite">${value2}</span>
     </div>
-  </label>`;
+  </div>`;
 }
 
 // src/preact/components/widgets/audio.ts
@@ -42380,9 +42713,11 @@ function LinkWidget(props) {
       onMouseLeave=${() => setHovered(false)}
       onMouseDown=${() => setPressed(true)}
       onMouseUp=${() => setPressed(false)}
-      onBlur=${() => setPressed(false)}
       onFocus=${() => setFocused(true)}
-      onBlur=${() => setFocused(false)}
+      onBlur=${() => {
+    setPressed(false);
+    setFocused(false);
+  }}
       style=${{
     display: "inline-flex",
     alignItems: "center",
@@ -42390,11 +42725,11 @@ function LinkWidget(props) {
     padding: "10px 12px",
     borderRadius: "8px",
     background: "transparent",
-    color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : "var(--nr-dashboard-widgetColor, #61dafb)",
+    color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : hovered ? "color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 90%, white 10%)" : "var(--nr-dashboard-widgetColor, #61dafb)",
     pointerEvents: isDisabled ? "none" : "auto",
-    textDecoration: "none",
+    textDecoration: hovered ? "underline" : "none",
     boxShadow: focusRing,
-    transition: "box-shadow 140ms ease, color 140ms ease",
+    transition: "box-shadow 140ms ease, color 140ms ease, text-decoration-color 140ms ease",
     width: "100%",
     transform: pressed ? "translateY(1px)" : "none"
   }}
@@ -42433,6 +42768,176 @@ function TemplateWidget(props) {
 }
 
 // src/preact/components/widgets/form.ts
+var FORM_STYLE_ID = "nr-dashboard-form-style";
+function ensureFormStyles(doc = typeof document !== "undefined" ? document : undefined) {
+  if (!doc)
+    return;
+  if (doc.getElementById(FORM_STYLE_ID))
+    return;
+  const style = doc.createElement("style");
+  style.id = FORM_STYLE_ID;
+  style.textContent = `
+    .nr-dashboard-form {
+      display: inline-block;
+      width: 100%;
+      overflow-y: auto;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-form form {
+      padding: 0 6px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .nr-dashboard-form .formlabel {
+      font-size: 16px;
+      font-weight: 500;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      padding: 0 6px;
+      width: 100%;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      line-height: 1.35;
+    }
+
+    .nr-dashboard-form .formElement {
+      width: calc(100% - 12px);
+      margin-left: 6px;
+      margin-right: 6px;
+      margin-bottom: 2px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      gap: 6px;
+    }
+
+    .nr-dashboard-form .formElementSplit {
+      width: calc(50% - 12px);
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__field-label {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      opacity: 0.9;
+      padding: 2px 0;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__input,
+    .nr-dashboard-form .nr-dashboard-form__select {
+      width: 100%;
+      padding: 8px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
+      color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.35;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__textarea {
+      width: 100%;
+      padding: 10px 8px 6px 0;
+      background: transparent;
+      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16));
+      color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.35;
+      border-radius: 4px;
+      box-sizing: border-box;
+      min-height: 72px;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__input:focus,
+    .nr-dashboard-form .nr-dashboard-form__select:focus,
+    .nr-dashboard-form .nr-dashboard-form__textarea:focus {
+      outline: none;
+      border-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
+      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__checkbox-row,
+    .nr-dashboard-form .nr-dashboard-form__radio-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      line-height: 1.3;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__checkbox,
+    .nr-dashboard-form .nr-dashboard-form__radio {
+      accent-color: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      width: 16px;
+      height: 16px;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__error {
+      color: var(--nr-dashboard-errorColor, #d00);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form__helper {
+      font-size: 11px;
+      opacity: 0.65;
+      line-height: 1.3;
+    }
+
+    .nr-dashboard-form .form-control {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      margin-top: -20px;
+      padding: 0 6px;
+      box-sizing: border-box;
+      gap: 12px;
+    }
+
+    .nr-dashboard-form .form-control-no-label {
+      margin-top: -10px;
+    }
+
+    .nr-dashboard-form .form-control-single {
+      justify-content: space-around;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form-button {
+      width: 50%;
+      margin: 0;
+      min-height: 28px;
+      padding: 8px 10px;
+      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16));
+      background-color: var(--nr-dashboard-widgetBackgroundColor, #2563eb);
+      color: #fff;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form-button:disabled,
+    .nr-dashboard-form form:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .nr-dashboard-form .nr-dashboard-form-button:hover,
+    .nr-dashboard-form .nr-dashboard-form-button:focus {
+      background-color: var(--nr-dashboard-widgetHoverColor, var(--nr-dashboard-widgetBackgroundColor, #2563eb));
+    }
+  `;
+  doc.head.appendChild(style);
+}
 function buildFormEmit(ctrl, fallbackLabel, values) {
   return {
     payload: values,
@@ -42444,27 +42949,62 @@ function FormWidget(props) {
   const { control, index, disabled, onEmit } = props;
   const c3 = control;
   const { t: t4 } = useI18n();
-  const title = c3.label || c3.name || t4("form_label", "Form {index}", { index: index + 1 });
-  const fields = T2(() => c3.fields || [], [c3.fields]);
+  const title = c3.label ?? c3.name ?? t4("form_label", "Form {index}", { index: index + 1 });
+  const usesExplicitFields = Boolean(c3.fields && c3.fields.length > 0);
+  const rawFields = T2(() => {
+    const provided = usesExplicitFields ? c3.fields : c3.options;
+    return (provided || []).map((f3) => ({ ...f3 }));
+  }, [c3.fields, c3.options, usesExplicitFields]);
+  const fields = T2(() => {
+    if (!rawFields.length)
+      return [];
+    return rawFields.map((f3, idx) => ({ ...f3, name: f3.name || f3.value || `field-${idx + 1}` }));
+  }, [rawFields]);
   const isDisabled = Boolean(disabled);
-  const [values, setValues] = d2(() => {
+  const initialValues = T2(() => {
     const initial = {};
+    const defaults2 = c3.formValue || {};
     fields.forEach((f3) => {
-      if (f3.type === "checkbox" || f3.type === "switch") {
-        initial[f3.name] = Boolean(f3.value);
+      const rawDefault = defaults2[f3.name];
+      const raw = rawDefault !== undefined ? rawDefault : usesExplicitFields ? f3.value : undefined;
+      const normalizedType = (f3.type || "").toLowerCase();
+      if (normalizedType === "checkbox" || normalizedType === "switch") {
+        initial[f3.name] = Boolean(raw);
       } else {
-        initial[f3.name] = f3.value == null ? "" : String(f3.value);
+        initial[f3.name] = raw == null ? "" : String(raw);
       }
     });
     return initial;
-  });
+  }, [c3, fields, usesExplicitFields]);
+  const [values, setValues] = d2(initialValues);
   const [errors, setErrors] = d2({});
+  y2(() => {
+    setValues(initialValues);
+    setErrors({});
+  }, [initialValues]);
+  ensureFormStyles();
   const setField = (name, v3) => {
     setValues((prev) => ({ ...prev, [name]: v3 }));
+    setErrors((prev) => {
+      if (!prev[name])
+        return prev;
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+  const submitLabel = c3.submit || t4("submit_label", "Submit");
+  const cancelLabel = c3.cancel || "";
+  const hasSubmit = Boolean(submitLabel);
+  const hasCancel = Boolean(cancelLabel);
+  const singleAction = Number(hasSubmit) + Number(hasCancel) === 1;
+  const splitLayout = Boolean(c3.splitLayout);
+  const resetForm = () => {
+    setValues(initialValues);
+    setErrors({});
   };
   return m2`<form
-    class=${c3.className || ""}
-    style=${{ display: "grid", gap: "10px" }}
+    class=${`nr-dashboard-form ${c3.className || ""}`.trim()}
     onSubmit=${(e4) => {
     e4.preventDefault();
     if (isDisabled)
@@ -42487,12 +43027,18 @@ function FormWidget(props) {
     onEmit?.("ui-control", buildFormEmit(c3, title, values));
   }}
   >
-    <div style=${{ fontWeight: 600 }}>${title}</div>
-    ${fields.length === 0 ? m2`<div style=${{ fontSize: "12px", opacity: 0.7 }}>${t4("form_no_fields", "No fields configured.")}</div>` : fields.map((f3) => {
-    const type = f3.type === "number" ? "number" : f3.type === "password" ? "password" : f3.type === "email" ? "email" : f3.type === "date" ? "date" : f3.type === "time" ? "time" : f3.type === "checkbox" || f3.type === "switch" ? "checkbox" : f3.type === "multiline" ? "multiline" : "text";
-    return m2`<label style=${{ display: "grid", gap: "4px" }} key=${f3.name}>
-            <span style=${{ fontSize: "12px", opacity: 0.8 }}>${f3.label || f3.name}</span>
+    ${title ? m2`<p class="formlabel" dangerouslySetInnerHTML=${{ __html: title }}></p>` : null}
+    ${fields.length === 0 ? m2`<div class="nr-dashboard-form__helper" style=${{ padding: "0 6px" }}>${t4("form_no_fields", "No fields configured.")}</div>` : fields.map((f3, idx) => {
+    const rawType = (f3.type || "text").toLowerCase();
+    const type = rawType === "number" ? "number" : rawType === "password" ? "password" : rawType === "email" ? "email" : rawType === "date" ? "date" : rawType === "time" ? "time" : rawType === "checkbox" || rawType === "switch" ? "checkbox" : rawType === "multiline" ? "multiline" : rawType === "select" ? "select" : rawType === "radio" ? "radio" : "text";
+    const fieldId = `form-${index}-${idx}-${f3.name}`;
+    const fieldValue = values[f3.name];
+    return m2`<div class=${`formElement ${splitLayout ? "formElementSplit" : ""}`.trim()} key=${fieldId}>
+            ${type !== "checkbox" ? m2`<label class="nr-dashboard-form__field-label" htmlFor=${type === "radio" ? undefined : fieldId}>${f3.label || f3.name}</label>` : m2`<span class="nr-dashboard-form__field-label">${f3.label || f3.name}</span>`}
+
             ${type === "multiline" ? m2`<textarea
+                  id=${fieldId}
+                  class="nr-dashboard-form__textarea"
                   name=${f3.name}
                   required=${Boolean(f3.required)}
                   rows=${f3.rows || 3}
@@ -42500,62 +43046,63 @@ function FormWidget(props) {
                   aria-invalid=${errors[f3.name] ? "true" : "false"}
                   aria-errormessage=${errors[f3.name] ? `err-${f3.name}` : undefined}
                   disabled=${isDisabled}
+                  maxLength=${f3.maxlength || undefined}
+                  value=${typeof fieldValue === "string" ? fieldValue : ""}
                   onInput=${(ev) => setField(f3.name, ev.target.value)}
-                  style=${{
-      padding: "8px 10px",
-      borderRadius: "6px",
-      border: errors[f3.name] ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-      color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
-    }}
-                >${values[f3.name] ?? ""}</textarea>` : type === "checkbox" ? m2`<input
-                  name=${f3.name}
-                  type="checkbox"
-                  checked=${Boolean(values[f3.name])}
-                  disabled=${isDisabled}
-                  aria-invalid=${errors[f3.name] ? "true" : "false"}
-                  aria-errormessage=${errors[f3.name] ? `err-${f3.name}` : undefined}
-                  onChange=${(ev) => setField(f3.name, ev.target.checked)}
-                  style=${{
-      width: "16px",
-      height: "16px"
-    }}
-                />` : f3.type === "select" ? m2`<select
+                ></textarea>` : type === "checkbox" ? m2`<label class="nr-dashboard-form__checkbox-row" htmlFor=${fieldId}>
+                  <input
+                    id=${fieldId}
+                    class="nr-dashboard-form__checkbox"
+                    name=${f3.name}
+                    type="checkbox"
+                    checked=${Boolean(fieldValue)}
+                    disabled=${isDisabled}
+                    aria-invalid=${errors[f3.name] ? "true" : "false"}
+                    aria-errormessage=${errors[f3.name] ? `err-${f3.name}` : undefined}
+                    onChange=${(ev) => setField(f3.name, ev.target.checked)}
+                  />
+                  <span>${f3.label || f3.name}</span>
+                </label>` : type === "select" ? m2`<select
+                  id=${fieldId}
+                  class="nr-dashboard-form__select"
                   name=${f3.name}
                   required=${Boolean(f3.required)}
-                  value=${typeof values[f3.name] === "string" ? values[f3.name] : ""}
+                  value=${typeof fieldValue === "string" ? fieldValue : ""}
                   disabled=${isDisabled}
                   aria-invalid=${errors[f3.name] ? "true" : "false"}
                   aria-errormessage=${errors[f3.name] ? `err-${f3.name}` : undefined}
                   onChange=${(ev) => setField(f3.name, ev.target.value)}
-                  style=${{
-      padding: "8px 10px",
-      borderRadius: "6px",
-      border: errors[f3.name] ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-      color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
-    }}
                 >
                   ${(f3.options || []).map((opt) => m2`<option value=${opt.value}>${opt.label ?? opt.value}</option>`)}
-                </select>` : f3.type === "radio" ? m2`<div style=${{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  ${(f3.options || []).map((opt) => m2`<label style=${{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
-                      <input
-                        type="radio"
-                        name=${f3.name}
-                        value=${opt.value}
-                        required=${Boolean(f3.required)}
-                        aria-invalid=${errors[f3.name] ? "true" : "false"}
-                        aria-errormessage=${errors[f3.name] ? `err-${f3.name}` : undefined}
-                        checked=${values[f3.name] === opt.value}
-                        disabled=${isDisabled}
-                        onChange=${(ev) => setField(f3.name, ev.target.value)}
-                      />
-                      <span>${opt.label ?? opt.value}</span>
-                    </label>`)}
+                </select>` : type === "radio" ? m2`<div class="nr-dashboard-form__radio-group" role="radiogroup" aria-labelledby=${fieldId}>
+                  <span id=${fieldId} class="nr-dashboard-form__field-label" style=${{ paddingBottom: "2px" }}>${f3.label || f3.name}</span>
+                  <div style=${{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    ${(f3.options || []).map((opt, optIdx) => {
+      const optId = `${fieldId}-${optIdx}`;
+      return m2`<label class="nr-dashboard-form__radio-row" htmlFor=${optId} key=${optId}>
+                        <input
+                          id=${optId}
+                          class="nr-dashboard-form__radio"
+                          type="radio"
+                          name=${f3.name}
+                          value=${opt.value}
+                          required=${Boolean(f3.required)}
+                          aria-invalid=${errors[f3.name] ? "true" : "false"}
+                          aria-errormessage=${errors[f3.name] ? `err-${f3.name}` : undefined}
+                          checked=${fieldValue === opt.value}
+                          disabled=${isDisabled}
+                          onChange=${(ev) => setField(f3.name, ev.target.value)}
+                        />
+                        <span>${opt.label ?? opt.value}</span>
+                      </label>`;
+    })}
+                  </div>
                 </div>` : m2`<input
+                  id=${fieldId}
+                  class="nr-dashboard-form__input"
                   name=${f3.name}
                   type=${type}
-                  value=${values[f3.name] ?? ""}
+                  value=${typeof fieldValue === "string" ? fieldValue : ""}
                   required=${Boolean(f3.required)}
                   placeholder=${f3.placeholder || ""}
                   aria-invalid=${errors[f3.name] ? "true" : "false"}
@@ -42564,42 +43111,26 @@ function FormWidget(props) {
                   maxLength=${f3.maxlength || undefined}
                   onInput=${(ev) => setField(f3.name, ev.target.value)}
                   disabled=${isDisabled}
-                  style=${{
-      padding: "8px 10px",
-      borderRadius: "6px",
-      border: errors[f3.name] ? "1px solid var(--nr-dashboard-errorColor, #f87171)" : "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-      color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)"
-    }}
                 />`}
-            ${typeof f3.maxlength === "number" && type !== "checkbox" && type !== "multiline" && f3.type !== "select" && f3.type !== "radio" ? m2`<span style=${{ fontSize: "11px", opacity: 0.65, alignSelf: "flex-end" }}>
+
+            ${typeof f3.maxlength === "number" && type !== "checkbox" && type !== "multiline" && type !== "select" && type !== "radio" ? m2`<span class="nr-dashboard-form__helper" style=${{ alignSelf: "flex-end" }}>
                   ${t4("char_counter", "{used}/{max}", {
-      used: typeof values[f3.name] === "string" ? values[f3.name].length : 0,
+      used: typeof fieldValue === "string" ? fieldValue.length : 0,
       max: f3.maxlength ?? 0
     })}
                 </span>` : null}
             ${errors[f3.name] ? m2`<span
                   id=${`err-${f3.name}`}
                   role="alert"
-                  style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px" }}
+                  class="nr-dashboard-form__error"
                 >${errors[f3.name]}</span>` : null}
-          </label>`;
+          </div>`;
   })}
-    <button
-      type="submit"
-      disabled=${isDisabled}
-      style=${{
-    padding: "10px 12px",
-    borderRadius: "6px",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-    background: "var(--nr-dashboard-widgetColor, #2563eb)",
-    color: "var(--nr-dashboard-widgetTextColor, #fff)",
-    fontWeight: 600,
-    cursor: "pointer"
-  }}
-    >
-      ${c3.submit || t4("submit_label", "Submit")}
-    </button>
+
+    ${hasSubmit || hasCancel ? m2`<div class=${`form-control ${singleAction ? "form-control-single" : ""} ${title ? "" : "form-control-no-label"}`.trim()}>
+          ${hasSubmit ? m2`<button type="submit" class="nr-dashboard-form-button" disabled=${isDisabled}>${submitLabel}</button>` : null}
+          ${hasCancel ? m2`<button type="button" class="nr-dashboard-form-button" disabled=${isDisabled} onClick=${resetForm}>${cancelLabel}</button>` : null}
+        </div>` : null}
   </form>`;
 }
 

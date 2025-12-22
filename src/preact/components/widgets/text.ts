@@ -56,36 +56,52 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
   const asText = control as TextControl;
   const { t } = useI18n();
   const label = asText.label || asText.name || t("text_label", "Text {index}", { index: index + 1 });
+  const labelHtml = { __html: label as string };
   const raw = asText.value ?? asText.text ?? "";
   const formatted = applyFormat(asText.format, raw);
   const color = typeof asText.color === "string" ? asText.color : undefined;
   const fontSize = asText.fontSize ? `${asText.fontSize}px` : undefined;
   const fontFamily = asText.font;
-  const fontWeight = asText.fontWeight ?? 500;
+  const fontWeight = asText.fontWeight ?? 700;
   const [ref] = useElementSize<HTMLDivElement>();
 
   const container = mergeStyleString(
     {
       ...layoutStyles(asText),
       width: "100%",
-      padding: "4px 2px",
+      padding: "0 12px",
     },
     asText.style,
   );
 
-  return html`<div ref=${ref} class=${asText.className || ""} style=${container}>
-    <div style=${{ fontSize: "13px", opacity: 0.75, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>${label}</div>
-    <div
+  const isColumn = container.flexDirection === "column";
+
+  return html`<div ref=${ref} class=${`nr-dashboard-text ${asText.className || ""}`.trim()} style=${container}>
+    <p
+      class="nr-dashboard-text__label"
       style=${{
-        fontSize: fontSize || "16px",
+        margin: "0.1em 0.25em 0.1em 0",
+        fontSize: "14px",
+        color: "var(--nr-dashboard-widgetTextColor, inherit)",
+        opacity: 0.85,
+        lineHeight: 1.3,
+        display: label ? "block" : "none",
+      }}
+      dangerouslySetInnerHTML=${labelHtml}
+    ></p>
+    <p
+      class="nr-dashboard-text__value"
+      style=${{
+        margin: "0.1em 0.25em 0.1em 0",
+        fontSize: fontSize || (isColumn ? "16px" : "15px"),
         fontWeight,
         color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
-        lineHeight: 1.4,
+        lineHeight: 1.3,
         wordBreak: "break-word",
         fontFamily: fontFamily,
       }}
     >
       ${formatted}
-    </div>
+    </p>
   </div>`;
 }

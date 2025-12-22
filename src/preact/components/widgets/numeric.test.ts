@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { h } from "preact";
-import { render, screen } from "@testing-library/preact";
+import { render } from "@testing-library/preact";
 import { buildNumericEmit, clampValue, NumericWidget } from "./numeric";
 import { I18nProvider } from "../../lib/i18n";
 
@@ -24,19 +24,18 @@ describe("Numeric helpers", () => {
     const renderWithI18n = (control: Record<string, unknown>) =>
       render(h(I18nProvider, { lang: "en", locales: { en: {} } }, h(NumericWidget, { control, index: 0 })));
 
-    const control = { value: 1, min: 0, max: 10, step: 1 };
+    const control = { value: 1, min: 0, max: 10, step: 1, format: "{{value}}" };
     const { rerender, container } = renderWithI18n(control);
 
-    const input = container.querySelector("input[type=number]") as HTMLInputElement;
-    expect(input.value).toBe("1");
-    expect(screen.getByText(/Number 1:/).textContent).toContain("1");
+    const display = container.querySelector(".nr-dashboard-numeric__value") as HTMLParagraphElement;
+    expect(display.textContent).toContain("1");
 
     const nextControl = { ...control, value: 5 };
     rerender(h(I18nProvider, { lang: "en", locales: { en: {} } }, h(NumericWidget, { control: nextControl, index: 0 })));
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(input.value).toBe("5");
-    expect(screen.getByText(/Number 1:/).textContent).toContain("5");
+    const updated = container.querySelector(".nr-dashboard-numeric__value") as HTMLParagraphElement;
+    expect(updated.textContent).toContain("5");
   });
 });

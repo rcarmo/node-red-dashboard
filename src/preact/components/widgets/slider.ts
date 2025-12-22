@@ -146,6 +146,14 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       border: 1px solid transparent;
     }
 
+    .nr-dashboard-slider__value {
+      font-weight: 700;
+      min-width: 48px;
+      text-align: center;
+      color: var(--nr-dashboard-slider-text);
+      font-size: 12px;
+    }
+
     .nr-dashboard-slider__sign {
       position: absolute;
       padding: 4px 8px;
@@ -273,7 +281,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const sliderValue = toDisplayValue(value);
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
-  const showSign = outs === "end" && !isDisabled;
+  const showSign = Boolean(asSlider.showSign) || (outs === "end" && !isDisabled);
 
   const sliderStyle = isVertical
     ? {
@@ -326,6 +334,8 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
       >${formatter.format(value)}</span>`
     : null;
 
+  const valueDisplay = html`<span class="nr-dashboard-slider__value">${formatter.format(value)}</span>`;
+
   return html`<div class=${containerClass}>
     ${!isVertical
       ? html`<div class="nr-dashboard-slider__row">
@@ -334,11 +344,13 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
             ${sliderInput}
             ${bubble}
           </div>
+          ${valueDisplay}
         </div>`
       : html`<div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
           ${sliderInput}
           ${bubble}
         </div>
-        ${showVerticalLabel ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}`}
+        ${showVerticalLabel ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
+        ${valueDisplay}`}
   </div>`;
 }

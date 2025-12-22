@@ -3,7 +3,93 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
-import { adornmentStyles, buildFieldStyles, fieldHelperStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
+const TEXT_INPUT_STYLE_ID = "nr-dashboard-textinput-style";
+
+function ensureTextInputStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
+  if (!doc) return;
+  if (doc.getElementById(TEXT_INPUT_STYLE_ID)) return;
+  const style = doc.createElement("style");
+  style.id = TEXT_INPUT_STYLE_ID;
+  style.textContent = `
+    .nr-dashboard-textinput {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-textinput__container {
+      flex: 1;
+      padding: 0 12px;
+      margin: 15px 0;
+      transition: margin 0.3s ease;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--focused,
+    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--has-value {
+      margin: 15px 0 5px;
+    }
+
+    .nr-dashboard-textinput__label {
+      display: block;
+      padding-left: 12px;
+      margin-bottom: 3px;
+      color: var(--nr-dashboard-widgetTextColor, inherit);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .nr-dashboard-textinput__container--focused .nr-dashboard-textinput__label {
+      color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
+    }
+
+    .nr-dashboard-textinput__field {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
+      padding: 8px 0;
+      background: transparent;
+      box-sizing: border-box;
+      opacity: 1;
+    }
+
+    .nr-dashboard-textinput__field.is-focused {
+      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
+    }
+
+    .nr-dashboard-textinput__field.is-disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .nr-dashboard-textinput__input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--nr-dashboard-widgetTextColor, #000);
+      outline: none;
+      padding: 0 0 0 8px;
+      font-size: 14px;
+      min-width: 0;
+    }
+
+    .nr-dashboard-textinput__input:focus {
+      outline: none;
+    }
+
+    .nr-dashboard-textinput__input[type="color"] {
+      border: none;
+      padding-left: 0;
+    }
+  `;
+  doc.head.appendChild(style);
+}
 
 export type TextInputControl = UiControl & {
   label?: string;
@@ -43,7 +129,8 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   const asInput = control as TextInputControl;
   const { t } = useI18n();
   const label = asInput.label || asInput.name || t("input_label", "Input {index}", { index: index + 1 });
-  const [value, setValue] = useState<string>((asInput.value as string) ?? "");
+  const [value, setValue] = useState<string>((asInput.value as string) ?? ""); 
+  const labelHtml = { __html: label as string };
   const [error, setError] = useState<string>("");
   const [focused, setFocused] = useState<boolean>(false);
   const maxLength = (control as { maxlength?: number }).maxlength;
@@ -53,6 +140,9 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   const type = useMemo(() => inputType(asInput.mode), [asInput.mode]);
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
   const isColorMode = asInput.mode === "color";
+  const hasLabel = Boolean(asInput.label);
+
+  ensureTextInputStyles();
 
   const validate = (next: string): boolean => {
     if (asInput.required && next.trim().length === 0) {
@@ -109,8 +199,6 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
     }
   };
 
-  const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: Boolean(disabled), hasAdornment: isColorMode });
-
   const colorSwatch = isColorMode
     ? html`<span
         aria-hidden="true"
@@ -125,21 +213,19 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
       ></span>`
     : null;
 
-  return html`<label style=${fieldWrapperStyles}>
-    <span style=${fieldLabelStyles}>${label}</span>
-    ${asInput.required ? html`<span style=${fieldHelperStyles}>${t("required_label", "Required")}</span>` : null}
-    <div style=${{ position: "relative", width: "100%" }}>
+  return html`<div class=${`nr-dashboard-textinput ${asInput.className || ""}`.trim()}>
+    <div
+      class=${`nr-dashboard-textinput__container ${hasLabel ? "has-label" : ""} ${focused ? "nr-dashboard-textinput__container--focused" : ""} ${value ? "nr-dashboard-textinput__container--has-value" : ""}`.trim()}
+      title=${asInput.tooltip || undefined}
+    >
+      ${hasLabel ? html`<label class="nr-dashboard-textinput__label" dangerouslySetInnerHTML=${labelHtml}></label>` : null}
+      ${asInput.required ? html`<span style=${fieldHelperStyles}>${t("required_label", "Required")}</span>` : null}
       <div
-        style=${{
-          ...fieldStyles,
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-        }}
+        class=${`nr-dashboard-textinput__field ${focused ? "is-focused" : ""} ${disabled ? "is-disabled" : ""}`.trim()}
       >
         ${colorSwatch}
         <input
-          class=${asInput.className || ""}
+          class=${`nr-dashboard-textinput__input ${asInput.className || ""}`.trim()}
           type=${type}
           value=${value}
           title=${asInput.tooltip || undefined}
@@ -156,20 +242,13 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
           }}
           onFocus=${() => setFocused(true)}
           style=${{
-            flex: 1,
-            background: "transparent",
-            border: "none",
-            color: "var(--nr-dashboard-widgetTextColor, #000)",
-            outline: "none",
-            padding: 0,
-            fontSize: "14px",
-            minWidth: 0,
+            paddingLeft: isColorMode ? "25%" : undefined,
           }}
         />
       </div>
     </div>
     ${typeof maxLength === "number"
-      ? html`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end" }}>
+      ? html`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end", padding: "0 12px" }}>
           ${t("char_counter", "{used}/{max}", { used: value.length, max: maxLength })}
         </span>`
       : null}
@@ -177,8 +256,8 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
       ? html`<span
           id=${`err-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px" }}
+          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", padding: "0 12px" }}
         >${error}</span>`
       : null}
-  </label>`;
+  </div>`;
 }
