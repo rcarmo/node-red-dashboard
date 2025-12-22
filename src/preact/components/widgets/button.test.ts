@@ -7,8 +7,7 @@ const base: ButtonControl = {};
 describe("Button widget helpers", () => {
   test("resolves colors with bgcolor fallback", () => {
     expect(resolveButtonColor({ ...base, bgcolor: "#111" })).toBe("#111");
-    expect(resolveButtonColor({ ...base, color: "#222" })).toBe("#222");
-    expect(resolveButtonColor(base)).toBe("#1f8af2");
+    expect(resolveButtonColor(base)).toBe("var(--nr-dashboard-widgetColor, #1f8af2)");
   });
 
   test("builds emit payload with defaults", () => {

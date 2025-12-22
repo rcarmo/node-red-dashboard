@@ -29,7 +29,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 12px 16px 12px 20px;
+      padding: 12px 16px 12px 16px;
       margin: 0;
       border-radius: 0;
       border: none;
@@ -38,7 +38,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       min-height: 48px;
       justify-content: flex-start;
       font-size: 14px;
@@ -86,7 +86,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       box-shadow: none;
       flex-shrink: 0;
       color: inherit;
-      margin-left: -4px;
+      margin-left: -2px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
