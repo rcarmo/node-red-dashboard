@@ -23,7 +23,6 @@ export type SliderControl = UiControl & {
 
 const DEFAULT_THROTTLE_MS = 10;
 const SLIDER_STYLE_ID = "nr-dashboard-slider-style";
-const MAX_TICKS = 10;
 
 function ensureSliderStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
   if (!doc) return;
@@ -32,29 +31,27 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
   style.id = SLIDER_STYLE_ID;
   style.textContent = `
     :root {
-      --nr-dashboard-slider-track: var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18));
-      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetColor, #1f8af2);
-      --nr-dashboard-slider-thumb-shadow: 0 1px 2px rgba(0,0,0,0.18);
-      --nr-dashboard-slider-focus: color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 70%, transparent);
-      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #000);
-      --nr-dashboard-slider-chip-bg: var(--nr-dashboard-widgetBackgroundColor, transparent);
-      --nr-dashboard-slider-chip-shadow: 0 2px 6px var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
+      --nr-dashboard-slider-track: rgba(111, 111, 111, 0.5);
+      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
+      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #fff);
     }
 
     .nr-dashboard-slider {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      flex-direction: row;
+      align-items: center;
+      gap: 0;
       width: 100%;
-      align-items: stretch;
       padding: 0 12px;
     }
 
     .nr-dashboard-slider.is-vertical {
-      flex-direction: row;
+      flex-direction: column;
       padding: 0;
       font-size: 12px;
+      align-items: center;
     }
 
     .nr-dashboard-slider__row {
@@ -72,20 +69,10 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     }
 
     .nr-dashboard-slider__label.is-vertical {
-      margin-left: 8px;
       margin-top: 6px;
       padding-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
-    }
-
-    .nr-dashboard-slider__minmax {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      opacity: 0.7;
-      color: var(--nr-dashboard-slider-text);
-      padding: 0 2px;
     }
 
     .nr-dashboard-slider__range {
@@ -93,36 +80,35 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
-      height: 4px;
+      height: 2px;
     }
 
     .nr-dashboard-slider__range.is-vertical {
-      width: 24px;
-      height: 200px;
+      width: 32px;
+      height: 180px;
       writing-mode: bt-lr;
       -webkit-appearance: slider-vertical;
     }
 
     .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 4px;
+      height: 2px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
+      background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 14px;
-      width: 14px;
+      height: 12px;
+      width: 12px;
       margin-top: -5px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
-      box-shadow: var(--nr-dashboard-slider-thumb-shadow);
       border: 1px solid transparent;
     }
 
     .nr-dashboard-slider__range:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px var(--nr-dashboard-slider-focus);
+      box-shadow: 0 0 0 6px color-mix(in srgb, var(--nr-dashboard-slider-focus) 40%, transparent);
     }
 
     .nr-dashboard-slider__track {
@@ -143,7 +129,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     .nr-dashboard-slider__range::-moz-range-track {
       height: 4px;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--nr-dashboard-slider-track) 75%, #f2f2f2 25%);
+      background: var(--nr-dashboard-slider-track);
     }
 
     .nr-dashboard-slider__range::-moz-range-progress {
@@ -153,11 +139,10 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     }
 
     .nr-dashboard-slider__range::-moz-range-thumb {
-      height: 14px;
-      width: 14px;
+      height: 12px;
+      width: 12px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
-      box-shadow: var(--nr-dashboard-slider-thumb-shadow);
       border: 1px solid transparent;
     }
 
@@ -165,23 +150,17 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       position: absolute;
       padding: 4px 8px;
       border-radius: 12px;
-        background: var(--nr-dashboard-slider-chip-bg);
-        color: var(--nr-dashboard-slider-text);
+      background: var(--nr-dashboard-slider-fill);
+      color: var(--nr-dashboard-slider-text);
       font-size: 11px;
-      box-shadow: var(--nr-dashboard-slider-chip-shadow);
       pointer-events: none;
       white-space: nowrap;
+      transform: translate(-50%, -140%);
     }
 
     .nr-dashboard-slider__sign.is-vertical {
-      left: calc(50% + 14px);
-      transform: translate(-50%, -50%);
-    }
-
-    .nr-dashboard-slider__value {
-      opacity: 0.6;
-      font-size: 12px;
-      color: var(--nr-dashboard-slider-text);
+      left: 50%;
+      transform: translate(-50%, -120%);
     }
   `;
   doc.head.appendChild(style);
@@ -295,14 +274,12 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const sliderValue = toDisplayValue(value);
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
-  const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
-  const showTicks = stepCount > 0 && stepCount <= MAX_TICKS;
-  const showSign = forceSign || dragging;
+  const showSign = (outs === "end" || forceSign) && !isDisabled;
 
   const sliderStyle = isVertical
     ? {
         width: "32px",
-        height: "200px",
+        height: "180px",
         writingMode: "bt-lr" as const,
         WebkitAppearance: "slider-vertical",
         background: `linear-gradient(to top, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`,
@@ -314,114 +291,52 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
 
   const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
 
+  const sliderInput = html`<input
+    class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
+    type="range"
+    min=${min}
+    max=${max}
+    step=${step}
+    value=${sliderValue}
+    title=${asSlider.tooltip || undefined}
+    disabled=${isDisabled}
+    aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
+    onInput=${handleInput}
+    onChange=${handleChange}
+    onWheel=${handleWheel}
+    onPointerDown=${() => setDragging(true)}
+    onPointerUp=${() => setDragging(false)}
+    onPointerCancel=${() => setDragging(false)}
+    onBlur=${() => setDragging(false)}
+    onMouseLeave=${() => setDragging(false)}
+    style=${{
+      ...sliderStyle,
+      transform: isVertical && invert ? "rotate(180deg)" : undefined,
+    }}
+  />`;
+
+  const bubble = showSign
+    ? html`<span
+        class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
+        style=${isVertical
+          ? { top: `${100 - percent * 100}%` }
+          : { left: `${percent * 100}%` }}
+      >${formatter.format(value)}</span>`
+    : null;
+
   return html`<div class=${containerClass}>
     ${!isVertical
       ? html`<div class="nr-dashboard-slider__row">
           <span class="nr-dashboard-slider__label">${label}</span>
           <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
-            <input
-              class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
-              type="range"
-              min=${min}
-              max=${max}
-              step=${step}
-              value=${sliderValue}
-              title=${asSlider.tooltip || undefined}
-              disabled=${isDisabled}
-              aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
-              onInput=${handleInput}
-              onChange=${handleChange}
-              onWheel=${handleWheel}
-              onPointerDown=${() => setDragging(true)}
-              onPointerUp=${() => setDragging(false)}
-              onPointerCancel=${() => setDragging(false)}
-              onBlur=${() => setDragging(false)}
-              onMouseLeave=${() => setDragging(false)}
-              style=${{
-                ...sliderStyle,
-                transform: isVertical && invert ? "rotate(180deg)" : undefined,
-              }}
-            />
-            ${showTicks
-              ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-                  ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
-                    const pos = (idx / stepCount) * 100;
-                    const active = percent * 100 >= pos;
-                    const style = isVertical
-                      ? { top: `${100 - pos}%`, left: "0" }
-                      : { left: `${pos}%`, top: "0" };
-                    return html`<span
-                      class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
-                      style=${style}
-                    ></span>`;
-                  })}
-                </div>`
-              : null}
-            ${showSign
-              ? html`<span
-                  class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
-                  style=${isVertical
-                    ? { top: `${100 - percent * 100}%` }
-                    : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
-                >${formatter.format(value)}</span>`
-              : null}
+            ${sliderInput}
+            ${bubble}
           </div>
         </div>`
       : html`<div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
-          <input
-            class=${`nr-dashboard-slider__range ${isVertical ? "is-vertical" : ""}`.trim()}
-            type="range"
-            min=${min}
-            max=${max}
-            step=${step}
-            value=${sliderValue}
-            title=${asSlider.tooltip || undefined}
-            disabled=${isDisabled}
-            aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
-            onInput=${handleInput}
-            onChange=${handleChange}
-            onWheel=${handleWheel}
-            onPointerDown=${() => setDragging(true)}
-            onPointerUp=${() => setDragging(false)}
-            onPointerCancel=${() => setDragging(false)}
-            onBlur=${() => setDragging(false)}
-            onMouseLeave=${() => setDragging(false)}
-            style=${{
-              ...sliderStyle,
-              transform: isVertical && invert ? "rotate(180deg)" : undefined,
-            }}
-          />
-          ${showTicks
-            ? html`<div class=${`nr-dashboard-slider__ticks ${isVertical ? "is-vertical" : ""}`.trim()}>
-                ${Array.from({ length: stepCount + 1 }).map((_, idx) => {
-                  const pos = (idx / stepCount) * 100;
-                  const active = percent * 100 >= pos;
-                  const style = isVertical
-                    ? { top: `${100 - pos}%`, left: "0" }
-                    : { left: `${pos}%`, top: "0" };
-                  return html`<span
-                    class=${`nr-dashboard-slider__tick ${isVertical ? "is-vertical" : ""} ${active ? "is-active" : ""}`.trim()}
-                    style=${style}
-                  ></span>`;
-                })}
-              </div>`
-            : null}
-          ${showSign
-            ? html`<span
-                class=${`nr-dashboard-slider__sign ${isVertical ? "is-vertical" : ""}`.trim()}
-                style=${isVertical
-                  ? { top: `${100 - percent * 100}%` }
-                : { left: `${percent * 100}%`, transform: "translate(-50%, -120%)" }}
-              >${formatter.format(value)}</span>`
-            : null}
-        </div>`}
-    ${!isVertical
-      ? html`<div class="nr-dashboard-slider__minmax">
-          <span>${formatter.format(min)}</span>
-          <span>${formatter.format(max)}</span>
-        </div>`
-      : null}
-    ${isVertical ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
-    <span class="nr-dashboard-slider__value">${formatter.format(value)}</span>
+          ${sliderInput}
+          ${bubble}
+        </div>
+        <span class="nr-dashboard-slider__label is-vertical">${label}</span>`}
   </div>`;
 }

@@ -22,8 +22,8 @@ export type SwitchControl = UiControl & {
 };
 
 export function resolveSwitchColors(ctrl: SwitchControl, checked: boolean): string {
-  if (checked) return ctrl.oncolor || "#3ddc97";
-  return ctrl.offcolor || "rgba(255,255,255,0.12)";
+  if (checked) return ctrl.oncolor || "var(--nr-dashboard-widgetBackgroundColor, #0094d9)";
+  return ctrl.offcolor || "rgba(111,111,111,0.5)";
 }
 
 export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next: boolean): Record<string, unknown> {
@@ -47,7 +47,8 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   const { control, index, disabled, onEmit } = props;
   const asSwitch = control as SwitchControl;
   const { t } = useI18n();
-  const label = asSwitch.label || asSwitch.name || t("switch_label", "Switch {index}", { index: index + 1 });
+  const label = (asSwitch.label || asSwitch.name || t("switch_label", "Switch {index}", { index: index + 1 })) as string;
+  const labelHtml = { __html: label };
 
   const toChecked = (val: unknown): boolean => {
     if (asSwitch.onvalue !== undefined || asSwitch.offvalue !== undefined) {
@@ -58,7 +59,6 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   };
 
   const [checked, setChecked] = useState<boolean>(toChecked(asSwitch.value ?? asSwitch.state));
-  const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
 
   useEffect(() => {
@@ -79,90 +79,126 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     onEmit("ui-control", payload);
   };
 
-  const resolvedColor = resolveSwitchColors(asSwitch, checked);
-  const bg = checked
-    ? asSwitch.oncolor ?? `var(--nr-dashboard-widgetColor, ${resolvedColor})`
-    : asSwitch.offcolor ?? `var(--nr-dashboard-widgetBorderColor, ${resolvedColor})`;
   const isCenter = (asSwitch.className || "").split(" ").includes("center");
-  const [ripple, setRipple] = useState(false);
+  const showLabel = !(Number(asSwitch.width) === 1);
 
-  return html`<label
-    class=${asSwitch.className || ""}
+  const renderIcon = (icon?: string) => {
+    if (!icon) return null;
+    const trimmed = icon.trim();
+    if (!trimmed) return null;
+
+    const isUrl = /^https?:\/\//i.test(trimmed);
+    if (isUrl) return html`<img src=${trimmed} alt="" style=${{ width: "20px", height: "20px", display: "block" }} />`;
+
+    if (trimmed.startsWith("mi-")) {
+      const glyph = trimmed.slice(3);
+      return html`<span class=${`material-icons ${trimmed}`} aria-hidden="true">${glyph}</span>`;
+    }
+    if (trimmed.startsWith("fa-")) return html`<i class=${`fa fa-fw ${trimmed}`} aria-hidden="true"></i>`;
+    if (trimmed.startsWith("wi-")) return html`<i class=${`wi wi-fw ${trimmed}`} aria-hidden="true"></i>`;
+    if (trimmed.startsWith("icofont-")) return html`<i class=${`icofont icofont-fw ${trimmed}`} aria-hidden="true"></i>`;
+    if (trimmed.startsWith("iconify-")) {
+      const [, size] = trimmed.split(" ");
+      const iconName = trimmed.split(" ")[0].slice(8);
+      return html`<i class="iconify" data-icon=${iconName} data-width=${size ?? "1.3em"} data-height=${size ?? "1.3em"} aria-hidden="true"></i>`;
+    }
+    if (/^[A-Za-z0-9_-]+$/.test(trimmed)) return html`<span class="material-icons" aria-hidden="true">${trimmed}</span>`;
+    return null;
+  };
+
+  const resolvedColor = resolveSwitchColors(asSwitch, checked);
+  const bg = checked ? resolvedColor : resolveSwitchColors(asSwitch, false);
+
+  const track = html`<div
+    onClick=${onEmit ? toggle : undefined}
+    onFocus=${() => setFocused(true)}
+    onBlur=${() => setFocused(false)}
+    onKeyDown=${(e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        e.preventDefault();
+        toggle();
+      }
+    }}
+    tabIndex=${disabled ? -1 : 0}
+    role="switch"
+    aria-checked=${checked}
     style=${{
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      cursor: "default",
-      userSelect: "none",
-      opacity: disabled ? 0.55 : 1,
-      paddingLeft: "14px",
-      margin: isCenter ? "0 auto" : undefined,
+      width: "36px",
+      height: "20px",
+      borderRadius: "10px",
+      background: bg,
+      position: "relative",
+      transition: "background 120ms ease, box-shadow 120ms ease",
+      boxShadow: focused ? "0 0 0 4px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 35%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
+      overflow: "hidden",
+      cursor: disabled ? "default" : "grab",
     }}
   >
     <div
-      onClick=${onEmit ? toggle : undefined}
-      onMouseEnter=${() => setHovered(true)}
-      onMouseLeave=${() => setHovered(false)}
-      onFocus=${() => setFocused(true)}
-      onBlur=${() => setFocused(false)}
-      onMouseDown=${() => setRipple(true)}
-      onMouseUp=${() => setRipple(false)}
-      onMouseOut=${() => setRipple(false)}
-      onKeyDown=${(e: KeyboardEvent) => {
-        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-          e.preventDefault();
-          toggle();
-        }
-      }}
-      tabIndex=${disabled ? -1 : 0}
-      role="switch"
-      aria-checked=${checked}
       style=${{
-        width: "40px",
-        height: "22px",
-        borderRadius: "11px",
-        background: bg,
-        position: "relative",
-        transition: "background 120ms ease, transform 120ms ease, box-shadow 120ms ease",
-        boxShadow: focused
-          ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetColor, #3ddc97) 28%, transparent)"
-          : hovered
-            ? "0 1px 2px rgba(0,0,0,0.18)"
-            : "0 1px 2px rgba(0,0,0,0.12)",
-        overflow: "hidden",
+        position: "absolute",
+        top: "3px",
+        left: checked ? "18px" : "3px",
+        width: "14px",
+        height: "14px",
+        borderRadius: "50%",
+        background: checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)",
+        boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
+        transition: "left 120ms ease, background 120ms ease",
       }}
-    >
-      <span
-        aria-hidden="true"
+    ></div>
+  </div>`;
+
+  const customIconsActive = Boolean(asSwitch.onicon && asSwitch.officon && asSwitch.oncolor && asSwitch.offcolor);
+
+  const customIcons = customIconsActive
+    ? html`<div
+        onClick=${onEmit ? toggle : undefined}
         style=${{
-          position: "absolute",
-          inset: 0,
-          background: "radial-gradient(circle at center, rgba(255,255,255,0.22), transparent 55%)",
-          opacity: ripple ? 0.28 : 0,
-          transition: "opacity 180ms ease",
-          pointerEvents: "none",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "36px",
+          height: "20px",
+          cursor: disabled ? "default" : "grab",
         }}
-      ></span>
-      <div
-        style=${{
-          position: "absolute",
-          top: "3px",
-          left: checked ? "21px" : "3px",
-          width: "16px",
-          height: "16px",
-          borderRadius: "50%",
-          background: "var(--nr-dashboard-widgetTextColor, #fff)",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
-          transition: "left 120ms ease",
-        }}
-      ></div>
-    </div>
-    <div style=${{ display: "flex", flexDirection: "column", gap: "0" }}>
-      <span style=${{ fontWeight: 500, color: "var(--nr-dashboard-widgetTextColor, inherit)" }}>
-        ${checked && asSwitch.onicon ? html`<span class="fa ${asSwitch.onicon}" style=${{ marginRight: "6px" }}></span>` : null}
-        ${!checked && asSwitch.officon ? html`<span class="fa ${asSwitch.officon}" style=${{ marginRight: "6px" }}></span>` : null}
-        ${label}
-      </span>
-    </div>
-  </label>`;
+      >
+        <span
+          class=${asSwitch.animate || ""}
+          style=${{
+            color: checked ? asSwitch.oncolor : "transparent",
+            transition: "opacity 120ms ease, color 120ms ease",
+            position: checked ? "static" : "absolute",
+          }}
+        >${renderIcon(asSwitch.onicon)}</span>
+        <span
+          class=${asSwitch.animate || ""}
+          style=${{
+            color: !checked ? asSwitch.offcolor : "transparent",
+            transition: "opacity 120ms ease, color 120ms ease",
+            position: !checked ? "static" : "absolute",
+          }}
+        >${renderIcon(asSwitch.officon)}</span>
+      </div>`
+    : track;
+
+  return html`<div
+    class=${`nr-dashboard-switch ${asSwitch.className || ""}`.trim()}
+    style=${{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: isCenter ? "center" : "space-between",
+      width: "100%",
+      gap: "0",
+      padding: "0 8px 0 8px",
+      cursor: disabled ? "default" : "grab",
+      opacity: disabled ? 0.55 : 1,
+    }}
+    title=${asSwitch.tooltip || undefined}
+  >
+    ${showLabel
+      ? html`<p style=${{ margin: 0, padding: "0 0 0 12px", whiteSpace: "nowrap", overflow: "hidden" }} dangerouslySetInnerHTML=${labelHtml}></p>`
+      : null}
+    ${customIcons}
+  </div>`;
 }

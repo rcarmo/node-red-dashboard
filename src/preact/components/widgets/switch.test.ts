@@ -8,7 +8,7 @@ describe("Switch widget helpers", () => {
   test("resolves colors based on state", () => {
     expect(resolveSwitchColors({ ...base, oncolor: "#0f0" }, true)).toBe("#0f0");
     expect(resolveSwitchColors({ ...base, offcolor: "#f00" }, false)).toBe("#f00");
-    expect(resolveSwitchColors(base, true)).toBe("#3ddc97");
+    expect(resolveSwitchColors(base, true)).toBe("var(--nr-dashboard-widgetBackgroundColor, #0094d9)");
   });
 
   test("builds emit payload with defaults", () => {
