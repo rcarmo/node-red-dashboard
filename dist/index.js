@@ -3859,10 +3859,10 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
   style.id = LAYOUT_STYLE_ID;
   style.textContent = `
     ${DASHBOARD_SCOPE} {
-      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, transparent);
-      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, transparent);
-      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, inherit));
-      --nr-dashboard-nav-active: var(--nr-dashboard-pageSidebarBackgroundColor, rgba(0, 0, 0, 0.04));
+      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, #fff);
+      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, #fff);
+      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, #00A4DE));
+      --nr-dashboard-nav-active: var(--nr-dashboard-pageSidebarBackgroundColor, #eee);
       --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.24));
       --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.12));
     }
@@ -3901,6 +3901,23 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       overflow: hidden;
     }
 
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(0,0,0,0.16) 12%, rgba(0,0,0,0) 60%);
+      opacity: 0;
+      transform: scale(0.85);
+      transition: opacity 220ms ease, transform 220ms ease;
+      pointer-events: none;
+    }
+
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:active::after,
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible::after {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
       display: flex;
       align-items: center;
@@ -3910,20 +3927,20 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
       display: grid;
       place-items: center;
-      font-weight: 700;
-      background: rgba(0, 0, 0, 0.06);
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.04);
       border: 1px solid var(--nr-dashboard-nav-border);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
-      font-size: 18px;
-      line-height: 1;
+      font-size: 20px;
+      line-height: 24px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon img {
@@ -3949,7 +3966,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);
       border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.06);
+      box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.05);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
@@ -3979,7 +3996,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
       border: 1px solid var(--nr-dashboard-card-border);
-      border-radius: 10px;
+      border-radius: 0;
       background: var(--nr-dashboard-card-bg);
       color: var(--nr-dashboard-card-text);
       min-height: 120px;
@@ -46907,30 +46924,31 @@ var overlayStyles = {
   pointerEvents: "none"
 };
 var cardBaseStyles = {
-  padding: "10px 12px",
-  borderRadius: "8px",
-  background: "var(--nr-dashboard-toastBackgroundColor, var(--nr-dashboard-groupBackgroundColor, transparent))",
-  color: "var(--nr-dashboard-toastTextColor, var(--nr-dashboard-pageTextColor, inherit))",
+  padding: "8px 10px 10px 10px",
+  borderRadius: "4px",
+  background: "var(--nr-dashboard-toastBackgroundColor, rgba(32,32,32,0.92))",
+  color: "var(--nr-dashboard-toastTextColor, #fff)",
   minWidth: "260px",
-  boxShadow: "var(--nr-dashboard-toastShadow, 0 4px 12px rgba(0,0,0,0.2))",
+  boxShadow: "var(--nr-dashboard-toastShadow, 0 6px 16px rgba(0,0,0,0.28))",
+  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   pointerEvents: "auto",
-  position: "relative"
+  position: "relative",
+  border: "4px solid var(--nr-dashboard-infoColor, #60a5fa)"
 };
-var titleStyles = { fontWeight: 700, marginBottom: "4px" };
-var messageStyles = { fontSize: "13px" };
-var closeButtonStyles = {
-  position: "absolute",
-  top: "6px",
-  right: "6px",
-  background: "transparent",
-  border: "none",
-  fontWeight: 800,
-  cursor: "pointer"
+var titleStyles = {
+  fontWeight: 600,
+  fontSize: "16px",
+  lineHeight: "20px",
+  marginBottom: "2px"
+};
+var messageStyles = {
+  fontSize: "14px",
+  lineHeight: "20px"
 };
 
 // src/preact/components/ToastOverlay.ts
 function ToastOverlay(props) {
-  const { toasts, onDismiss } = props;
+  const { toasts } = props;
   if (!toasts.length)
     return null;
   const { t: t4 } = useI18n();
@@ -46941,19 +46959,10 @@ function ToastOverlay(props) {
     const toneColor = resolveToastToneColor(toast.level ?? "info");
     return m2`<div
         key=${toast.id}
-        style=${{ ...cardBaseStyles, border: `1px solid ${toneColor}` }}
+        style=${{ ...cardBaseStyles, border: `4px solid ${toneColor}` }}
       >
         <div style=${titleStyles}>${toast.title || t4("toast_overlay_title", "Notification")}</div>
         <div style=${messageStyles}>${String(toast.message ?? "")}</div>
-        <button
-          type="button"
-          aria-label=${t4("toast_overlay_close", "Dismiss notification")}
-          onClick=${() => onDismiss(toast.id)}
-          style=${{
-      ...closeButtonStyles,
-      color: toneColor
-    }}
-        >x</button>
       </div>`;
   })}
   </div>`;
@@ -46994,7 +47003,7 @@ var themeVarMap = {
   "base-color": "--nr-dashboard-baseColor"
 };
 var appStyles = {
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
   color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
   minHeight: "100vh",
@@ -47007,7 +47016,11 @@ var toolbarStyles = {
   padding: "0 16px",
   borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08))",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
-  color: "#fff"
+  color: "#fff",
+  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
+  fontWeight: "400",
+  fontSize: "18px",
+  lineHeight: "24px"
 };
 var iconButtonStyles = {
   border: "none",
@@ -47019,7 +47032,9 @@ var iconButtonStyles = {
   display: "inline-grid",
   placeItems: "center",
   cursor: "pointer",
-  transition: "background 120ms ease, color 120ms ease, transform 140ms ease"
+  transition: "background 120ms ease, color 120ms ease, transform 140ms ease",
+  position: "relative",
+  overflow: "hidden"
 };
 var floatingToggleStyles = {
   position: "fixed",
@@ -47044,12 +47059,12 @@ var layoutStyles2 = {
 var navStyles = {
   borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08)))",
   padding: "12px 12px 16px",
-  color: "var(--nr-dashboard-pageSidebarTextColor, inherit)",
-  background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
+  color: "var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, #00A4DE))",
+  background: "var(--nr-dashboard-pageSidebarBackgroundColor, #eee)",
   overflowY: "auto"
 };
 var contentStyles = {
-  padding: "16px"
+  padding: "0"
 };
 function getEffectiveTheme(tab, globalTheme) {
   if (tab?.theme)
@@ -47425,7 +47440,8 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     placeItems: "center",
     gap: "10px",
     color: "#888",
-    fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif"
+    fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
+    animationDuration: "2.5s"
   }}
               >
                 <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />

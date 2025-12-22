@@ -55,7 +55,7 @@ const themeVarMap: Record<string, string> = {
 };
 
 const appStyles: Record<string, string> = {
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
   color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
   minHeight: "100vh",
@@ -70,6 +70,10 @@ const toolbarStyles: Record<string, string> = {
   borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08))",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
   color: "#fff",
+  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
+  fontWeight: "400",
+  fontSize: "18px",
+  lineHeight: "24px",
 };
 
 const iconButtonStyles: Record<string, string> = {
@@ -83,6 +87,8 @@ const iconButtonStyles: Record<string, string> = {
   placeItems: "center",
   cursor: "pointer",
   transition: "background 120ms ease, color 120ms ease, transform 140ms ease",
+  position: "relative",
+  overflow: "hidden",
 };
 
 const floatingToggleStyles: Record<string, string> = {
@@ -110,13 +116,13 @@ const layoutStyles: Record<string, string> = {
 const navStyles: Record<string, string> = {
   borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.08)))",
   padding: "12px 12px 16px",
-  color: "var(--nr-dashboard-pageSidebarTextColor, inherit)",
-  background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
+  color: "var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, #00A4DE))",
+  background: "var(--nr-dashboard-pageSidebarBackgroundColor, #eee)",
   overflowY: "auto",
 };
 
 const contentStyles: Record<string, string> = {
-  padding: "16px",
+  padding: "0",
 };
 
 function getEffectiveTheme(tab: UiMenuItem | null, globalTheme: UiTheme | null): UiTheme | null {
@@ -556,6 +562,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   gap: "10px",
                   color: "#888",
                   fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
+                  animationDuration: "2.5s",
                 }}
               >
                 <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />

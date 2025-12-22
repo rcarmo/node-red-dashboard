@@ -10,25 +10,26 @@ export const overlayStyles: Record<string, string | number> = {
 };
 
 export const cardBaseStyles: Record<string, string | number> = {
-  padding: "10px 12px",
-  borderRadius: "8px",
-  background: "var(--nr-dashboard-toastBackgroundColor, var(--nr-dashboard-groupBackgroundColor, transparent))",
-  color: "var(--nr-dashboard-toastTextColor, var(--nr-dashboard-pageTextColor, inherit))",
+  padding: "8px 10px 10px 10px",
+  borderRadius: "4px",
+  background: "var(--nr-dashboard-toastBackgroundColor, rgba(32,32,32,0.92))",
+  color: "var(--nr-dashboard-toastTextColor, #fff)",
   minWidth: "260px",
-  boxShadow: "var(--nr-dashboard-toastShadow, 0 4px 12px rgba(0,0,0,0.2))",
+  boxShadow: "var(--nr-dashboard-toastShadow, 0 6px 16px rgba(0,0,0,0.28))",
+  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   pointerEvents: "auto",
   position: "relative",
+  border: "4px solid var(--nr-dashboard-infoColor, #60a5fa)",
 };
 
-export const titleStyles: Record<string, string | number> = { fontWeight: 700, marginBottom: "4px" };
-export const messageStyles: Record<string, string | number> = { fontSize: "13px" };
+export const titleStyles: Record<string, string | number> = {
+  fontWeight: 600,
+  fontSize: "16px",
+  lineHeight: "20px",
+  marginBottom: "2px",
+};
 
-export const closeButtonStyles: Record<string, string | number> = {
-  position: "absolute",
-  top: "6px",
-  right: "6px",
-  background: "transparent",
-  border: "none",
-  fontWeight: 800,
-  cursor: "pointer",
+export const messageStyles: Record<string, string | number> = {
+  fontSize: "14px",
+  lineHeight: "20px",
 };

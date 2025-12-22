@@ -8,10 +8,10 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
   style.id = LAYOUT_STYLE_ID;
   style.textContent = `
     ${DASHBOARD_SCOPE} {
-      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, transparent);
-      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, transparent);
-      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, inherit));
-      --nr-dashboard-nav-active: var(--nr-dashboard-pageSidebarBackgroundColor, rgba(0, 0, 0, 0.04));
+      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, #fff);
+      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, #fff);
+      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, #00A4DE));
+      --nr-dashboard-nav-active: var(--nr-dashboard-pageSidebarBackgroundColor, #eee);
       --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.24));
       --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.12));
     }
@@ -50,6 +50,23 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       overflow: hidden;
     }
 
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle, rgba(0,0,0,0.16) 12%, rgba(0,0,0,0) 60%);
+      opacity: 0;
+      transform: scale(0.85);
+      transition: opacity 220ms ease, transform 220ms ease;
+      pointer-events: none;
+    }
+
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:active::after,
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible::after {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
       display: flex;
       align-items: center;
@@ -59,20 +76,20 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
       display: grid;
       place-items: center;
-      font-weight: 700;
-      background: rgba(0, 0, 0, 0.06);
+      font-weight: 600;
+      background: rgba(0, 0, 0, 0.04);
       border: 1px solid var(--nr-dashboard-nav-border);
-      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
-      font-size: 18px;
-      line-height: 1;
+      font-size: 20px;
+      line-height: 24px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon img {
@@ -98,7 +115,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);
       border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
-      box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.06);
+      box-shadow: inset -2px 0 0 rgba(0, 0, 0, 0.05);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
@@ -128,7 +145,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
       border: 1px solid var(--nr-dashboard-card-border);
-      border-radius: 10px;
+      border-radius: 0;
       background: var(--nr-dashboard-card-bg);
       color: var(--nr-dashboard-card-text);
       min-height: 120px;
