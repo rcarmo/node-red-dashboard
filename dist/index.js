@@ -3858,9 +3858,9 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
   style.id = LAYOUT_STYLE_ID;
   style.textContent = `
     :root {
-      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, rgba(255, 255, 255, 0.03));
-      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, rgba(255, 255, 255, 0.12));
-      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, #e9ecf1));
+      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, transparent);
+      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, transparent);
+      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, inherit));
       --nr-dashboard-nav-active: var(--nr-dashboard-sidebarBackgroundColor, rgba(255, 255, 255, 0.08));
       --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.35));
       --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.12));
@@ -3982,7 +3982,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     }
 
     .nr-dashboard-group-card__header {
@@ -42303,12 +42303,12 @@ function TemplateWidget(props) {
   return m2`<div class=${c3.className || ""} style=${{ width: "100%" }}>
     <div
       style=${{
-    padding: "10px 12px",
-    borderRadius: "8px",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.4))",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
+    padding: "4px 0",
+    borderRadius: "0",
+    background: "transparent",
+    border: "none",
     display: "grid",
-    gap: "6px"
+    gap: "4px"
   }}
     >
       <div style=${{ fontSize: "12px", opacity: 0.7 }}>${title}</div>
@@ -46513,14 +46513,14 @@ function WidgetFrame({ control, disabled, children }) {
   return m2`<div
     class=${`nr-dashboard-widget-frame ${(control.className ?? "").trim()}`.trim()}
     style=${{
-    background: "var(--nr-dashboard-widgetBackgroundColor, #14171d)",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
     borderRadius: "8px",
     padding: `${padding}px`,
     display: "flex",
     flexDirection: "column",
     gap: `${gap}px`,
-    color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+    color: "var(--nr-dashboard-widgetTextColor, inherit)",
     opacity: isDisabled ? 0.55 : 1,
     pointerEvents: isDisabled ? "none" : "auto"
   }}

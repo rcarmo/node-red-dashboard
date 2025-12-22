@@ -7,9 +7,9 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
   style.id = LAYOUT_STYLE_ID;
   style.textContent = `
     :root {
-      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, rgba(255, 255, 255, 0.03));
-      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, rgba(255, 255, 255, 0.12));
-      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, #e9ecf1));
+      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, transparent);
+      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, transparent);
+      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, inherit));
       --nr-dashboard-nav-active: var(--nr-dashboard-sidebarBackgroundColor, rgba(255, 255, 255, 0.08));
       --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.35));
       --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(255, 255, 255, 0.12));
@@ -131,7 +131,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
     }
 
     .nr-dashboard-group-card__header {

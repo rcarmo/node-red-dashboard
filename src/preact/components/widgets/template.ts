@@ -25,12 +25,12 @@ export function TemplateWidget(props: { control: UiControl; index: number }): VN
   return html`<div class=${c.className || ""} style=${{ width: "100%" }}>
     <div
       style=${{
-        padding: "10px 12px",
-        borderRadius: "8px",
-        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.4))",
-        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
+        padding: "4px 0",
+        borderRadius: "0",
+        background: "transparent",
+        border: "none",
         display: "grid",
-        gap: "6px",
+        gap: "4px",
       }}
     >
       <div style=${{ fontSize: "12px", opacity: 0.7 }}>${title}</div>

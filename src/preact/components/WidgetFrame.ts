@@ -20,14 +20,14 @@ export function WidgetFrame({ control, disabled, children }: WidgetFrameProps): 
   return html`<div
     class=${`nr-dashboard-widget-frame ${((control as { className?: string }).className ?? "").trim()}`.trim()}
     style=${{
-      background: "var(--nr-dashboard-widgetBackgroundColor, #14171d)",
-      border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
+      background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
+      border: "1px solid var(--nr-dashboard-widgetBorderColor, transparent)",
       borderRadius: "8px",
       padding: `${padding}px`,
       display: "flex",
       flexDirection: "column",
       gap: `${gap}px`,
-      color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+      color: "var(--nr-dashboard-widgetTextColor, inherit)",
       opacity: isDisabled ? 0.55 : 1,
       pointerEvents: isDisabled ? "none" : "auto",
     }}
