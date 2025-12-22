@@ -42307,11 +42307,6 @@ function GaugeWidget(props) {
 }
 
 // src/preact/components/styles/fieldStyles.ts
-var fieldWrapperStyles = {
-  display: "grid",
-  gap: "6px",
-  width: "100%"
-};
 var fieldLabelStyles = {
   fontSize: "13px",
   opacity: 0.85,
@@ -42358,6 +42353,22 @@ function DatePickerWidget(props) {
   const [focused, setFocused] = d2(false);
   const inputId = T2(() => `nr-dashboard-date-${index}`, [index]);
   const isDisabled = Boolean(disabled);
+  const containerStyle = T2(() => ({ display: "flex", flexDirection: "column", width: "100%", marginTop: "8px" }), []);
+  const rowStyle = T2(() => ({ display: "flex", alignItems: "center", width: "100%" }), []);
+  const labelStyle = T2(() => ({ ...fieldLabelStyles, marginLeft: "8px", marginRight: "12px", whiteSpace: "nowrap", marginBottom: "0" }), []);
+  const inputContainerStyle = T2(() => ({ position: "relative", flex: "1 1 auto", width: "100%", padding: "0" }), []);
+  const iconStyle = T2(() => ({
+    position: "absolute",
+    right: "6px",
+    top: "-5px",
+    width: "40px",
+    height: "40px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.54))",
+    pointerEvents: "none"
+  }), []);
   const inputType2 = resolveDateInputType(c3.mode);
   const validate = (next) => {
     if (c3.required && next.trim().length === 0) {
@@ -42375,21 +42386,22 @@ function DatePickerWidget(props) {
     setError("");
     return true;
   };
-  const fieldStyles = buildFieldStyles({ error: Boolean(error2), focused, disabled: isDisabled });
-  return m2`<label style=${fieldWrapperStyles}>
-    <span style=${fieldLabelStyles}>${label}</span>
-    <div style=${{ position: "relative", width: "100%" }}>
-      <input
-        id=${inputId}
-        class=${c3.className || ""}
-        type=${inputType2}
-        value=${value2}
-        disabled=${isDisabled}
-        lang=${lang}
-        aria-invalid=${error2 ? "true" : "false"}
-        aria-errormessage=${error2 ? `err-date-${index}` : undefined}
-        aria-valuetext=${formatDateInput(value2, c3.mode, lang) || undefined}
-        onInput=${(e4) => {
+  const fieldStyles = buildFieldStyles({ error: Boolean(error2), focused, disabled: isDisabled, hasAdornment: true });
+  return m2`<div style=${containerStyle}>
+    <div style=${rowStyle}>
+      <label for=${inputId} style=${labelStyle}>${label}</label>
+      <div style=${inputContainerStyle}>
+        <input
+          id=${inputId}
+          class=${c3.className || ""}
+          type=${inputType2}
+          value=${value2}
+          disabled=${isDisabled}
+          lang=${lang}
+          aria-invalid=${error2 ? "true" : "false"}
+          aria-errormessage=${error2 ? `err-date-${index}` : undefined}
+          aria-valuetext=${formatDateInput(value2, c3.mode, lang) || undefined}
+          onInput=${(e4) => {
     if (isDisabled)
       return;
     const v3 = e4.target.value;
@@ -42398,33 +42410,23 @@ function DatePickerWidget(props) {
       return;
     onEmit?.("ui-change", { payload: v3 });
   }}
-        onFocus=${() => setFocused(true)}
-        onBlur=${() => setFocused(false)}
-        style=${{ ...fieldStyles, paddingRight: "44px" }}
-        min=${c3.min || undefined}
-        max=${c3.max || undefined}
-      />
-      <span
-        aria-hidden="true"
-        style=${{
-    position: "absolute",
-    right: "12px",
-    top: "50%",
-    transform: "translateY(-50%)",
-    color: "rgba(0,0,0,0.54)",
-    fontSize: "14px",
-    pointerEvents: "none"
-  }}
-      >
-        <i class="fa fa-calendar" aria-hidden="true"></i>
-      </span>
+          onFocus=${() => setFocused(true)}
+          onBlur=${() => setFocused(false)}
+          style=${{ ...fieldStyles, paddingRight: "55px", width: "100%" }}
+          min=${c3.min || undefined}
+          max=${c3.max || undefined}
+        />
+        <span aria-hidden="true" style=${iconStyle}>
+          <i class="fa fa-calendar" aria-hidden="true"></i>
+        </span>
+      </div>
     </div>
     ${error2 ? m2`<span
           id=${`err-date-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px" }}
+          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", marginLeft: "8px", marginTop: "4px" }}
         >${error2}</span>` : null}
-  </label>`;
+  </div>`;
 }
 
 // src/preact/components/widgets/colour-picker.ts

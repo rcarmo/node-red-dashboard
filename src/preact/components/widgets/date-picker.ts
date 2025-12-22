@@ -4,7 +4,7 @@ import { useMemo, useState } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { formatDateInput } from "../../lib/format";
-import { buildFieldStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
+import { buildFieldStyles, fieldLabelStyles } from "../styles/fieldStyles";
 
 export type DatePickerControl = UiControl & {
   name?: string;
@@ -35,6 +35,35 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
   const inputId = useMemo(() => `nr-dashboard-date-${index}`, [index]);
   const isDisabled = Boolean(disabled);
 
+  const containerStyle = useMemo(
+    () => ({ display: "flex", flexDirection: "column", width: "100%", marginTop: "8px" }),
+    [],
+  );
+  const rowStyle = useMemo(() => ({ display: "flex", alignItems: "center", width: "100%" }), []);
+  const labelStyle = useMemo(
+    () => ({ ...fieldLabelStyles, marginLeft: "8px", marginRight: "12px", whiteSpace: "nowrap", marginBottom: "0" }),
+    [],
+  );
+  const inputContainerStyle = useMemo(
+    () => ({ position: "relative", flex: "1 1 auto", width: "100%", padding: "0" }),
+    [],
+  );
+  const iconStyle = useMemo(
+    () => ({
+      position: "absolute",
+      right: "6px",
+      top: "-5px",
+      width: "40px",
+      height: "40px",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.54))",
+      pointerEvents: "none",
+    }),
+    [],
+  );
+
   const inputType = resolveDateInputType(c.mode);
 
   const validate = (next: string): boolean => {
@@ -54,55 +83,46 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
     return true;
   };
 
-  const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: isDisabled });
+  const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: isDisabled, hasAdornment: true });
 
-  return html`<label style=${fieldWrapperStyles}>
-    <span style=${fieldLabelStyles}>${label}</span>
-    <div style=${{ position: "relative", width: "100%" }}>
-      <input
-        id=${inputId}
-        class=${c.className || ""}
-        type=${inputType}
-        value=${value}
-        disabled=${isDisabled}
-        lang=${lang}
-        aria-invalid=${error ? "true" : "false"}
-        aria-errormessage=${error ? `err-date-${index}` : undefined}
-        aria-valuetext=${formatDateInput(value, c.mode, lang) || undefined}
-        onInput=${(e: Event) => {
-          if (isDisabled) return;
-          const v = (e.target as HTMLInputElement).value;
-          setValue(v);
-          if (!validate(v)) return;
-          onEmit?.("ui-change", { payload: v });
-        }}
-        onFocus=${() => setFocused(true)}
-        onBlur=${() => setFocused(false)}
-        style=${{ ...fieldStyles, paddingRight: "44px" }}
-        min=${c.min || undefined}
-        max=${c.max || undefined}
-      />
-      <span
-        aria-hidden="true"
-        style=${{
-          position: "absolute",
-          right: "12px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          color: "rgba(0,0,0,0.54)",
-          fontSize: "14px",
-          pointerEvents: "none",
-        }}
-      >
-        <i class="fa fa-calendar" aria-hidden="true"></i>
-      </span>
+  return html`<div style=${containerStyle}>
+    <div style=${rowStyle}>
+      <label for=${inputId} style=${labelStyle}>${label}</label>
+      <div style=${inputContainerStyle}>
+        <input
+          id=${inputId}
+          class=${c.className || ""}
+          type=${inputType}
+          value=${value}
+          disabled=${isDisabled}
+          lang=${lang}
+          aria-invalid=${error ? "true" : "false"}
+          aria-errormessage=${error ? `err-date-${index}` : undefined}
+          aria-valuetext=${formatDateInput(value, c.mode, lang) || undefined}
+          onInput=${(e: Event) => {
+            if (isDisabled) return;
+            const v = (e.target as HTMLInputElement).value;
+            setValue(v);
+            if (!validate(v)) return;
+            onEmit?.("ui-change", { payload: v });
+          }}
+          onFocus=${() => setFocused(true)}
+          onBlur=${() => setFocused(false)}
+          style=${{ ...fieldStyles, paddingRight: "55px", width: "100%" }}
+          min=${c.min || undefined}
+          max=${c.max || undefined}
+        />
+        <span aria-hidden="true" style=${iconStyle}>
+          <i class="fa fa-calendar" aria-hidden="true"></i>
+        </span>
+      </div>
     </div>
     ${error
       ? html`<span
           id=${`err-date-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px" }}
+          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", marginLeft: "8px", marginTop: "4px" }}
         >${error}</span>`
       : null}
-  </label>`;
+  </div>`;
 }
