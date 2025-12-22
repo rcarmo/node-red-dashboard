@@ -18,7 +18,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
       list-style: none;
-      padding: 0 0 12px 0;
+      padding: 0;
       margin: 0;
     }
 

@@ -80,7 +80,8 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
-      height: 2px;
+      height: 24px;
+      margin: 0;
     }
 
     .nr-dashboard-slider__range.is-vertical {

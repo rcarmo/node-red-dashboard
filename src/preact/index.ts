@@ -424,8 +424,8 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
   const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : `${navMaxWidth}px`} 1fr` : "1fr";
   const sectionMinHeight = "100vh";
-  const showToggle = isSlide && hasTabs;
-  const showFloatingToggle = isSlide && hasTabs && hideToolbar;
+  const showToggle = isSlide && hasMultipleTabs;
+  const showFloatingToggle = isSlide && hasMultipleTabs && hideToolbar;
 
   return html`
     <div style=${shellStyles} ref=${shellRef}>
@@ -538,9 +538,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                       }}
                     >✕</button>
                   </div>`
-                : isIconOnly
-                ? null
-                : html`<h3 style=${{ marginTop: "4px", marginBottom: "12px", fontSize: "14px", fontWeight: 600 }}>${t("tabs_label", "Tabs")}</h3>`}
+                : null}
               <${TabNav}
                 menu=${state.menu}
                 selectedIndex=${state.selectedTabIndex}

@@ -3870,7 +3870,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
       list-style: none;
-      padding: 8px 0 12px 0;
+      padding: 0;
       margin: 0;
     }
 
@@ -5614,7 +5614,8 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
-      height: 2px;
+      height: 24px;
+      margin: 0;
     }
 
     .nr-dashboard-slider__range.is-vertical {
@@ -47951,8 +47952,8 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
   const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : `${navMaxWidth}px`} 1fr` : "1fr";
   const sectionMinHeight = "100vh";
-  const showToggle = isSlide && hasTabs;
-  const showFloatingToggle = isSlide && hasTabs && hideToolbar;
+  const showToggle = isSlide && hasMultipleTabs;
+  const showFloatingToggle = isSlide && hasMultipleTabs && hideToolbar;
   return m2`
     <div style=${shellStyles} ref=${shellRef}>
       ${hideToolbar ? null : m2`<header style=${toolbarStyles}>
@@ -48021,7 +48022,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
     position: isSlide && !isLocked && !isIconOnly ? "fixed" : "relative",
     left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : `-${navWidthNum}px` : undefined,
-    top: navTop,
+    top: isSlide && !isLocked && !isIconOnly ? navTop : undefined,
     bottom: 0,
     transition: "left 0.18s ease-out",
     zIndex: 80,
@@ -48044,7 +48045,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))"
   }}
                     >✕</button>
-                  </div>` : isIconOnly ? null : m2`<h3 style=${{ marginTop: "4px", marginBottom: "12px", fontSize: "14px", fontWeight: 600 }}>${t4("tabs_label", "Tabs")}</h3>`}
+                  </div>` : null}
               <${TabNav}
                 menu=${state.menu}
                 selectedIndex=${state.selectedTabIndex}
