@@ -41,6 +41,7 @@ describe("Sizing", () => {
       py: 0,
       columns: 24,
       dense: false,
+      layoutMode: "grid",
     });
   });
 
