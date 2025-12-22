@@ -62,7 +62,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     }
 
     .nr-dashboard-slider__label {
-      font-size: 13px;
+      font-size: 14px;
       opacity: 0.8;
       white-space: nowrap;
       margin-right: 15px;
@@ -102,7 +102,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       -webkit-appearance: none;
       height: 12px;
       width: 12px;
-      margin-top: -5px;
+      margin-top: -7px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
@@ -146,6 +146,7 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
+      margin-top: -1px;
     }
 
     .nr-dashboard-slider__value {

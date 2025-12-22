@@ -30,7 +30,7 @@ function ensureFormStyles(doc: Document | undefined = typeof document !== "undef
     }
 
     .nr-dashboard-form .formlabel {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 500;
       margin-top: 12px;
       margin-bottom: 6px;
@@ -104,7 +104,7 @@ function ensureFormStyles(doc: Document | undefined = typeof document !== "undef
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.3;
       color: var(--nr-dashboard-widgetTextColor, inherit);
     }

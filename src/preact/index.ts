@@ -55,7 +55,8 @@ const themeVarMap: Record<string, string> = {
 };
 
 const appStyles: Record<string, string> = {
-  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
+  fontFamily: "Roboto, 'Helvetica Neue', Arial, Helvetica, sans-serif",
+  fontSize: "14px",
   background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
   color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
   minHeight: "100vh",

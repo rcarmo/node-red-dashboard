@@ -5596,7 +5596,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-slider__label {
-      font-size: 13px;
+      font-size: 14px;
       opacity: 0.8;
       white-space: nowrap;
       margin-right: 15px;
@@ -5614,7 +5614,8 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
-      height: 24px;
+      height: 2px;
+      padding: 11px 0;
       margin: 0;
     }
 
@@ -5635,7 +5636,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       -webkit-appearance: none;
       height: 12px;
       width: 12px;
-      margin-top: -5px;
+      margin-top: -7px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
@@ -5679,6 +5680,7 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
+      margin-top: -1px;
     }
 
     .nr-dashboard-slider__value {
@@ -42802,7 +42804,7 @@ function ensureFormStyles(doc = typeof document !== "undefined" ? document : und
     }
 
     .nr-dashboard-form .formlabel {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 500;
       margin-top: 12px;
       margin-bottom: 6px;
@@ -42876,7 +42878,7 @@ function ensureFormStyles(doc = typeof document !== "undefined" ? document : und
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
+      font-size: 14px;
       line-height: 1.3;
       color: var(--nr-dashboard-widgetTextColor, inherit);
     }
@@ -47625,7 +47627,8 @@ var themeVarMap = {
   "base-color": "--nr-dashboard-baseColor"
 };
 var appStyles = {
-  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
+  fontFamily: "Roboto, 'Helvetica Neue', Arial, Helvetica, sans-serif",
+  fontSize: "14px",
   background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
   color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
   minHeight: "100vh",
