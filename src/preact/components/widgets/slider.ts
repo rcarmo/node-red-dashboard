@@ -23,6 +23,7 @@ export type SliderControl = UiControl & {
 
 const DEFAULT_THROTTLE_MS = 10;
 const SLIDER_STYLE_ID = "nr-dashboard-slider-style";
+const MAX_TICKS = 10;
 
 function ensureSliderStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
   if (!doc) return;
@@ -76,6 +77,15 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       padding-bottom: 4px;
       white-space: nowrap;
       overflow: hidden;
+    }
+
+    .nr-dashboard-slider__minmax {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.7;
+      color: var(--nr-dashboard-slider-text);
+      padding: 0 2px;
     }
 
     .nr-dashboard-slider__range {
@@ -286,7 +296,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
   const span = Math.max(1, max - min);
   const percent = Math.min(1, Math.max(0, (sliderValue - min) / span));
   const stepCount = step > 0 ? Math.floor((max - min) / step) : 0;
-  const showTicks = false;
+  const showTicks = stepCount > 0 && stepCount <= MAX_TICKS;
   const showSign = forceSign || dragging;
 
   const sliderStyle = isVertical
@@ -405,6 +415,12 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
               >${formatter.format(value)}</span>`
             : null}
         </div>`}
+    ${!isVertical
+      ? html`<div class="nr-dashboard-slider__minmax">
+          <span>${formatter.format(min)}</span>
+          <span>${formatter.format(max)}</span>
+        </div>`
+      : null}
     ${isVertical ? html`<span class="nr-dashboard-slider__label is-vertical">${label}</span>` : null}
     <span class="nr-dashboard-slider__value">${formatter.format(value)}</span>
   </div>`;

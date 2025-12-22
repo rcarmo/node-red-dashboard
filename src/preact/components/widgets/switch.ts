@@ -84,6 +84,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     ? asSwitch.oncolor ?? `var(--nr-dashboard-widgetColor, ${resolvedColor})`
     : asSwitch.offcolor ?? `var(--nr-dashboard-widgetBorderColor, ${resolvedColor})`;
   const isCenter = (asSwitch.className || "").split(" ").includes("center");
+  const [ripple, setRipple] = useState(false);
 
   return html`<label
     class=${asSwitch.className || ""}
@@ -104,6 +105,9 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
       onMouseLeave=${() => setHovered(false)}
       onFocus=${() => setFocused(true)}
       onBlur=${() => setFocused(false)}
+      onMouseDown=${() => setRipple(true)}
+      onMouseUp=${() => setRipple(false)}
+      onMouseOut=${() => setRipple(false)}
       onKeyDown=${(e: KeyboardEvent) => {
         if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
           e.preventDefault();
@@ -125,8 +129,20 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
           : hovered
             ? "0 1px 4px var(--nr-dashboard-switch-shadow, rgba(0,0,0,0.28))"
             : "none",
+        overflow: "hidden",
       }}
     >
+      <span
+        aria-hidden="true"
+        style=${{
+          position: "absolute",
+          inset: 0,
+          background: "radial-gradient(circle at center, rgba(255,255,255,0.22), transparent 55%)",
+          opacity: ripple ? 0.28 : 0,
+          transition: "opacity 180ms ease",
+          pointerEvents: "none",
+        }}
+      ></span>
       <div
         style=${{
           position: "absolute",

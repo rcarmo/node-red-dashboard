@@ -27,6 +27,7 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
   const isDisabled = Boolean(disabled);
   const [focused, setFocused] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const [pressed, setPressed] = useState(false);
 
   const focusRing = focused
     ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 45%, transparent)"
@@ -51,6 +52,9 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
         : undefined}
       onMouseEnter=${() => setHovered(true)}
       onMouseLeave=${() => setHovered(false)}
+      onMouseDown=${() => setPressed(true)}
+      onMouseUp=${() => setPressed(false)}
+      onBlur=${() => setPressed(false)}
       onFocus=${() => setFocused(true)}
       onBlur=${() => setFocused(false)}
       style=${{
@@ -68,6 +72,7 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
         boxShadow: focusRing,
         transition: "box-shadow 140ms ease, background 160ms ease, color 140ms ease",
         width: "100%",
+        transform: pressed ? "translateY(1px)" : "none",
       }}
     >
       ${icon ? html`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : html`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}

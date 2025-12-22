@@ -43,6 +43,8 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   const [focused, setFocused] = useState(false);
   const [pressed, setPressed] = useState(false);
 
+  const ripple = hovered || pressed;
+
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
     onEmit?.("ui-control", payload);
@@ -83,9 +85,22 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       transform: pressed ? "translateY(1px)" : "none",
       transition: "box-shadow 160ms ease, filter 160ms ease, background 160ms ease, transform 120ms ease",
       letterSpacing: "0.02em",
+      position: "relative",
+      overflow: "hidden",
     }}
   >
     ${asButton.icon ? html`<span class="fa ${asButton.icon}" style=${{ marginRight: "6px" }}></span>` : null}
     ${label}
+    <span
+      aria-hidden="true"
+      style=${{
+        position: "absolute",
+        inset: 0,
+        background: "radial-gradient(circle at center, rgba(255,255,255,0.24), transparent 55%)",
+        opacity: ripple ? 0.4 : 0,
+        transition: "opacity 180ms ease",
+        pointerEvents: "none",
+      }}
+    ></span>
   </button>`;
 }

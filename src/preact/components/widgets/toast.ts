@@ -31,9 +31,11 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
   const [visible, setVisible] = useState<boolean>(true);
   const dismissible = c.dismissible !== false;
   const displayMs = Number.isFinite(c.displayTime) ? Math.max(0, Number(c.displayTime)) : 3000;
+  const [stackOffset, setStackOffset] = useState<number>(index * 4);
 
   useEffect(() => {
     setVisible(true);
+    setStackOffset(index * 4);
     if (displayMs > 0) {
       const timer = window.setTimeout(() => setVisible(false), displayMs);
       return () => window.clearTimeout(timer);
@@ -53,10 +55,11 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
       background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.65))",
       position: "relative",
       borderRadius: "8px",
-      margin: "6px 0",
+      margin: `${6 + stackOffset}px 0 6px 0`,
     }}
     role="status"
     aria-live="polite"
+    aria-atomic="true"
   >
     <div style=${{ fontWeight: 700, marginBottom: "6px", color: toneColor }}>${label}</div>
     <div style=${{ fontSize: "13px", lineHeight: 1.45 }}>${msg}</div>
