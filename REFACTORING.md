@@ -24,6 +24,7 @@
 - [ ] Vendor all runtime deps (no CDN); bundle fonts/icons/assets locally.
 - [ ] Refactor client code to TypeScript (strict) using HTM templates (no JSX); configure tooling for `htm/preact`.
 - [ ] Align UX semantics (loading/no-tabs, navigation) with legacy Angular sources (`src/index.html`, `src/partials/main.html`, `src/main.js`) before altering behaviors.
+- [ ] Preact components must match legacy Angular layout and styling precisely; validate each widget against the Angular rendering for visual and UX fidelity.
 - [ ] Avoid self-referential/meta UI text (e.g., no "mirrors legacy" phrasing) while matching legacy behaviors.
 
 ## Phase Checklists

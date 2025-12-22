@@ -59,6 +59,19 @@ const toolbarStyles: Record<string, string> = {
   borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
 };
 
+const iconButtonStyles: Record<string, string> = {
+  border: "none",
+  background: "transparent",
+  color: "inherit",
+  width: "40px",
+  height: "40px",
+  borderRadius: "50%",
+  display: "inline-grid",
+  placeItems: "center",
+  cursor: "pointer",
+  transition: "background 120ms ease, color 120ms ease",
+};
+
 const floatingToggleStyles: Record<string, string> = {
   position: "fixed",
   top: "12px",
@@ -84,6 +97,7 @@ const navStyles: Record<string, string> = {
   borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
   padding: "16px",
   color: "var(--nr-dashboard-sidebarTextColor, inherit)",
+  background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)",
 };
 
 const contentStyles: Record<string, string> = {
@@ -174,32 +188,6 @@ export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): voi
       target.style.setProperty("--nr-dashboard-pageTextColor", derivedText);
     }
   }
-}
-
-export function shouldShowLoading(connection: DashboardState["connection"]): boolean {
-  return connection !== "ready";
-}
-
-export function findFirstFocusable(root: HTMLElement | null): HTMLElement | null {
-  if (!root) return null;
-  const selector = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
-  const candidate = root.querySelector<HTMLElement>(selector);
-  return candidate ?? root;
-}
-
-function findNextTabIndex(menu: UiMenuItem[], startIdx: number, delta: number): number | null {
-  if (menu.length === 0) return null;
-  const len = menu.length;
-  let idx = startIdx;
-
-  for (let i = 0; i < len; i += 1) {
-    idx = (idx + delta + len) % len;
-    const tab = menu[idx];
-    if (!tab || tab.disabled || tab.hidden) continue;
-    return idx;
-  }
-
-  return null;
 }
 
 export function App(): VNode {
@@ -392,12 +380,11 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   aria-label=${t("toggle_menu", "Toggle menu")}
                   onClick=${() => setNavOpen((v) => !v)}
                   style=${{
+                    ...iconButtonStyles,
+                    background: navOpen
+                      ? "rgba(255,255,255,0.10)"
+                      : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
                     border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-                    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
-                    color: "inherit",
-                    borderRadius: "8px",
-                    padding: "6px 10px",
-                    cursor: "pointer",
                   }}
                 >${navOpen ? "✕" : "☰"}</button>`
               : null}
@@ -436,6 +423,24 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
           minHeight: sectionMinHeight,
         }}
       >
+        ${showFloatingToggle
+          ? html`<button
+              type="button"
+              aria-label=${t("toggle_menu", "Toggle menu")}
+              onClick=${() => setNavOpen((v) => !v)}
+              style=${{
+                ...floatingToggleStyles,
+                ...iconButtonStyles,
+                background: navOpen
+                  ? "rgba(255,255,255,0.12)"
+                  : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.10))",
+                border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+                width: "44px",
+                height: "44px",
+              }}
+            >${navOpen ? "✕" : "☰"}</button>`
+          : null}
+
         ${shouldRenderNav
           ? html`${isSlide && !isLocked && !isIconOnly && navOpen
               ? html`<div
@@ -463,9 +468,11 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 transition: "left 0.18s ease-out",
                 zIndex: 10,
                 boxShadow:
-                  isSlide && !isLocked && !isIconOnly && navOpen
-                    ? "2px 0 12px rgba(0,0,0,0.35)"
-                    : "0 0 0 rgba(0,0,0,0)",
+                  isSlide && !isLocked && !isIconOnly
+                    ? navOpen
+                      ? "2px 0 12px rgba(0,0,0,0.35)"
+                      : "0 0 0 rgba(0,0,0,0)"
+                    : "1px 0 10px rgba(0,0,0,0.28)",
                 backdropFilter: isSlide && !isLocked && !isIconOnly && navOpen ? "blur(2px)" : undefined,
               }}
             >
@@ -477,12 +484,11 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                       aria-label=${t("close_menu", "Close menu")}
                       onClick=${() => setNavOpen(false)}
                       style=${{
-                        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-                        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
-                        color: "inherit",
-                        borderRadius: "6px",
-                        padding: "4px 8px",
-                        cursor: "pointer",
+                        ...iconButtonStyles,
+                        width: "36px",
+                        height: "36px",
+                        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.20))",
+                        background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))",
                       }}
                     >✕</button>
                   </div>`
@@ -505,6 +511,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               />
             </nav>`
           : null}
+
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
           ${shouldShowLoading(state.connection)
             ? html`<${LoadingSkeleton} columns=${sizes.columns} />`

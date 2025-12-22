@@ -3864,16 +3864,20 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     .nr-dashboard-tabs {
       list-style: none;
-      padding: 0;
+      padding: 4px 4px;
       margin: 0;
+    }
+
+    .nr-dashboard-tabs li:last-child .nr-dashboard-tabs__btn {
+      margin-bottom: 0;
     }
 
     .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 8px 10px;
-      margin-bottom: 6px;
-      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 4px;
+      border-radius: 4px;
       border: 1px solid var(--nr-dashboard-nav-border);
       background: rgba(255, 255, 255, 0.04);
       color: inherit;
@@ -3881,6 +3885,13 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       display: flex;
       align-items: center;
       gap: 8px;
+      min-height: 48px;
+      justify-content: flex-start;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+      font-family: inherit;
+      transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
     }
 
     .nr-dashboard-tabs__btn.is-icon {
@@ -3900,6 +3911,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       font-weight: 700;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--nr-dashboard-nav-border);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
     }
 
     .nr-dashboard-tabs__icon i {
@@ -3929,11 +3941,30 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);
+      border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
+      box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
     }
 
     .nr-dashboard-tabs__btn:disabled {
       opacity: 0.4;
       cursor: not-allowed;
+    }
+
+    .nr-dashboard-tabs__btn:not(:disabled):hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--nr-dashboard-nav-border-active);
+    }
+
+    .nr-dashboard-tabs__btn:focus-visible {
+      outline: 2px solid var(--nr-dashboard-nav-border-active);
+      outline-offset: 1px;
+    }
+
+    .nr-dashboard-tabs__label {
+      min-width: 120px;
+      display: inline-flex;
+      align-items: center;
+      line-height: 20px;
     }
 
     .nr-dashboard-group-card {
@@ -46432,6 +46463,31 @@ var toolbarStyles = {
   padding: "0 16px",
   borderBottom: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))"
 };
+var iconButtonStyles = {
+  border: "none",
+  background: "transparent",
+  color: "inherit",
+  width: "40px",
+  height: "40px",
+  borderRadius: "50%",
+  display: "inline-grid",
+  placeItems: "center",
+  cursor: "pointer",
+  transition: "background 120ms ease, color 120ms ease"
+};
+var floatingToggleStyles = {
+  position: "fixed",
+  top: "12px",
+  left: "12px",
+  zIndex: "20",
+  border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.08))",
+  color: "inherit",
+  borderRadius: "8px",
+  padding: "10px 12px",
+  cursor: "pointer",
+  boxShadow: "0 6px 16px rgba(0,0,0,0.28)"
+};
 var layoutStyles2 = {
   display: "grid",
   gridTemplateColumns: "260px 1fr",
@@ -46441,7 +46497,8 @@ var layoutStyles2 = {
 var navStyles = {
   borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.08))",
   padding: "16px",
-  color: "var(--nr-dashboard-sidebarTextColor, inherit)"
+  color: "var(--nr-dashboard-sidebarTextColor, inherit)",
+  background: "var(--nr-dashboard-sidebarBackgroundColor, transparent)"
 };
 var contentStyles = {
   padding: "16px"
@@ -46520,30 +46577,6 @@ function applyThemeToRoot(theme2, root) {
       target.style.setProperty("--nr-dashboard-pageTextColor", derivedText);
     }
   }
-}
-function shouldShowLoading(connection) {
-  return connection !== "ready";
-}
-function findFirstFocusable(root) {
-  if (!root)
-    return null;
-  const selector = "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
-  const candidate = root.querySelector(selector);
-  return candidate ?? root;
-}
-function findNextTabIndex(menu, startIdx, delta) {
-  if (menu.length === 0)
-    return null;
-  const len2 = menu.length;
-  let idx = startIdx;
-  for (let i3 = 0;i3 < len2; i3 += 1) {
-    idx = (idx + delta + len2) % len2;
-    const tab = menu[idx];
-    if (!tab || tab.disabled || tab.hidden)
-      continue;
-    return idx;
-  }
-  return null;
 }
 function App() {
   const { state, selectedTab, actions: actions2 } = useDashboardState();
@@ -46709,12 +46742,9 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
                   aria-label=${t4("toggle_menu", "Toggle menu")}
                   onClick=${() => setNavOpen((v3) => !v3)}
                   style=${{
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
-    color: "inherit",
-    borderRadius: "8px",
-    padding: "6px 10px",
-    cursor: "pointer"
+    ...iconButtonStyles,
+    background: navOpen ? "rgba(255,255,255,0.10)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))"
   }}
                 >${navOpen ? "✕" : "☰"}</button>` : null}
             <strong>${toolbarTitle}</strong>
@@ -46747,6 +46777,20 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     minHeight: sectionMinHeight
   }}
       >
+        ${showFloatingToggle ? m2`<button
+              type="button"
+              aria-label=${t4("toggle_menu", "Toggle menu")}
+              onClick=${() => setNavOpen((v3) => !v3)}
+              style=${{
+    ...floatingToggleStyles,
+    ...iconButtonStyles,
+    background: navOpen ? "rgba(255,255,255,0.12)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.10))",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
+    width: "44px",
+    height: "44px"
+  }}
+            >${navOpen ? "✕" : "☰"}</button>` : null}
+
         ${shouldRenderNav ? m2`${isSlide && !isLocked && !isIconOnly && navOpen ? m2`<div
                   role="button"
                   aria-label=${t4("close_menu", "Close menu")}
@@ -46770,7 +46814,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     bottom: 0,
     transition: "left 0.18s ease-out",
     zIndex: 10,
-    boxShadow: isSlide && !isLocked && !isIconOnly && navOpen ? "2px 0 12px rgba(0,0,0,0.35)" : "0 0 0 rgba(0,0,0,0)",
+    boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 12px rgba(0,0,0,0.35)" : "0 0 0 rgba(0,0,0,0)" : "1px 0 10px rgba(0,0,0,0.28)",
     backdropFilter: isSlide && !isLocked && !isIconOnly && navOpen ? "blur(2px)" : undefined
   }}
             >
@@ -46781,12 +46825,11 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
                       aria-label=${t4("close_menu", "Close menu")}
                       onClick=${() => setNavOpen(false)}
                       style=${{
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16))",
-    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.04))",
-    color: "inherit",
-    borderRadius: "6px",
-    padding: "4px 8px",
-    cursor: "pointer"
+    ...iconButtonStyles,
+    width: "36px",
+    height: "36px",
+    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.20))",
+    background: "var(--nr-dashboard-widgetBackgroundColor, rgba(255,255,255,0.06))"
   }}
                     >✕</button>
                   </div>` : isIconOnly ? null : m2`<h3 style=${{ marginTop: 0 }}>${t4("tabs_label", "Tabs")}</h3>`}
@@ -46805,6 +46848,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   }}
               />
             </nav>` : null}
+
         <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
           ${shouldShowLoading(state.connection) ? m2`<${LoadingSkeleton} columns=${sizes.columns} />` : state.menu.length === 0 ? m2`<div style=${{ textAlign: "center", opacity: 0.7, padding: "32px" }}>
                 <p style=${{ margin: "0 0 8px" }}>${t4("no_tabs_defined_title", "No tabs defined yet.")}</p>
@@ -46884,11 +46928,9 @@ function bootstrap() {
 }
 bootstrap();
 export {
-  shouldShowLoading,
   resolveSizes,
   resolveLanguage,
   groupColumnSpan,
-  findFirstFocusable,
   bootstrap,
   applyThemeToRoot,
   applySizesToRoot,

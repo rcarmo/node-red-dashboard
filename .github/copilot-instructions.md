@@ -20,6 +20,7 @@
 - Networking/events: use the Socket.IO bridge/hook; always include `socketid` when emitting messages.
 - When reproducing behaviors (loading states, UX), reference the legacy Angular sources (`src/index.html`, `src/partials/main.html`, `src/main.js`) to preserve semantics and states before changing behavior.
 - Avoid self-referential or meta descriptions in UI text/comments (e.g., no "mirrors legacy loading state" in user-facing copy); keep labels descriptive and user-focused.
+- Match legacy Angular layout/styling precisely: for each widget, cross-check against the Angular rendering to ensure visual and UX fidelity.
 
 ## Project Structure (new code)
 - Place new Preact code under `src/preact/` with `components/`, `hooks/`, `lib/`, `styles/` as needed.

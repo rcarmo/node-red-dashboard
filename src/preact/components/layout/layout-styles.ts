@@ -17,16 +17,20 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     .nr-dashboard-tabs {
       list-style: none;
-      padding: 0;
+      padding: 4px 4px;
       margin: 0;
+    }
+
+    .nr-dashboard-tabs li:last-child .nr-dashboard-tabs__btn {
+      margin-bottom: 0;
     }
 
     .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 8px 10px;
-      margin-bottom: 6px;
-      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 4px;
+      border-radius: 4px;
       border: 1px solid var(--nr-dashboard-nav-border);
       background: rgba(255, 255, 255, 0.04);
       color: inherit;
@@ -34,6 +38,13 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: flex;
       align-items: center;
       gap: 8px;
+      min-height: 48px;
+      justify-content: flex-start;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+      font-family: inherit;
+      transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
     }
 
     .nr-dashboard-tabs__btn.is-icon {
@@ -53,6 +64,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       font-weight: 700;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid var(--nr-dashboard-nav-border);
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
     }
 
     .nr-dashboard-tabs__icon i {
@@ -82,11 +94,30 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     .nr-dashboard-tabs__btn.is-active {
       border-color: var(--nr-dashboard-nav-border-active);
       background: var(--nr-dashboard-nav-active);
+      border-right: 4px solid var(--nr-dashboard-groupTextColor, var(--nr-dashboard-nav-border-active));
+      box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.06);
     }
 
     .nr-dashboard-tabs__btn:disabled {
       opacity: 0.4;
       cursor: not-allowed;
+    }
+
+    .nr-dashboard-tabs__btn:not(:disabled):hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--nr-dashboard-nav-border-active);
+    }
+
+    .nr-dashboard-tabs__btn:focus-visible {
+      outline: 2px solid var(--nr-dashboard-nav-border-active);
+      outline-offset: 1px;
+    }
+
+    .nr-dashboard-tabs__label {
+      min-width: 120px;
+      display: inline-flex;
+      align-items: center;
+      line-height: 20px;
     }
 
     .nr-dashboard-group-card {
