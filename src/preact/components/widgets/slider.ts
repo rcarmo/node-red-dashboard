@@ -80,7 +80,8 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       accent-color: var(--nr-dashboard-slider-fill);
       background: transparent;
       touch-action: none;
-      height: 24px;
+      height: 2px;
+      padding: 11px 0;
       margin: 0;
     }
 
