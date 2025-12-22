@@ -354,6 +354,9 @@ export function buildChartOption(
     tooltip: {
       trigger: look === "pie" || look === "polar-area" ? "item" : "axis",
       axisPointer: stacked && (look === "bar" || look === "horizontalBar") ? { type: "shadow" } : undefined,
+      backgroundColor: "rgba(136,136,136,0.95)",
+      borderColor: "rgba(0,0,0,0.25)",
+      textStyle: { color: "#fff" },
       formatter: (params: any) => {
         const items = Array.isArray(params) ? params : [params];
         if (!items.length) return "";
