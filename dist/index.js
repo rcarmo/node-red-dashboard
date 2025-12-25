@@ -3897,7 +3897,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       font-weight: 400;
       line-height: 20px;
       font-family: inherit;
-      transition: background 120ms ease, color 120ms ease, border-color 140ms ease;
+      transition: background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), color 180ms cubic-bezier(0.25, 0.8, 0.25, 1), border-color 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
       position: relative;
       overflow: hidden;
       border-right: 4px solid transparent;
@@ -3909,6 +3909,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       justify-content: center;
       gap: 6px;
       padding: 8px 6px;
+      border-right: none;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
@@ -3924,6 +3925,11 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       color: inherit;
       margin: 5px 4px 5px 0;
       padding-right: 4px;
+    }
+
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon .nr-dashboard-tabs__icon {
+      margin: 0;
+      padding: 0;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
@@ -3965,13 +3971,13 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: rgba(0, 0, 0, 0.06);
+      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 8%, transparent);
       color: inherit;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: none;
-      background: rgba(0, 0, 0, 0.08);
+      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 12%, transparent);
       border-right-color: var(--nr-dashboard-nav-border-active);
     }
 
@@ -4018,17 +4024,17 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: background 120ms ease;
+      transition: background 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:hover {
-      background: rgba(0, 0, 0, 0.06);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, currentColor) 8%, transparent);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:focus-visible {
       outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
       outline-offset: 2px;
-      background: rgba(0, 0, 0, 0.06);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, currentColor) 10%, transparent);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card__list {
@@ -4053,7 +4059,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     .nr-dashboard-icon-press {
       position: relative;
       overflow: hidden;
-      transition: transform 140ms ease, background 160ms ease;
+      transition: transform 140ms ease, background 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .nr-dashboard-icon-press::after {
@@ -4061,7 +4067,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 60%);
+      background: radial-gradient(circle, color-mix(in srgb, currentColor 18%, transparent) 0%, transparent 60%);
       opacity: 0;
       transform: scale(0.4);
       transition: opacity 220ms ease, transform 220ms ease;
@@ -4069,7 +4075,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     .nr-dashboard-icon-press:active {
       transform: scale(0.96);
-      background: rgba(255, 255, 255, 0.08);
+      background: color-mix(in srgb, currentColor 8%, transparent);
     }
 
     .nr-dashboard-icon-press:active::after {
@@ -4115,13 +4121,33 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       text-align: center;
       padding: 48px 16px;
       background: var(--nr-dashboard-pageBackgroundColor, #eee);
+      background-image: url('./icon192x192.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 35%;
+      opacity: 1;
       animation: nr-dashboard-fade 2.5s ease-in;
+    }
+
+    .nr-dashboard-empty::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url('./icon192x192.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 35%;
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
     }
 
     .nr-dashboard-empty__inner {
       display: grid;
       place-items: center;
       gap: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .nr-dashboard-empty__title {
@@ -47439,6 +47465,7 @@ function GroupGrid(props) {
     columnGap: `${sizes.gx}px`,
     rowGap: `${sizes.gy}px`,
     alignContent: "start",
+    justifyContent: "center",
     gridAutoFlow: sizes.dense ? "dense" : "row"
   };
   const calcWidth = (span) => {
@@ -47719,7 +47746,7 @@ var toolbarStyles = {
   boxShadow: "none",
   borderBottom: "none",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
-  color: "#fff",
+  color: "var(--nr-dashboard-pageTextColor, #fff)",
   fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   fontWeight: "400",
   fontSize: "20px",
@@ -47739,7 +47766,7 @@ var iconButtonStyles = {
   display: "inline-grid",
   placeItems: "center",
   cursor: "pointer",
-  transition: "background 120ms ease, color 120ms ease, transform 140ms ease",
+  transition: "background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), color 180ms cubic-bezier(0.25, 0.8, 0.25, 1), transform 140ms ease",
   position: "relative",
   overflow: "hidden",
   marginTop: "0",
@@ -47766,10 +47793,10 @@ var layoutStyles2 = {
   position: "relative"
 };
 var navStyles = {
-  borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.12))",
+  borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(128,128,128,0.12))",
   padding: "0",
-  color: "var(--nr-dashboard-groupTextColor, #00A4DE)",
-  background: "var(--nr-dashboard-pageSidebarBackgroundColor, #eee)",
+  color: "var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-pageTextColor, inherit))",
+  background: "var(--nr-dashboard-pageSidebarBackgroundColor, var(--nr-dashboard-pageBackgroundColor, #eee))",
   overflowY: "auto"
 };
 var contentStyles = {
@@ -48115,7 +48142,6 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     width: navWidth,
     minWidth: isIconOnly ? "72px" : "64px",
     maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
-    background: "var(--nr-dashboard-pageSidebarBackgroundColor, #eee)",
     position: isSlide && !isLocked && !isIconOnly ? "fixed" : "relative",
     left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : `-${navWidthNum}px` : undefined,
     top: isSlide && !isLocked && !isIconOnly ? navTop : "0",
@@ -48126,8 +48152,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     backdropFilter: undefined
   }}
             >
-              ${isSlide && !isLocked && !isIconOnly ? m2`<div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                  <h3 style=${{ margin: 0, fontSize: "14px", fontWeight: 600 }}>${t4("tabs_label", "Tabs")}</h3>
+              ${isSlide && !isLocked && !isIconOnly && navOpen && isMobile ? m2`<div style=${{ display: "flex", justifyContent: "flex-end", alignItems: "center", padding: "8px 12px 4px 12px" }}>
                     <button
                       class="nr-dashboard-icon-press"
                       type="button"
@@ -48162,7 +48187,6 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
           ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div class="nr-dashboard-empty">
                 <div class="nr-dashboard-empty__inner">
                   <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
-                  <p class="nr-dashboard-empty__title">${t4("welcome_title", "Welcome to the Node-RED Dashboard")}</p>
                   <p class="nr-dashboard-empty__body">${t4("welcome_body", "Please add some UI nodes to your flow and redeploy.")}</p>
                 </div>
               </div>` : (() => {

@@ -45,7 +45,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       font-weight: 400;
       line-height: 20px;
       font-family: inherit;
-      transition: background 120ms ease, color 120ms ease, border-color 140ms ease;
+      transition: background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), color 180ms cubic-bezier(0.25, 0.8, 0.25, 1), border-color 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
       position: relative;
       overflow: hidden;
       border-right: 4px solid transparent;
@@ -57,6 +57,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       justify-content: center;
       gap: 6px;
       padding: 8px 6px;
+      border-right: none;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
@@ -72,6 +73,11 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       color: inherit;
       margin: 5px 4px 5px 0;
       padding-right: 4px;
+    }
+
+    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon .nr-dashboard-tabs__icon {
+      margin: 0;
+      padding: 0;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
@@ -113,13 +119,13 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: rgba(0, 0, 0, 0.06);
+      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 8%, transparent);
       color: inherit;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: none;
-      background: rgba(0, 0, 0, 0.08);
+      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 12%, transparent);
       border-right-color: var(--nr-dashboard-nav-border-active);
     }
 
@@ -166,17 +172,17 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: background 120ms ease;
+      transition: background 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:hover {
-      background: rgba(0, 0, 0, 0.06);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, currentColor) 8%, transparent);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:focus-visible {
       outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
       outline-offset: 2px;
-      background: rgba(0, 0, 0, 0.06);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, currentColor) 10%, transparent);
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-group-card__list {
@@ -201,7 +207,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     .nr-dashboard-icon-press {
       position: relative;
       overflow: hidden;
-      transition: transform 140ms ease, background 160ms ease;
+      transition: transform 140ms ease, background 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     .nr-dashboard-icon-press::after {
@@ -209,7 +215,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       position: absolute;
       inset: 0;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 60%);
+      background: radial-gradient(circle, color-mix(in srgb, currentColor 18%, transparent) 0%, transparent 60%);
       opacity: 0;
       transform: scale(0.4);
       transition: opacity 220ms ease, transform 220ms ease;
@@ -217,7 +223,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     .nr-dashboard-icon-press:active {
       transform: scale(0.96);
-      background: rgba(255, 255, 255, 0.08);
+      background: color-mix(in srgb, currentColor 8%, transparent);
     }
 
     .nr-dashboard-icon-press:active::after {
@@ -263,13 +269,33 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       text-align: center;
       padding: 48px 16px;
       background: var(--nr-dashboard-pageBackgroundColor, #eee);
+      background-image: url('./icon192x192.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 35%;
+      opacity: 1;
       animation: nr-dashboard-fade 2.5s ease-in;
+    }
+
+    .nr-dashboard-empty::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url('./icon192x192.png');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 35%;
+      opacity: 0.08;
+      pointer-events: none;
+      z-index: 0;
     }
 
     .nr-dashboard-empty__inner {
       display: grid;
       place-items: center;
       gap: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .nr-dashboard-empty__title {

@@ -43,6 +43,7 @@ export function GroupGrid(props: {
         columnGap: `${sizes.gx}px`,
         rowGap: `${sizes.gy}px`,
         alignContent: "start",
+        justifyContent: "center",
         gridAutoFlow: sizes.dense ? "dense" : "row",
       };
 
