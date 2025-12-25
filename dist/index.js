@@ -3881,7 +3881,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 0 16px 0 12px;
+      padding: 0 16px;
       margin: 0;
       border-radius: 0;
       border: none;
@@ -3894,7 +3894,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       min-height: 48px;
       justify-content: flex-start;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 20px;
       font-family: inherit;
       transition: background 120ms ease, color 120ms ease, border-color 140ms ease;
@@ -47709,7 +47709,7 @@ var toolbarStyles = {
   alignItems: "center",
   gap: "0",
   padding: "0 16px",
-  boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+  boxShadow: "none",
   borderBottom: "none",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
   color: "#fff",
@@ -47924,8 +47924,20 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     window.addEventListener("resize", handleResize, { passive: true });
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+  const [orientation, setOrientation] = d2("portrait");
+  y2(() => {
+    if (typeof window === "undefined")
+      return;
+    const checkOrientation = () => {
+      const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+      setOrientation(isPortrait ? "portrait" : "landscape");
+    };
+    checkOrientation();
+    window.addEventListener("resize", checkOrientation, { passive: true });
+    return () => window.removeEventListener("resize", checkOrientation);
+  }, []);
   const isMobile = viewportWidth < 960;
-  const toolbarHeight = isMobile ? "48px" : "64px";
+  const toolbarHeight = isMobile ? orientation === "portrait" ? "56px" : "48px" : "64px";
   const navMaxWidth = viewportWidth <= 660 ? 200 : 320;
   const navMinWidth = 64;
   const navBaseWidth = isIconOnly ? 72 : navMaxWidth;
@@ -48086,7 +48098,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     bottom: 0,
     background: "rgba(0,0,0,0.48)",
     zIndex: 80,
-    animation: "nr-dashboard-nav-backdrop 180ms ease-out"
+    animation: "nr-dashboard-nav-backdrop 450ms ease-out"
   }}
                 ></div>` : null}
             <nav
@@ -48101,7 +48113,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : `-${navWidthNum}px` : undefined,
     top: isSlide && !isLocked && !isIconOnly ? navTop : "0",
     bottom: 0,
-    transition: "left 0.18s ease-out",
+    transition: "left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
     zIndex: 80,
     boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "none" : "none",
     backdropFilter: undefined
@@ -48121,7 +48133,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
     background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))"
   }}
-                    >✕</button>
+                    ><span class="material-icons" aria-hidden="true" style=${{ fontSize: "18px" }}>close</span></button>
                   </div>` : null}
               <${TabNav}
                 menu=${state.menu}

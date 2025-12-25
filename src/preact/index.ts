@@ -68,7 +68,7 @@ const toolbarStyles: Record<string, string> = {
   alignItems: "center",
   gap: "0",
   padding: "0 16px",
-  boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
+  boxShadow: "none",
   borderBottom: "none",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
   color: "#fff",
@@ -313,8 +313,20 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  const [orientation, setOrientation] = useState<"portrait" | "landscape">("portrait");
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const checkOrientation = () => {
+      const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+      setOrientation(isPortrait ? "portrait" : "landscape");
+    };
+    checkOrientation();
+    window.addEventListener("resize", checkOrientation, { passive: true });
+    return () => window.removeEventListener("resize", checkOrientation);
+  }, []);
+  
   const isMobile = viewportWidth < 960;
-  const toolbarHeight = isMobile ? "48px" : "64px";
+  const toolbarHeight = isMobile ? (orientation === "portrait" ? "56px" : "48px") : "64px";
   const navMaxWidth = viewportWidth <= 660 ? 200 : 320;
   const navMinWidth = 64;
   const navBaseWidth = isIconOnly ? 72 : navMaxWidth;
@@ -499,7 +511,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                     bottom: 0,
                     background: "rgba(0,0,0,0.48)",
                     zIndex: 80,
-                    animation: "nr-dashboard-nav-backdrop 180ms ease-out",
+                    animation: "nr-dashboard-nav-backdrop 450ms ease-out",
                   }}
                 ></div>`
               : null}
@@ -515,7 +527,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 left: isSlide && !isLocked && !isIconOnly ? (navOpen ? "0" : `-${navWidthNum}px`) : undefined,
                 top: isSlide && !isLocked && !isIconOnly ? navTop : "0",
                 bottom: 0,
-                transition: "left 0.18s ease-out",
+                transition: "left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
                 zIndex: 80,
                 boxShadow: isSlide && !isLocked && !isIconOnly ? (navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "none") : "none",
                 backdropFilter: undefined,
@@ -536,7 +548,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                         border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
                         background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
                       }}
-                    >✕</button>
+                    ><span class="material-icons" aria-hidden="true" style=${{ fontSize: "18px" }}>close</span></button>
                   </div>`
                 : null}
               <${TabNav}

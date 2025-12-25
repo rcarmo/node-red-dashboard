@@ -29,7 +29,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
       width: 100%;
       text-align: left;
-      padding: 0 16px 0 12px;
+      padding: 0 16px;
       margin: 0;
       border-radius: 0;
       border: none;
@@ -42,7 +42,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       min-height: 48px;
       justify-content: flex-start;
       font-size: 14px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 20px;
       font-family: inherit;
       transition: background 120ms ease, color 120ms ease, border-color 140ms ease;
