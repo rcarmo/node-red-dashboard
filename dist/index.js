@@ -3848,351 +3848,6 @@ function handleAudioEvent(payload) {
   }
 }
 
-// src/preact/components/layout/layout-styles.ts
-var LAYOUT_STYLE_ID = "nr-dashboard-layout-style";
-var DASHBOARD_SCOPE = "#nr-dashboard-root";
-function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : undefined) {
-  if (!doc)
-    return;
-  if (doc.getElementById(LAYOUT_STYLE_ID))
-    return;
-  const style = doc.createElement("style");
-  style.id = LAYOUT_STYLE_ID;
-  style.textContent = `
-    ${DASHBOARD_SCOPE} {
-      --nr-dashboard-card-bg: var(--nr-dashboard-groupBackgroundColor, #fff);
-      --nr-dashboard-card-border: var(--nr-dashboard-groupBorderColor, #fff);
-      --nr-dashboard-card-text: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetTextColor, #00A4DE));
-      --nr-dashboard-nav-active: var(--nr-dashboard-pageSidebarBackgroundColor, #eee);
-      --nr-dashboard-nav-border-active: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.24));
-      --nr-dashboard-nav-border: var(--nr-dashboard-widgetBorderColor, rgba(0, 0, 0, 0.12));
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs li:last-child .nr-dashboard-tabs__btn {
-      margin-bottom: 0;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn {
-      width: 100%;
-      text-align: left;
-      padding: 0 16px;
-      margin: 0;
-      border-radius: 0;
-      border: none;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 48px;
-      justify-content: flex-start;
-      font-size: 14px;
-      font-weight: 400;
-      line-height: 20px;
-      font-family: inherit;
-      transition: background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), color 180ms cubic-bezier(0.25, 0.8, 0.25, 1), border-color 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
-      position: relative;
-      overflow: hidden;
-      border-right: 4px solid transparent;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 6px;
-      border-right: none;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon {
-      width: 24px;
-      height: 24px;
-      display: grid;
-      place-items: center;
-      font-weight: 500;
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      flex-shrink: 0;
-      color: inherit;
-      margin: 5px 4px 5px 0;
-      padding-right: 4px;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-icon .nr-dashboard-tabs__icon {
-      margin: 0;
-      padding: 0;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
-      font-size: 24px;
-      line-height: 24px;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon img {
-      width: 24px;
-      height: 24px;
-      object-fit: contain;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon-glyph {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      width: 100%;
-      height: 100%;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs--icon .nr-dashboard-tabs__label {
-      display: none;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
-      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 10%, transparent);
-      color: inherit;
-      box-shadow: none;
-      border-right-color: var(--nr-dashboard-groupTextColor, #00A4DE);
-      font-weight: 600;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      filter: grayscale(0.2);
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 8%, transparent);
-      color: inherit;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
-      outline: none;
-      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 12%, transparent);
-      border-right-color: var(--nr-dashboard-nav-border-active);
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-tabs__label {
-      min-width: 120px;
-      display: inline-flex;
-      align-items: center;
-      line-height: 20px;
-      letter-spacing: 0em;
-      color: inherit;
-      opacity: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      margin-right: 12px;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-group-card {
-      border: 1px solid var(--nr-dashboard-card-border);
-      border-radius: 0;
-      background: var(--nr-dashboard-card-bg);
-      color: var(--nr-dashboard-card-text);
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      box-shadow: none;
-      padding: 8px;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__header {
-      font-weight: 500;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse {
-      border: none;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      padding: 4px 6px;
-      border-radius: 6px;
-      min-width: 28px;
-      min-height: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:hover {
-      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, currentColor) 8%, transparent);
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__collapse:focus-visible {
-      outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
-      outline-offset: 2px;
-      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, currentColor) 10%, transparent);
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__list {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: grid;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-group-card__item {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
-    ${DASHBOARD_SCOPE} .nr-dashboard-widget-frame {
-      background: transparent;
-      border: none;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      border-radius: 0;
-    }
-
-    .nr-dashboard-icon-press {
-      position: relative;
-      overflow: hidden;
-      transition: transform 140ms ease, background 180ms cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    .nr-dashboard-icon-press::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: radial-gradient(circle, color-mix(in srgb, currentColor 18%, transparent) 0%, transparent 60%);
-      opacity: 0;
-      transform: scale(0.4);
-      transition: opacity 220ms ease, transform 220ms ease;
-    }
-
-    .nr-dashboard-icon-press:active {
-      transform: scale(0.96);
-      background: color-mix(in srgb, currentColor 8%, transparent);
-    }
-
-    .nr-dashboard-icon-press:active::after {
-      opacity: 1;
-      transform: scale(1.6);
-      transition: opacity 120ms ease, transform 220ms ease;
-    }
-
-    .nr-dashboard-loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-      min-height: 320px;
-      color: #888;
-      font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
-      background: var(--nr-dashboard-pageBackgroundColor, #eee);
-    }
-
-    .nr-dashboard-loading__inner {
-      display: grid;
-      place-items: center;
-      gap: 12px;
-    }
-
-    .nr-dashboard-loading__text {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-      text-align: center;
-    }
-
-    .nr-dashboard-empty {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 100%;
-      min-height: 320px;
-      color: #888;
-      font-family: 'Helvetica Neue', Arial, Helvetica, sans-serif;
-      text-align: center;
-      padding: 48px 16px;
-      background: var(--nr-dashboard-pageBackgroundColor, #eee);
-      background-image: url('./icon192x192.png');
-      background-repeat: no-repeat;
-      background-position: center center;
-      background-size: 35%;
-      opacity: 1;
-      animation: nr-dashboard-fade 2.5s ease-in;
-    }
-
-    .nr-dashboard-empty::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: url('./icon192x192.png');
-      background-repeat: no-repeat;
-      background-position: center center;
-      background-size: 35%;
-      opacity: 0.08;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .nr-dashboard-empty__inner {
-      display: grid;
-      place-items: center;
-      gap: 10px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .nr-dashboard-empty__title {
-      margin: 4px 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .nr-dashboard-empty__body {
-      margin: 0;
-      max-width: 420px;
-    }
-
-    .nr-dashboard-wheel-spin {
-      animation: nr-dashboard-wheel 1.05s linear infinite;
-    }
-
-    .nr-dashboard-fade-in {
-      animation: nr-dashboard-fade 1.2s ease-in;
-    }
-
-    @keyframes nr-dashboard-nav-backdrop {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes nr-dashboard-skeleton {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    @keyframes nr-dashboard-wheel {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes nr-dashboard-fade {
-      0% { opacity: 0; }
-      30% { opacity: 0; }
-      100% { opacity: 1; }
-    }
-  `;
-  doc.head.appendChild(style);
-}
-
 // src/preact/lib/i18n.ts
 var defaultMessages = {
   required_label: "Required",
@@ -4296,7 +3951,6 @@ function hydrateLocales() {
 // src/preact/components/layout/TabNav.ts
 function TabNav(props) {
   const { menu, selectedIndex, onSelect, variant = "full" } = props;
-  ensureLayoutStyles();
   const { t: t4 } = useI18n();
   const iconOnly = variant === "icon";
   const visibleMenu = menu.map((tab, originalIndex) => ({ tab, originalIndex })).filter(({ tab }) => !tab.hidden);
@@ -4833,94 +4487,6 @@ function SwitchWidget(props) {
 }
 
 // src/preact/components/widgets/text-input.ts
-var TEXT_INPUT_STYLE_ID = "nr-dashboard-textinput-style";
-function ensureTextInputStyles(doc = typeof document !== "undefined" ? document : undefined) {
-  if (!doc)
-    return;
-  if (doc.getElementById(TEXT_INPUT_STYLE_ID))
-    return;
-  const style = doc.createElement("style");
-  style.id = TEXT_INPUT_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-textinput {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-textinput__container {
-      flex: 1;
-      padding: 0 12px;
-      margin: 15px 0;
-      transition: margin 0.3s ease;
-      position: relative;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--focused,
-    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--has-value {
-      margin: 15px 0 5px;
-    }
-
-    .nr-dashboard-textinput__label {
-      display: block;
-      padding-left: 12px;
-      margin-bottom: 3px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      font-size: 14px;
-      line-height: 1.35;
-    }
-
-    .nr-dashboard-textinput__container--focused .nr-dashboard-textinput__label {
-      color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-    }
-
-    .nr-dashboard-textinput__field {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
-      padding: 8px 0;
-      background: transparent;
-      box-sizing: border-box;
-      opacity: 1;
-    }
-
-    .nr-dashboard-textinput__field.is-focused {
-      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-    }
-
-    .nr-dashboard-textinput__field.is-disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .nr-dashboard-textinput__input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--nr-dashboard-widgetTextColor, #000);
-      outline: none;
-      padding: 0 0 0 8px;
-      font-size: 14px;
-      min-width: 0;
-    }
-
-    .nr-dashboard-textinput__input:focus {
-      outline: none;
-    }
-
-    .nr-dashboard-textinput__input[type="color"] {
-      border: none;
-      padding-left: 25%;
-    }
-  `;
-  doc.head.appendChild(style);
-}
 function inputType(mode) {
   if (!mode)
     return "text";
@@ -4962,7 +4528,6 @@ function TextInputWidget(props) {
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
   const isColorMode = asInput.mode === "color";
   const hasLabel = Boolean(asInput.label);
-  ensureTextInputStyles();
   const validate = (next) => {
     if (asInput.required && next.trim().length === 0) {
       setError(asInput.error || t4("error_required", "This field is required."));
@@ -5104,104 +4669,6 @@ function formatDateInput(value2, mode, lang) {
 }
 
 // src/preact/components/widgets/numeric.ts
-var NUMERIC_STYLE_ID = "nr-dashboard-numeric-style";
-function ensureNumericStyles(doc = typeof document !== "undefined" ? document : undefined) {
-  if (!doc)
-    return;
-  if (doc.getElementById(NUMERIC_STYLE_ID))
-    return;
-  const style = doc.createElement("style");
-  style.id = NUMERIC_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-numeric {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0 0 0 12px;
-      box-sizing: border-box;
-      gap: 12px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-    }
-
-    .nr-dashboard-numeric .label {
-      margin: 0 8px 0 0;
-      font-size: 14px;
-      line-height: 20px;
-      font-weight: 500;
-      line-height: 1.4;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .nr-dashboard-numeric__controls {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .nr-dashboard-numeric__button {
-      margin: 0;
-      width: 40px;
-      height: 40px;
-      border: none;
-      background: transparent;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .nr-dashboard-numeric__button:hover,
-    .nr-dashboard-numeric__button:focus-visible {
-      background: rgba(255, 255, 255, 0.08);
-      outline: none;
-    }
-
-    .nr-dashboard-numeric__button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: transparent;
-    }
-
-    .nr-dashboard-numeric__value {
-      font-weight: 700;
-      text-align: center;
-      border: 0;
-      min-width: 64px;
-      padding: 6px 8px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-    }
-
-    .nr-dashboard-numeric__input {
-      text-align: center;
-      font-weight: 700;
-      border: none;
-      background: transparent;
-      min-width: 70px;
-      padding: 6px 4px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      outline: none;
-    }
-
-    .nr-dashboard-numeric__input:focus {
-      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-    }
-
-    .nr-dashboard-numeric__adorn {
-      font-size: 14px;
-      opacity: 0.9;
-      padding: 0 2px;
-    }
-  `;
-  doc.head.appendChild(style);
-}
 function toNumber(value2, fallback) {
   const n3 = Number(value2);
   return Number.isFinite(n3) ? n3 : fallback;
@@ -5234,7 +4701,6 @@ function NumericWidget(props) {
   const [value2, setValue] = d2(clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap));
   const formatter = T2(() => new Intl.NumberFormat(lang || undefined), [lang]);
   const holdTimer = A2(undefined);
-  ensureNumericStyles();
   y2(() => {
     const next = clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap);
     setValue(next);
@@ -5342,89 +4808,6 @@ function NumericWidget(props) {
 }
 
 // src/preact/components/widgets/dropdown.ts
-var DROPDOWN_STYLE_ID = "nr-dashboard-dropdown-style";
-function ensureDropdownStyles(doc = typeof document !== "undefined" ? document : undefined) {
-  if (!doc)
-    return;
-  if (doc.getElementById(DROPDOWN_STYLE_ID))
-    return;
-  const style = doc.createElement("style");
-  style.id = DROPDOWN_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-dropdown {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 4px 0 8px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-dropdown__label {
-      margin: 0;
-      line-height: 34px;
-      margin-right: 4px;
-      margin-top: 3px;
-      padding-right: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      min-width: 20%;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .nr-dashboard-dropdown__field {
-      flex: 1 1 auto;
-      height: 90%;
-      padding-left: 8px;
-      padding-right: 4px;
-      margin: 0 4px 0 0;
-      box-sizing: border-box;
-      position: relative;
-    }
-
-    .nr-dashboard-dropdown__select {
-      width: 100%;
-      height: 34px;
-      padding: 0 28px 0 8px;
-      background: transparent;
-      color: var(--nr-dashboard-widgetTextColor, #000);
-      border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      box-sizing: border-box;
-      margin-top: 6px;
-      font-family: inherit;
-      font-size: 14px;
-      line-height: 20px;
-    }
-
-    .nr-dashboard-dropdown__select:focus {
-      outline: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-    }
-
-    .nr-dashboard-dropdown__select:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .nr-dashboard-dropdown__chevron {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-35%);
-      font-size: 11px;
-      color: rgba(0,0,0,0.54);
-      pointer-events: none;
-    }
-  `;
-  doc.head.appendChild(style);
-}
 function parseOptionValue(val, type) {
   if (!type || type.startsWith("str"))
     return val;
@@ -5508,7 +4891,6 @@ function DropdownWidget(props) {
   const [value2, setValue] = d2(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = A2(false);
   const [focused, setFocused] = d2(false);
-  ensureDropdownStyles();
   y2(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
     if (multiple) {
@@ -5588,165 +4970,6 @@ function DropdownWidget(props) {
 
 // src/preact/components/widgets/slider.ts
 var DEFAULT_THROTTLE_MS = 10;
-var SLIDER_STYLE_ID = "nr-dashboard-slider-style";
-function ensureSliderStyles(doc = typeof document !== "undefined" ? document : undefined) {
-  if (!doc)
-    return;
-  if (doc.getElementById(SLIDER_STYLE_ID))
-    return;
-  const style = doc.createElement("style");
-  style.id = SLIDER_STYLE_ID;
-  style.textContent = `
-    :root {
-      --nr-dashboard-slider-track: rgba(111, 111, 111, 0.5);
-      --nr-dashboard-slider-fill: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-thumb: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-focus: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      --nr-dashboard-slider-text: var(--nr-dashboard-widgetTextColor, #fff);
-    }
-
-    .nr-dashboard-slider {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: 0;
-      width: 100%;
-      padding: 0 12px;
-    }
-
-    .nr-dashboard-slider.discrete-end {
-      margin-top: 20px;
-    }
-
-    .nr-dashboard-slider.is-vertical {
-      flex-direction: column;
-      padding: 0;
-      font-size: 12px;
-      align-items: center;
-    }
-
-    .nr-dashboard-slider__row {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      width: 100%;
-    }
-
-    .nr-dashboard-slider__label {
-      font-size: 14px;
-      opacity: 0.8;
-      white-space: nowrap;
-      margin-right: 15px;
-    }
-
-    .nr-dashboard-slider__label.is-vertical {
-      margin-top: 6px;
-      padding-bottom: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .nr-dashboard-slider__range {
-      width: 100%;
-      accent-color: var(--nr-dashboard-slider-fill);
-      background: transparent;
-      touch-action: none;
-      height: 2px;
-      padding: 11px 0;
-      margin: 0;
-    }
-
-    .nr-dashboard-slider__range.is-vertical {
-      width: 32px;
-      height: 180px;
-      writing-mode: bt-lr;
-      -webkit-appearance: slider-vertical;
-    }
-
-    .nr-dashboard-slider__range::-webkit-slider-runnable-track {
-      height: 2px;
-      border-radius: 999px;
-      background: var(--nr-dashboard-slider-track);
-    }
-
-    .nr-dashboard-slider__range::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 20px;
-      width: 20px;
-      margin-top: -9px;
-      border-radius: 50%;
-      background: var(--nr-dashboard-slider-thumb);
-      border: 1px solid transparent;
-    }
-
-    .nr-dashboard-slider__range:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 6px color-mix(in srgb, var(--nr-dashboard-slider-focus) 40%, transparent);
-    }
-
-    .nr-dashboard-slider__track {
-      position: relative;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex: 1;
-    }
-
-    .nr-dashboard-slider__track.is-vertical {
-      flex-direction: column;
-      height: 200px;
-      width: 36px;
-    }
-
-    .nr-dashboard-slider__range::-moz-range-track {
-      height: 4px;
-      border-radius: 999px;
-      background: var(--nr-dashboard-slider-track);
-    }
-
-    .nr-dashboard-slider__range::-moz-range-progress {
-      height: 4px;
-      border-radius: 999px;
-      background: var(--nr-dashboard-slider-fill);
-    }
-
-    .nr-dashboard-slider__range::-moz-range-thumb {
-      height: 20px;
-      width: 20px;
-      border-radius: 50%;
-      background: var(--nr-dashboard-slider-thumb);
-      border: 1px solid transparent;
-      margin-top: -8px;
-    }
-
-    .nr-dashboard-slider__value {
-      font-weight: 700;
-      min-width: 48px;
-      text-align: center;
-      color: var(--nr-dashboard-slider-text);
-      font-size: 12px;
-    }
-
-    .nr-dashboard-slider__sign {
-      position: absolute;
-      padding: 4px 8px;
-      border-radius: 12px;
-      background: var(--nr-dashboard-slider-fill);
-      color: var(--nr-dashboard-slider-text);
-      font-size: 11px;
-      pointer-events: none;
-      white-space: nowrap;
-      transform: translate(-50%, -140%);
-    }
-
-    .nr-dashboard-slider__sign.is-vertical {
-      left: 50%;
-      transform: translate(-50%, -120%);
-    }
-  `;
-  doc.head.appendChild(style);
-}
 function toNumber2(value2, fallback) {
   const n3 = Number(value2);
   return Number.isFinite(n3) ? n3 : fallback;
@@ -5775,7 +4998,6 @@ function SliderWidget(props) {
   const { t: t4, lang } = useI18n();
   const label = asSlider.label || asSlider.name || t4("slider_label", "Slider {index}", { index: index + 1 });
   const isDisabled = Boolean(disabled);
-  ensureSliderStyles();
   const { min, max, invert } = normalizeSliderRange(asSlider.min, asSlider.max, asSlider.invert);
   const step = Math.abs(toNumber2(asSlider.step, 1)) || 1;
   const outs = asSlider.outs === "end" ? "end" : "all";
@@ -42452,74 +41674,6 @@ function DatePickerWidget(props) {
 }
 
 // src/preact/components/widgets/colour-picker.ts
-var COLOUR_PICKER_STYLE_ID = "nr-dashboard-colour-picker-style";
-function ensureColourPickerStyles(doc = typeof document !== "undefined" ? document : undefined) {
-  if (!doc)
-    return;
-  if (doc.getElementById(COLOUR_PICKER_STYLE_ID))
-    return;
-  const style = doc.createElement("style");
-  style.id = COLOUR_PICKER_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-colour-picker {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0 12px;
-      box-sizing: border-box;
-      gap: 8px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-    }
-
-    .nr-dashboard-colour-picker__label {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 20px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .nr-dashboard-colour-picker__field {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nr-dashboard-colour-picker__input {
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35));
-      border-radius: 3px;
-      background: transparent;
-      cursor: pointer;
-    }
-
-    .nr-dashboard-colour-picker__input:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .nr-dashboard-colour-picker__value {
-      min-width: 122px;
-      height: 22px;
-      text-align: center;
-      font-size: 13px;
-      line-height: 18px;
-      padding: 2px 6px;
-      border-radius: 2px;
-      border: 0;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      background: transparent;
-      box-sizing: border-box;
-    }
-  `;
-  doc.head.appendChild(style);
-}
 function resolveColourValue(value2, fallback = "#ff0000") {
   if (typeof value2 === "string" && value2.trim().length > 0)
     return value2;
@@ -42535,7 +41689,6 @@ function ColourPickerWidget(props) {
   const [focused, setFocused] = d2(false);
   const inputId = T2(() => `nr-dashboard-colour-${index}`, [index]);
   const fieldStyles = buildFieldStyles({ focused, disabled: isDisabled, hasAdornment: true });
-  ensureColourPickerStyles();
   return m2`<div class=${`nr-dashboard-colour-picker ${c3.className || ""}`.trim()}>
     <span class="nr-dashboard-colour-picker__label">${label}</span>
     <div
@@ -42759,176 +41912,6 @@ function TemplateWidget(props) {
 }
 
 // src/preact/components/widgets/form.ts
-var FORM_STYLE_ID = "nr-dashboard-form-style";
-function ensureFormStyles(doc = typeof document !== "undefined" ? document : undefined) {
-  if (!doc)
-    return;
-  if (doc.getElementById(FORM_STYLE_ID))
-    return;
-  const style = doc.createElement("style");
-  style.id = FORM_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-form {
-      display: inline-block;
-      width: 100%;
-      overflow-y: auto;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-form form {
-      padding: 0 6px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    .nr-dashboard-form .formlabel {
-      font-size: 18px;
-      font-weight: 500;
-      margin-top: 12px;
-      margin-bottom: 6px;
-      padding: 0 6px;
-      width: 100%;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      line-height: 1.35;
-    }
-
-    .nr-dashboard-form .formElement {
-      width: calc(100% - 12px);
-      margin-left: 6px;
-      margin-right: 6px;
-      margin-bottom: 2px;
-      display: flex;
-      flex-direction: column;
-      box-sizing: border-box;
-      gap: 6px;
-    }
-
-    .nr-dashboard-form .formElementSplit {
-      width: calc(50% - 12px);
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__field-label {
-      font-size: 13px;
-      line-height: 1.4;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      opacity: 0.9;
-      padding: 2px 0;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__input,
-    .nr-dashboard-form .nr-dashboard-form__select {
-      width: 100%;
-      padding: 8px 0;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
-      color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
-      font-family: inherit;
-      font-size: 14px;
-      line-height: 1.35;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__textarea {
-      width: 100%;
-      padding: 10px 2px 1px 0;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
-      color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
-      font-family: inherit;
-      font-size: 14px;
-      line-height: 1.35;
-      box-sizing: border-box;
-      min-height: 72px;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__input:focus,
-    .nr-dashboard-form .nr-dashboard-form__select:focus,
-    .nr-dashboard-form .nr-dashboard-form__textarea:focus {
-      outline: none;
-      border-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__checkbox-row,
-    .nr-dashboard-form .nr-dashboard-form__radio-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      line-height: 1.3;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__checkbox,
-    .nr-dashboard-form .nr-dashboard-form__radio {
-      accent-color: var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-      width: 16px;
-      height: 16px;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__error {
-      color: var(--nr-dashboard-errorColor, #d00);
-      font-size: 12px;
-      line-height: 1.3;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form__helper {
-      font-size: 11px;
-      opacity: 0.65;
-      line-height: 1.3;
-    }
-
-    .nr-dashboard-form .form-control {
-      width: 100%;
-      display: flex;
-      justify-content: flex-start;
-      margin-top: -20px;
-      padding: 0 6px;
-      box-sizing: border-box;
-      gap: 12px;
-    }
-
-    .nr-dashboard-form .form-control-no-label {
-      margin-top: -10px;
-    }
-
-    .nr-dashboard-form .form-control-single {
-      justify-content: space-around;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form-button {
-      width: 50%;
-      margin: 0;
-      min-height: 28px;
-      padding: 8px 10px;
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16));
-      background-color: var(--nr-dashboard-widgetBackgroundColor, #2563eb);
-      color: #fff;
-      border-radius: 4px;
-      font-weight: 500;
-      cursor: pointer;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form-button:disabled,
-    .nr-dashboard-form form:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .nr-dashboard-form .nr-dashboard-form-button:hover,
-    .nr-dashboard-form .nr-dashboard-form-button:focus {
-      background-color: var(--nr-dashboard-widgetHoverColor, var(--nr-dashboard-widgetBackgroundColor, #2563eb));
-    }
-  `;
-  doc.head.appendChild(style);
-}
 function buildFormEmit(ctrl, fallbackLabel, values) {
   return {
     payload: values,
@@ -42973,7 +41956,6 @@ function FormWidget(props) {
     setValues(initialValues);
     setErrors({});
   }, [initialValues]);
-  ensureFormStyles();
   const setField = (name, v3) => {
     setValues((prev) => ({ ...prev, [name]: v3 }));
     setErrors((prev) => {
@@ -47227,7 +46209,6 @@ function WidgetRenderer(props) {
 // src/preact/components/layout/GroupCard.ts
 function GroupCard(props) {
   const { group, index, columnSpan, padding, sizes, onEmit, tabName, layoutMode = "grid", layoutPos } = props;
-  ensureLayoutStyles();
   const { t: t4 } = useI18n();
   const header = group.header;
   const title = header?.name || t4("group_label", "Group {index}", { index: index + 1 });
@@ -47300,7 +46281,6 @@ function GroupCard(props) {
 // src/preact/components/layout/GroupGrid.ts
 function GroupGrid(props) {
   const { groups, sizes, onEmit, tabName } = props;
-  ensureLayoutStyles();
   const { t: t4 } = useI18n();
   const containerRef = A2(null);
   const [positions, setPositions] = d2({});
@@ -47649,7 +46629,6 @@ function applyThemeToRoot(theme2, root) {
   }
 }
 function App() {
-  ensureLayoutStyles();
   const { state, selectedTab, actions: actions2 } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
   const locales = T2(() => state.locales ?? hydrateLocales(), [state.locales]);

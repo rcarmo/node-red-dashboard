@@ -7,101 +7,6 @@ import { formatNumber } from "../../lib/format";
 
 const NUMERIC_STYLE_ID = "nr-dashboard-numeric-style";
 
-function ensureNumericStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
-  if (!doc) return;
-  if (doc.getElementById(NUMERIC_STYLE_ID)) return;
-  const style = doc.createElement("style");
-  style.id = NUMERIC_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-numeric {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0 0 0 12px;
-      box-sizing: border-box;
-      gap: 12px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-    }
-
-    .nr-dashboard-numeric .label {
-      margin: 0 8px 0 0;
-      font-size: 14px;
-      line-height: 20px;
-      font-weight: 500;
-      line-height: 1.4;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .nr-dashboard-numeric__controls {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .nr-dashboard-numeric__button {
-      margin: 0;
-      width: 40px;
-      height: 40px;
-      border: none;
-      background: transparent;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      border-radius: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .nr-dashboard-numeric__button:hover,
-    .nr-dashboard-numeric__button:focus-visible {
-      background: rgba(255, 255, 255, 0.08);
-      outline: none;
-    }
-
-    .nr-dashboard-numeric__button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: transparent;
-    }
-
-    .nr-dashboard-numeric__value {
-      font-weight: 700;
-      text-align: center;
-      border: 0;
-      min-width: 64px;
-      padding: 6px 8px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-    }
-
-    .nr-dashboard-numeric__input {
-      text-align: center;
-      font-weight: 700;
-      border: none;
-      background: transparent;
-      min-width: 70px;
-      padding: 6px 4px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      outline: none;
-    }
-
-    .nr-dashboard-numeric__input:focus {
-      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-    }
-
-    .nr-dashboard-numeric__adorn {
-      font-size: 14px;
-      opacity: 0.9;
-      padding: 0 2px;
-    }
-  `;
-  doc.head.appendChild(style);
-}
 
 function toNumber(value: unknown, fallback: number): number {
   const n = Number(value);
@@ -150,8 +55,6 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
   const [value, setValue] = useState<number>(clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap));
   const formatter = useMemo(() => new Intl.NumberFormat(lang || undefined), [lang]);
   const holdTimer = useRef<number | undefined>(undefined);
-
-  ensureNumericStyles();
 
   useEffect(() => {
     const next = clampValue(toNumber(asNum.value ?? asNum.min ?? 0, 0), min, max, !!asNum.wrap);

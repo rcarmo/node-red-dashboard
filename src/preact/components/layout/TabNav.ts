@@ -1,14 +1,12 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
 import type { UiMenuItem } from "../../state";
-import { ensureLayoutStyles } from "./layout-styles";
 import { useI18n } from "../../lib/i18n";
 
 type TabNavVariant = "full" | "icon";
 
 export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null; onSelect: (index: number) => void; variant?: TabNavVariant }): VNode {
   const { menu, selectedIndex, onSelect, variant = "full" } = props;
-  ensureLayoutStyles();
   const { t } = useI18n();
   const iconOnly = variant === "icon";
   const visibleMenu = menu

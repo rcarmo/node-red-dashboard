@@ -6,87 +6,6 @@ import { useI18n } from "../../lib/i18n";
 
 const DROPDOWN_STYLE_ID = "nr-dashboard-dropdown-style";
 
-function ensureDropdownStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
-  if (!doc) return;
-  if (doc.getElementById(DROPDOWN_STYLE_ID)) return;
-  const style = doc.createElement("style");
-  style.id = DROPDOWN_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-dropdown {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 4px 0 8px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-dropdown__label {
-      margin: 0;
-      line-height: 34px;
-      margin-right: 4px;
-      margin-top: 3px;
-      padding-right: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      min-width: 20%;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .nr-dashboard-dropdown__field {
-      flex: 1 1 auto;
-      height: 90%;
-      padding-left: 8px;
-      padding-right: 4px;
-      margin: 0 4px 0 0;
-      box-sizing: border-box;
-      position: relative;
-    }
-
-    .nr-dashboard-dropdown__select {
-      width: 100%;
-      height: 34px;
-      padding: 0 28px 0 8px;
-      background: transparent;
-      color: var(--nr-dashboard-widgetTextColor, #000);
-      border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      box-sizing: border-box;
-      margin-top: 6px;
-      font-family: inherit;
-      font-size: 14px;
-      line-height: 20px;
-    }
-
-    .nr-dashboard-dropdown__select:focus {
-      outline: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetBackgroundColor, #1f8af2);
-    }
-
-    .nr-dashboard-dropdown__select:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .nr-dashboard-dropdown__chevron {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-35%);
-      font-size: 11px;
-      color: rgba(0,0,0,0.54);
-      pointer-events: none;
-    }
-  `;
-  doc.head.appendChild(style);
-}
-
 export type DropdownOption = { label: string; value: unknown; type?: string; disabled?: boolean };
 export type DropdownControl = UiControl & {
   label?: string;
@@ -184,8 +103,6 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const [value, setValue] = useState<unknown>(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = useRef<boolean>(false);
   const [focused, setFocused] = useState<boolean>(false);
-
-  ensureDropdownStyles();
 
   useEffect(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);

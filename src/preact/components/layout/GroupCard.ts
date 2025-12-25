@@ -3,7 +3,6 @@ import type { VNode } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import type { UiControl, UiGroup } from "../../state";
 import { WidgetRenderer } from "../widget-renderer";
-import { ensureLayoutStyles } from "./layout-styles";
 import { useI18n } from "../../lib/i18n";
 
 export function GroupCard(props: {
@@ -18,7 +17,6 @@ export function GroupCard(props: {
   layoutPos?: { left: number; top: number; width: number };
 }): VNode {
   const { group, index, columnSpan, padding, sizes, onEmit, tabName, layoutMode = "grid", layoutPos } = props;
-  ensureLayoutStyles();
   const { t } = useI18n();
 
   const header = group.header;

@@ -7,72 +7,6 @@ import { buildFieldStyles } from "../styles/fieldStyles";
 
 const COLOUR_PICKER_STYLE_ID = "nr-dashboard-colour-picker-style";
 
-function ensureColourPickerStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
-  if (!doc) return;
-  if (doc.getElementById(COLOUR_PICKER_STYLE_ID)) return;
-  const style = doc.createElement("style");
-  style.id = COLOUR_PICKER_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-colour-picker {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      padding: 0 12px;
-      box-sizing: border-box;
-      gap: 8px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-    }
-
-    .nr-dashboard-colour-picker__label {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 20px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .nr-dashboard-colour-picker__field {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .nr-dashboard-colour-picker__input {
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35));
-      border-radius: 3px;
-      background: transparent;
-      cursor: pointer;
-    }
-
-    .nr-dashboard-colour-picker__input:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .nr-dashboard-colour-picker__value {
-      min-width: 122px;
-      height: 22px;
-      text-align: center;
-      font-size: 13px;
-      line-height: 18px;
-      padding: 2px 6px;
-      border-radius: 2px;
-      border: 0;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      background: transparent;
-      box-sizing: border-box;
-    }
-  `;
-  doc.head.appendChild(style);
-}
-
 export type ColourPickerControl = UiControl & {
   name?: string;
   label?: string;
@@ -96,8 +30,6 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
   const inputId = useMemo(() => `nr-dashboard-colour-${index}`, [index]);
 
   const fieldStyles = buildFieldStyles({ focused, disabled: isDisabled, hasAdornment: true });
-
-  ensureColourPickerStyles();
 
   return html`<div class=${`nr-dashboard-colour-picker ${c.className || ""}`.trim()}>
     <span class="nr-dashboard-colour-picker__label">${label}</span>

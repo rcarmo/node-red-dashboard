@@ -6,7 +6,6 @@ import { useDashboardState } from "./state";
 import { TabNav } from "./components/layout/TabNav";
 import { GroupGrid } from "./components/layout/GroupGrid";
 import { useLayoutAnnouncements } from "./components/layout/utils";
-import { ensureLayoutStyles } from "./components/layout/layout-styles";
 import { ToastOverlay } from "./components/ToastOverlay";
 import { SizesProvider, useSizes } from "./hooks/useSizes";
 import { I18nProvider, hydrateLocales, useI18n } from "./lib/i18n";
@@ -166,7 +165,6 @@ export function applyThemeToRoot(theme: UiTheme | null, root?: HTMLElement): voi
 }
 
 export function App(): VNode {
-  ensureLayoutStyles();
   const { state, selectedTab, actions } = useDashboardState();
   const tabId = selectedTab?.id ?? selectedTab?.header;
   const locales = useMemo(() => state.locales ?? hydrateLocales(), [state.locales]);

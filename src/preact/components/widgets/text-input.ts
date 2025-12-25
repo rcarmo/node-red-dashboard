@@ -5,92 +5,6 @@ import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 const TEXT_INPUT_STYLE_ID = "nr-dashboard-textinput-style";
 
-function ensureTextInputStyles(doc: Document | undefined = typeof document !== "undefined" ? document : undefined): void {
-  if (!doc) return;
-  if (doc.getElementById(TEXT_INPUT_STYLE_ID)) return;
-  const style = doc.createElement("style");
-  style.id = TEXT_INPUT_STYLE_ID;
-  style.textContent = `
-    .nr-dashboard-textinput {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-textinput__container {
-      flex: 1;
-      padding: 0 12px;
-      margin: 15px 0;
-      transition: margin 0.3s ease;
-      position: relative;
-      box-sizing: border-box;
-    }
-
-    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--focused,
-    .nr-dashboard-textinput__container.has-label.nr-dashboard-textinput__container--has-value {
-      margin: 15px 0 5px;
-    }
-
-    .nr-dashboard-textinput__label {
-      display: block;
-      padding-left: 12px;
-      margin-bottom: 3px;
-      color: var(--nr-dashboard-widgetTextColor, inherit);
-      font-size: 14px;
-      line-height: 1.35;
-    }
-
-    .nr-dashboard-textinput__container--focused .nr-dashboard-textinput__label {
-      color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-    }
-
-    .nr-dashboard-textinput__field {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
-      padding: 8px 0;
-      background: transparent;
-      box-sizing: border-box;
-      opacity: 1;
-    }
-
-    .nr-dashboard-textinput__field.is-focused {
-      border-bottom-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetBackgroundColor, #1f8af2));
-    }
-
-    .nr-dashboard-textinput__field.is-disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .nr-dashboard-textinput__input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: var(--nr-dashboard-widgetTextColor, #000);
-      outline: none;
-      padding: 0 0 0 8px;
-      font-size: 14px;
-      min-width: 0;
-    }
-
-    .nr-dashboard-textinput__input:focus {
-      outline: none;
-    }
-
-    .nr-dashboard-textinput__input[type="color"] {
-      border: none;
-      padding-left: 25%;
-    }
-  `;
-  doc.head.appendChild(style);
-}
-
 export type TextInputControl = UiControl & {
   label?: string;
   name?: string;
@@ -141,8 +55,6 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
   const isColorMode = asInput.mode === "color";
   const hasLabel = Boolean(asInput.label);
-
-  ensureTextInputStyles();
 
   const validate = (next: string): boolean => {
     if (asInput.required && next.trim().length === 0) {

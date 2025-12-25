@@ -4,7 +4,6 @@ import { useLayoutEffect, useRef, useState } from "preact/hooks";
 import type { UiGroup } from "../../state";
 import type { SiteSizes } from "../../types";
 import { groupColumnSpan } from "./utils";
-import { ensureLayoutStyles } from "./layout-styles";
 import { GroupCard } from "./GroupCard";
 import { useI18n } from "../../lib/i18n";
 
@@ -15,7 +14,6 @@ export function GroupGrid(props: {
   tabName?: string;
 }): VNode {
   const { groups, sizes, onEmit, tabName } = props;
-  ensureLayoutStyles();
   const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [positions, setPositions] = useState<Record<string | number, { left: number; top: number; width: number }>>({});
