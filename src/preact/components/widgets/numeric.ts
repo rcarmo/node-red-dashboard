@@ -249,16 +249,7 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
               aria-valuetext=${t("number_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
               readOnly
               tabIndex=${-1}
-              style=${{
-                position: "absolute",
-                opacity: 0,
-                width: "1px",
-                height: "1px",
-                pointerEvents: "none",
-                border: "none",
-                padding: 0,
-                margin: 0,
-              }}
+              class="nr-dashboard-numeric__hidden"
             />
           </div>`}
 

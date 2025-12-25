@@ -4834,13 +4834,7 @@ function SwitchWidget(props) {
   return m2`<div
     class=${`nr-dashboard-switch ${asSwitch.className || ""}`.trim()}
     style=${{
-    display: "flex",
-    alignItems: "center",
     justifyContent: isCenter ? "center" : "space-between",
-    width: "100%",
-    height: "100%",
-    gap: "0",
-    padding: "0 8px 0 8px",
     cursor: disabled ? "default" : "grab",
     opacity: disabled ? 0.55 : 1
   }}
@@ -5344,16 +5338,7 @@ function NumericWidget(props) {
               aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
               readOnly
               tabIndex=${-1}
-              style=${{
-    position: "absolute",
-    opacity: 0,
-    width: "1px",
-    height: "1px",
-    pointerEvents: "none",
-    border: "none",
-    padding: 0,
-    margin: 0
-  }}
+              class="nr-dashboard-numeric__hidden"
             />
           </div>`}
 
@@ -42477,7 +42462,7 @@ function DatePickerWidget(props) {
     ${error2 ? m2`<span
           id=${`err-date-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", marginLeft: "8px", marginTop: "4px" }}
+          class="nr-dashboard-date-picker__error"
         >${error2}</span>` : null}
   </div>`;
 }
@@ -42689,15 +42674,9 @@ function ToastWidget(props) {
   if (!visible)
     return null;
   return m2`<div
-    class=${c3.className || ""}
+    class=${`nr-dashboard-toast__container ${c3.className || ""}`.trim()}
     style=${{
-    border: "1px solid color-mix(in srgb, var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.2)) 60%, transparent)",
     borderLeft: `4px solid ${toneColor}`,
-    boxShadow: "0 3px 10px rgba(0,0,0,0.18)",
-    padding: "12px 14px 12px 16px",
-    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-    position: "relative",
-    borderRadius: "2px",
     margin: `${6 + stackOffset}px 0 6px 0`
   }}
     role="status"
@@ -42708,20 +42687,10 @@ function ToastWidget(props) {
     <div class="nr-dashboard-toast__body">${msg}</div>
     ${dismissible ? m2`<button
           type="button"
+          class="nr-dashboard-toast__close"
           aria-label=${t4("toast_close", "Close notification")}
           onClick=${() => setVisible(false)}
-          style=${{
-    position: "absolute",
-    top: "6px",
-    right: "6px",
-    background: "transparent",
-    border: "none",
-    color: toneColor,
-    cursor: "pointer",
-    fontWeight: 800,
-    fontSize: "18px",
-    padding: "4px"
-  }}
+          style=${{ color: toneColor }}
         >×</button>` : null}
   </div>`;
 }
@@ -47319,16 +47288,8 @@ function GroupCard(props) {
   >
     <header
       class="nr-dashboard-group-card__header"
-      style=${{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: "10px",
-    minHeight: "28px",
-    padding: "6px 8px 4px 8px"
-  }}
     >
-      <span style=${{ fontWeight: 500, lineHeight: "20px", paddingRight: "8px" }}>${title}</span>
+      <span class="nr-dashboard-group-card__title">${title}</span>
       ${collapseEnabled ? m2`<button
             type="button"
             aria-expanded=${!collapsed}
@@ -47339,7 +47300,7 @@ function GroupCard(props) {
             <i class=${collapsed ? "fa fa-caret-down" : "fa fa-caret-up"}></i>
           </button>` : null}
     </header>
-    ${collapsed ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 8px 8px 8px" }}>${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul
+    ${collapsed ? m2`<div class="nr-dashboard-group-card__message">${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div class="nr-dashboard-group-card__message">${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul
           class="nr-dashboard-group-card__list"
           style=${{
     rowGap: `${sizes.cy}px`,
@@ -48047,27 +48008,18 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
         <main ref=${mainRef} class="nr-dashboard-content" style=${{ background: "var(--nr-dashboard-pageBackgroundColor, #eee)" }} tabIndex=${-1}>
           ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div class="nr-dashboard-empty">
                 <div class="nr-dashboard-empty__inner">
-                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
+                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" class="nr-dashboard-empty__icon" />
                   <p class="nr-dashboard-empty__body">${t4("welcome_body", "Please add some UI nodes to your flow and redeploy.")}</p>
                 </div>
               </div>` : (() => {
     if (!selectedTab) {
-      return m2`<div style=${{ opacity: 0.7 }}>${t4("select_tab_prompt", "Select a tab to view its content.")}</div>`;
+      return m2`<div class="nr-dashboard-select-prompt">${t4("select_tab_prompt", "Select a tab to view its content.")}</div>`;
     }
     if (selectedTab.link) {
-      return m2`<div style=${{ width: "100%", minHeight: "80vh", position: "relative" }}>
+      return m2`<div class="nr-dashboard-iframe-container">
                     <iframe
                       src=${selectedTab.link}
-                      style=${{
-        border: "none",
-        borderRadius: "0",
-        width: "100%",
-        height: "100%",
-        background: "transparent",
-        display: "block",
-        position: "absolute",
-        inset: 0
-      }}
+                      class="nr-dashboard-iframe"
                       allowfullscreen
                     ></iframe>
                   </div>`;
@@ -48098,7 +48050,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
 function LoadingScreen({ message }) {
   return m2`<div class="nr-dashboard-loading nr-dashboard-fade-in">
     <div class="nr-dashboard-loading__inner">
-      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin" style=${{ opacity: 0.9 }} />
+      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin nr-dashboard-loading-icon" />
       <p class="nr-dashboard-loading__text">${message}</p>
     </div>
   </div>`;

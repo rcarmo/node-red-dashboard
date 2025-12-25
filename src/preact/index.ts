@@ -512,7 +512,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
             : state.menu.length === 0
             ? html`<div class="nr-dashboard-empty">
                 <div class="nr-dashboard-empty__inner">
-                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />
+                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" class="nr-dashboard-empty__icon" />
                   <p class="nr-dashboard-empty__body">${t(
                     "welcome_body",
                     "Please add some UI nodes to your flow and redeploy.",
@@ -521,26 +521,17 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               </div>`
             : (() => {
                 if (!selectedTab) {
-                  return html`<div style=${{ opacity: 0.7 }}>${t(
+                  return html`<div class="nr-dashboard-select-prompt">${t(
                     "select_tab_prompt",
                     "Select a tab to view its content.",
                   )}</div>`;
                 }
 
                 if (selectedTab.link) {
-                  return html`<div style=${{ width: "100%", minHeight: "80vh", position: "relative" }}>
+                  return html`<div class="nr-dashboard-iframe-container">
                     <iframe
                       src=${selectedTab.link}
-                      style=${{
-                        border: "none",
-                        borderRadius: "0",
-                        width: "100%",
-                        height: "100%",
-                        background: "transparent",
-                        display: "block",
-                        position: "absolute",
-                        inset: 0,
-                      }}
+                      class="nr-dashboard-iframe"
                       allowfullscreen
                     ></iframe>
                   </div>`;
@@ -581,7 +572,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 function LoadingScreen({ message }: { message: string }): VNode {
   return html`<div class="nr-dashboard-loading nr-dashboard-fade-in">
     <div class="nr-dashboard-loading__inner">
-      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin" style=${{ opacity: 0.9 }} />
+      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin nr-dashboard-loading-icon" />
       <p class="nr-dashboard-loading__text">${message}</p>
     </div>
   </div>`;

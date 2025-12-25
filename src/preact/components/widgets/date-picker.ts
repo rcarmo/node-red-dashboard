@@ -92,7 +92,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
       ? html`<span
           id=${`err-date-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", marginLeft: "8px", marginTop: "4px" }}
+          class="nr-dashboard-date-picker__error"
         >${error}</span>`
       : null}
   </div>`;

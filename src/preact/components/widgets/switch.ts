@@ -195,13 +195,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   return html`<div
     class=${`nr-dashboard-switch ${asSwitch.className || ""}`.trim()}
     style=${{
-      display: "flex",
-      alignItems: "center",
       justifyContent: isCenter ? "center" : "space-between",
-      width: "100%",
-      height: "100%",
-      gap: "0",
-      padding: "0 8px 0 8px",
       cursor: disabled ? "default" : "grab",
       opacity: disabled ? 0.55 : 1,
     }}

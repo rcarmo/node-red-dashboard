@@ -58,16 +58,8 @@ export function GroupCard(props: {
   >
     <header
       class="nr-dashboard-group-card__header"
-      style=${{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: "10px",
-        minHeight: "28px",
-        padding: "6px 8px 4px 8px",
-      }}
     >
-      <span style=${{ fontWeight: 500, lineHeight: "20px", paddingRight: "8px" }}>${title}</span>
+      <span class="nr-dashboard-group-card__title">${title}</span>
       ${collapseEnabled
         ? html`<button
             type="button"
@@ -81,9 +73,9 @@ export function GroupCard(props: {
         : null}
     </header>
     ${collapsed
-      ? html`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 12px 12px 12px" }}>${t("collapsed", "Collapsed")}</div>`
+      ? html`<div class="nr-dashboard-group-card__message">${t("collapsed", "Collapsed")}</div>`
       : items.length === 0
-      ? html`<div style=${{ opacity: 0.6, fontSize: "12px", padding: "0 8px 8px 8px" }}>${t("no_widgets", "No widgets in this group yet.")}</div>`
+      ? html`<div class="nr-dashboard-group-card__message">${t("no_widgets", "No widgets in this group yet.")}</div>`
       : html`<ul
           class="nr-dashboard-group-card__list"
           style=${{
