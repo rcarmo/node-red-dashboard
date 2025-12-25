@@ -9,9 +9,10 @@
     "scripts": {
         "test": "bun test",
         "copy:html": "mkdir -p dist && cp src/preact/index.html dist/index.html",
+        "copy:css": "mkdir -p dist && cp dist/dashboard.css dist/dashboard.css 2>/dev/null || true",
         "copy:assets": "mkdir -p dist/icons dist/fonts && cp node_modules/material-design-icons-iconfont/dist/material-design-icons.css dist/icons/material-design-icons.css && cp node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.* dist/fonts/ && cp node_modules/font-awesome/css/font-awesome.css dist/icons/font-awesome.css && cp node_modules/font-awesome/fonts/* dist/fonts/ && cp node_modules/weather-icons-lite/css/weather-icons-lite.css dist/icons/weather-icons-lite.css && cp node_modules/weather-icons-lite/fonts/* dist/fonts/ && cp src/icon120x120.png src/wheel.png dist/",
-        "dev": "bun run copy:html && bun run copy:assets && bun build src/preact/index.ts --outdir dist --target browser --splitting --sourcemap --watch --public-path ./",
-        "build": "bun run copy:html && bun run copy:assets && bun build src/preact/index.ts --outdir dist --target browser --splitting --public-path ./",
+        "dev": "bun run copy:html && bun run copy:css && bun run copy:assets && bun build src/preact/index.ts --outdir dist --target browser --splitting --sourcemap --watch --public-path ./",
+        "build": "bun run copy:html && bun run copy:css && bun run copy:assets && bun build src/preact/index.ts --outdir dist --target browser --splitting --public-path ./",
         "lint": "eslint src/preact --ext .ts,.tsx",
         "format": "prettier --write \"src/**/*.ts\" \"src/**/*.tsx\" \"src/**/*.html\"",
         "prepare": "bun fixfa.js",
