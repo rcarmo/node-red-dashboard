@@ -57,21 +57,10 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
     }
   }, [c.autoplay, c.play, c.stop, c.reset, c.url, isDisabled]);
 
-  return html`<div class=${c.className || ""} style=${{ width: "100%" }}>
-    <div
-      style=${{
-        display: "flex",
-        alignItems: "center",
-        gap: "8px",
-        padding: "8px 10px",
-        borderRadius: "8px",
-        background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-        border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
-        marginBottom: "6px",
-      }}
-    >
-      <i class="fa fa-volume-up" aria-hidden="true" style=${{ fontSize: "16px" }}></i>
-      <div style=${{ fontSize: "14px", fontWeight: 500, opacity: 0.82, lineHeight: "20px" }}>${label}</div>
+  return html`<div class=${`nr-dashboard-audio__outer ${c.className || ""}`.trim()}>
+    <div class="nr-dashboard-audio__header">
+      <i class="fa fa-volume-up nr-dashboard-audio__icon" aria-hidden="true"></i>
+      <div class="nr-dashboard-audio__label">${label}</div>
     </div>
     <audio
       ref=${ref}
@@ -82,7 +71,8 @@ export function AudioWidget(props: { control: UiControl; index: number; disabled
       aria-disabled=${isDisabled}
       aria-label=${t("audio_controls", "Audio controls for {label}", { label })}
       tabIndex=${isDisabled ? -1 : undefined}
-      style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto", borderRadius: "6px" }}
+      class="nr-dashboard-audio__player"
+      style=${{ pointerEvents: isDisabled ? "none" : "auto" }}
     ></audio>
   </div>`;
 }

@@ -61,8 +61,8 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
     aria-live="polite"
     aria-atomic="true"
   >
-    <div style=${{ fontWeight: 500, marginBottom: "6px", color: toneColor, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
-    <div style=${{ fontSize: "14px", lineHeight: 1.45 }}>${msg}</div>
+    <div class="nr-dashboard-toast__title" style=${{ color: toneColor }}>${label}</div>
+    <div class="nr-dashboard-toast__body">${msg}</div>
     ${dismissible
       ? html`<button
           type="button"

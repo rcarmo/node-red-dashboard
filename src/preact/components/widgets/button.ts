@@ -58,30 +58,30 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
 
     const isUrl = /^https?:\/\//i.test(trimmed);
     if (isUrl) {
-      return html`<span style=${{ lineHeight: 1 }}><img src=${trimmed} alt="" style=${{ width: "24px", height: "24px", display: "block" }} /></span>`;
+      return html`<span class="nr-dashboard-button__icon-wrapper"><img src=${trimmed} alt="" /></span>`;
     }
 
     if (trimmed.startsWith("mi-")) {
       const glyph = trimmed.slice(3);
-      return html`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return html`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <span class=${`material-icons ${trimmed}`} aria-hidden="true">${glyph}</span>
       </span>`;
     }
 
     if (trimmed.startsWith("fa-")) {
-      return html`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return html`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class=${`fa fa-fw ${trimmed}`} aria-hidden="true"></i>
       </span>`;
     }
 
     if (trimmed.startsWith("wi-")) {
-      return html`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return html`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class=${`wi wi-fw ${trimmed}`} aria-hidden="true"></i>
       </span>`;
     }
 
     if (trimmed.startsWith("icofont-")) {
-      return html`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return html`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class=${`icofont icofont-fw ${trimmed}`} aria-hidden="true"></i>
       </span>`;
     }
@@ -89,13 +89,13 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
     if (trimmed.startsWith("iconify-")) {
       const [, size] = trimmed.split(" ");
       const iconName = trimmed.split(" ")[0].slice(8);
-      return html`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return html`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class="iconify" data-icon=${iconName} data-width=${size ?? "1.3em"} data-height=${size ?? "1.3em"} aria-hidden="true"></i>
       </span>`;
     }
 
     if (/^[A-Za-z0-9_-]+$/.test(trimmed)) {
-      return html`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return html`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <span class="material-icons" aria-hidden="true">${trimmed}</span>
       </span>`;
     }

@@ -529,17 +529,13 @@ export function ChartWidget(props: { control: UiControl; index: number; disabled
   }, [instance, option]);
 
   return html`<div
-    class=${c.className || ""}
+    class=${`nr-dashboard-chart__container ${c.className || ""}`.trim()}
     style=${{  
-      width: "100%",
-      minHeight: "260px",
-      padding: "5px",
-      boxSizing: "border-box",
       opacity: disabled ? 0.55 : 1,
       pointerEvents: disabled ? "none" : "auto",
     }}
     aria-label=${t("chart_value_label", "{label} chart", { label })}
   >
-    <div ref=${chartRef} style=${{ width: "100%", height: "260px" }}></div>
+    <div ref=${chartRef} class="nr-dashboard-chart__chart"></div>
   </div>`;
 }

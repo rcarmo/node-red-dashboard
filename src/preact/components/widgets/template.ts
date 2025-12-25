@@ -22,18 +22,9 @@ export function TemplateWidget(props: { control: UiControl; index: number }): VN
   const title = c.name || t("template_label", "Template {index}", { index: index + 1 });
   const htmlContent = resolveTemplateHtml(c);
 
-  return html`<div class=${c.className || ""} style=${{ width: "100%", height: "100%", overflowY: "auto" }}>
-    <div
-      style=${{
-        padding: "4px 0",
-        borderRadius: "0",
-        background: "transparent",
-        border: "none",
-        display: "grid",
-        gap: "4px",
-      }}
-    >
-      <div style=${{ fontSize: "14px", lineHeight: "20px", fontWeight: 500, opacity: 0.8 }}>${title}</div>
+  return html`<div class=${`nr-dashboard-template__outer ${c.className || ""}`.trim()}>
+    <div class="nr-dashboard-template__inner">
+      <div class="nr-dashboard-template__title">${title}</div>
       <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
     </div>
   </div>`;

@@ -78,27 +78,15 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
 
   return html`<div ref=${ref} class=${`nr-dashboard-text ${asText.className || ""}`.trim()} style=${container}>
     <p
-      class="nr-dashboard-text__label"
-      style=${{
-        margin: "0.1em 0.25em 0.1em 0",
-        fontSize: "14px",
-        lineHeight: "20px",
-        color: "var(--nr-dashboard-widgetTextColor, inherit)",
-        opacity: 0.85,
-        lineHeight: 1.3,
-        display: label ? "block" : "none",
-      }}
+      class=${`nr-dashboard-text__label ${label ? "" : "is-hidden"}`.trim()}
       dangerouslySetInnerHTML=${labelHtml}
     ></p>
     <p
       class="nr-dashboard-text__value"
       style=${{
-        margin: "0.1em 0.25em 0.1em 0",
         fontSize: fontSize || "14px",
         fontWeight,
         color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
-        lineHeight: 1.35,
-        wordBreak: "break-word",
         fontFamily: fontFamily,
       }}
     >

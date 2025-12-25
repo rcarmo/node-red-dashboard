@@ -139,23 +139,17 @@
 /* Switch Widget */
 .nr-dashboard-switch__label {
   margin: 0;
-  padding: 0 0 0 8px;
+  padding: 0 0 0 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--nr-dashboard-widgetTextColor, inherit);
   font-weight: 500;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 20px;
 }
 
 .nr-dashboard-switch__icon-wrapper {
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-}
-
-.nr-dashboard-switch__icon-wrapper img {
   width: 20px;
   height: 20px;
   display: block;
@@ -259,10 +253,10 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px;
-  border-radius: 0;
-  background: transparent;
-  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--nr-dashboard-widgetBackgroundColor, transparent);
+  border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12));
   margin-bottom: 6px;
 }
 
@@ -282,11 +276,14 @@
   border-radius: 6px;
 }
 
-.nr-dashboard-audio__player:disabled {
-  pointer-events: none;
+/* Toast Widget */
+.nr-dashboard-toast__title {
+  font-weight: 500;
+  margin-bottom: 6px;
+  font-size: 14px;
+  line-height: 20px;
 }
 
-/* Toast Widget */
 .nr-dashboard-toast__body {
   font-size: 14px;
   line-height: 1.45;
@@ -305,6 +302,13 @@
 }
 
 /* Chart Widget */
+.nr-dashboard-chart__container {
+  width: 100%;
+  min-height: 260px;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
 .nr-dashboard-chart__chart {
   width: 100%;
   height: 260px;
@@ -315,6 +319,41 @@
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* Toolbar Spacer */
+.nr-dashboard-toolbar-spacer {
+  width: 30px;
+  display: inline-block;
+}
+
+/* Nav Backdrop */
+.nr-dashboard-nav-backdrop {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.48);
+  z-index: 80;
+  animation: nr-dashboard-nav-backdrop 450ms ease-out;
+}
+
+@keyframes nr-dashboard-nav-backdrop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Nav Close Button Container */
+.nr-dashboard-nav-close-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 12px 4px 12px;
 }
 
 /* ==========================================================================

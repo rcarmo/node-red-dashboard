@@ -177,7 +177,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
   );
 
   return html`<div
-    class=${asGauge.className || ""}
+    class=${`${asGauge.className || ""}`.trim()}
     style=${{  
       width: "100%",
       minHeight: `${chartHeight}px`,
@@ -189,7 +189,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
     }}
     aria-label=${ariaLabel}
   >
-    <div style=${{ fontWeight: 500, fontSize: "14px", lineHeight: "20px", padding: "10px 10px 4px 10px" }}>${label}</div>
-    <div ref=${chartRef} style=${{ width: "100%", height: `${chartHeight}px` }}></div>
+    <div class="nr-dashboard-gauge__title">${label}</div>
+    <div ref=${chartRef} class="nr-dashboard-gauge__chart" style=${{ height: `${chartHeight}px` }}></div>
   </div>`;
 }

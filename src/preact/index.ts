@@ -73,86 +73,6 @@ const themeVarMap: Record<string, string> = {
   "base-color": "--nr-dashboard-baseColor",
 };
 
-const appStyles: Record<string, string> = {
-  fontFamily: "Roboto, 'Helvetica Neue', Arial, Helvetica, sans-serif",
-  fontSize: "14px",
-  background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
-  color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
-  minHeight: "100vh",
-  display: "grid",
-};
-
-const toolbarStyles: Record<string, string> = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0",
-  padding: "0 16px",
-  boxShadow: "none",
-  borderBottom: "none",
-  background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
-  color: "#fff",
-  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
-  fontWeight: "400",
-  fontSize: "20px",
-  lineHeight: "1.2",
-  letterSpacing: "0.005em",
-  boxSizing: "border-box",
-  width: "100%",
-  margin: "0",
-};
-
-const iconButtonStyles: Record<string, string> = {
-  border: "none",
-  background: "transparent",
-  color: "inherit",
-  width: "40px",
-  height: "40px",
-  borderRadius: "50%",
-  display: "inline-grid",
-  placeItems: "center",
-  cursor: "pointer",
-  transition: "background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), color 180ms cubic-bezier(0.25, 0.8, 0.25, 1), transform 140ms ease",
-  position: "relative",
-  overflow: "hidden",
-  marginTop: "0",
-  marginBottom: "0",
-};
-
-const floatingToggleStyles: Record<string, string> = {
-  position: "fixed",
-  top: "12px",
-  left: "12px",
-  zIndex: "20",
-  border: "none",
-  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
-  color: "inherit",
-  borderRadius: "50%",
-  padding: "10px 12px",
-  cursor: "pointer",
-  boxShadow: "0 6px 16px rgba(0,0,0,0.20)",
-  transition: "background 140ms ease, box-shadow 140ms ease",
-};
-
-const layoutStyles: Record<string, string> = {
-  display: "grid",
-  gridTemplateColumns: "260px 1fr",
-  minHeight: "100vh",
-  position: "relative",
-};
-
-const navStyles: Record<string, string> = {
-  borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(128,128,128,0.12))",
-  padding: "0",
-  color: "var(--nr-dashboard-groupTextColor, #00A4DE)",
-  background: "var(--nr-dashboard-pageSidebarBackgroundColor, var(--nr-dashboard-pageBackgroundColor, #eee))",
-  overflowY: "auto",
-};
-
-const contentStyles: Record<string, string> = {
-  padding: "0",
-  background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
-};
-
 function getEffectiveTheme(tab: UiMenuItem | null, globalTheme: UiTheme | null): UiTheme | null {
   if (tab?.theme) return tab.theme;
   return globalTheme ?? null;
@@ -476,15 +396,14 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
     <div style=${shellStyles} ref=${shellRef}>
       ${hideToolbar
         ? null
-        : html`<header style=${toolbarStyles}>
+        : html`<header class="nr-dashboard-toolbar">
             ${showToggle
               ? html`<button
                   type="button"
                   aria-label=${t("toggle_menu", "Toggle menu")}
                   onClick=${() => setNavOpen((v) => !v)}
-                  class="nr-dashboard-icon-press"
+                  class="nr-dashboard-icon-button nr-dashboard-icon-press"
                   style=${{
-                    ...iconButtonStyles,
                     marginLeft: "-8px",
                     marginRight: "0",
                     background: navOpen
@@ -496,13 +415,13 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
                 </button>`
               : !hasMultipleTabs
-              ? html`<span style=${{ width: "30px", display: "inline-block" }}></span>`
+              ? html`<span class="nr-dashboard-toolbar-spacer"></span>`
               : null}
-            <h1 style=${{ fontSize: "inherit", fontWeight: "inherit", margin: "0", lineHeight: "inherit" }}>${toolbarTitle}</h1>
+            <h1>${toolbarTitle}</h1>
           </header>`}
       <section
-        style=${{
-          ...layoutStyles,
+        class="nr-dashboard-layout"
+        style=${{  
           gridTemplateColumns,
           minHeight: sectionMinHeight,
         }}
@@ -512,16 +431,14 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
               type="button"
               aria-label=${t("toggle_menu", "Toggle menu")}
               onClick=${() => setNavOpen((v) => !v)}
-              class="nr-dashboard-icon-press"
+              class="nr-dashboard-floating-toggle nr-dashboard-icon-button nr-dashboard-icon-press"
               style=${{
-                ...floatingToggleStyles,
-                ...iconButtonStyles,
                 background: navOpen
                   ? "rgba(0,0,0,0.10)"
                   : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
                 width: "44px",
                 height: "44px",
-                boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : floatingToggleStyles.boxShadow,
+                boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : "0 6px 16px rgba(0,0,0,0.20)",
               }}
             >
               <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
@@ -534,21 +451,15 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                   role="button"
                   aria-label=${t("close_menu", "Close menu")}
                   onClick=${() => setNavOpen(false)}
+                  class="nr-dashboard-nav-backdrop"
                   style=${{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
                     top: navTop,
-                    bottom: 0,
-                    background: "rgba(0,0,0,0.48)",
-                    zIndex: 80,
-                    animation: "nr-dashboard-nav-backdrop 450ms ease-out",
                   }}
                 ></div>`
               : null}
             <nav
+              class="nr-dashboard-nav"
               style=${{
-                ...navStyles,
                 padding: isIconOnly ? "12px 10px" : "0",
                 width: navWidth,
                 minWidth: isIconOnly ? "72px" : "64px",
@@ -560,18 +471,16 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 transition: "left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
                 zIndex: 80,
                 boxShadow: isSlide && !isLocked && !isIconOnly ? (navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "none") : "none",
-                backdropFilter: undefined,
               }}
             >
               ${isSlide && !isLocked && !isIconOnly && navOpen && isMobile
-                ? html`<div style=${{ display: "flex", justifyContent: "flex-end", alignItems: "center", padding: "8px 12px 4px 12px" }}>
+                ? html`<div class="nr-dashboard-nav-close-container">
                     <button
-                      class="nr-dashboard-icon-press"
+                      class="nr-dashboard-icon-button nr-dashboard-icon-press"
                       type="button"
                       aria-label=${t("close_menu", "Close menu")}
                       onClick=${() => setNavOpen(false)}
                       style=${{
-                        ...iconButtonStyles,
                         width: "36px",
                         height: "36px",
                         border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
@@ -597,7 +506,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
             </nav>`
           : null}
 
-        <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
+        <main ref=${mainRef} class="nr-dashboard-content" style=${{ background: "var(--nr-dashboard-pageBackgroundColor, #eee)" }} tabIndex=${-1}>
           ${shouldShowLoading(state.connection)
             ? html`<${LoadingScreen} message=${t("loading", "Loading dashboard...")} />`
             : state.menu.length === 0

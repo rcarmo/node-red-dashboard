@@ -4470,27 +4470,15 @@ function TextWidget(props) {
   const isColumn = container.flexDirection === "column";
   return m2`<div ref=${ref} class=${`nr-dashboard-text ${asText.className || ""}`.trim()} style=${container}>
     <p
-      class="nr-dashboard-text__label"
-      style=${{
-    margin: "0.1em 0.25em 0.1em 0",
-    fontSize: "14px",
-    lineHeight: "20px",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)",
-    opacity: 0.85,
-    lineHeight: 1.3,
-    display: label ? "block" : "none"
-  }}
+      class=${`nr-dashboard-text__label ${label ? "" : "is-hidden"}`.trim()}
       dangerouslySetInnerHTML=${labelHtml}
     ></p>
     <p
       class="nr-dashboard-text__value"
       style=${{
-    margin: "0.1em 0.25em 0.1em 0",
     fontSize: fontSize || "14px",
     fontWeight,
     color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
-    lineHeight: 1.35,
-    wordBreak: "break-word",
     fontFamily
   }}
     >
@@ -4582,38 +4570,38 @@ function ButtonWidget(props) {
       return null;
     const isUrl = /^https?:\/\//i.test(trimmed);
     if (isUrl) {
-      return m2`<span style=${{ lineHeight: 1 }}><img src=${trimmed} alt="" style=${{ width: "24px", height: "24px", display: "block" }} /></span>`;
+      return m2`<span class="nr-dashboard-button__icon-wrapper"><img src=${trimmed} alt="" /></span>`;
     }
     if (trimmed.startsWith("mi-")) {
       const glyph = trimmed.slice(3);
-      return m2`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return m2`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <span class=${`material-icons ${trimmed}`} aria-hidden="true">${glyph}</span>
       </span>`;
     }
     if (trimmed.startsWith("fa-")) {
-      return m2`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return m2`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class=${`fa fa-fw ${trimmed}`} aria-hidden="true"></i>
       </span>`;
     }
     if (trimmed.startsWith("wi-")) {
-      return m2`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return m2`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class=${`wi wi-fw ${trimmed}`} aria-hidden="true"></i>
       </span>`;
     }
     if (trimmed.startsWith("icofont-")) {
-      return m2`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return m2`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class=${`icofont icofont-fw ${trimmed}`} aria-hidden="true"></i>
       </span>`;
     }
     if (trimmed.startsWith("iconify-")) {
       const [, size] = trimmed.split(" ");
       const iconName = trimmed.split(" ")[0].slice(8);
-      return m2`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return m2`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <i class="iconify" data-icon=${iconName} data-width=${size ?? "1.3em"} data-height=${size ?? "1.3em"} aria-hidden="true"></i>
       </span>`;
     }
     if (/^[A-Za-z0-9_-]+$/.test(trimmed)) {
-      return m2`<span style=${{ display: "inline-flex", alignItems: "center", lineHeight: 1, color: textColor }}>
+      return m2`<span class="nr-dashboard-button__icon-wrapper" style=${{ color: textColor }}>
         <span class="material-icons" aria-hidden="true">${trimmed}</span>
       </span>`;
     }
@@ -4743,7 +4731,7 @@ function SwitchWidget(props) {
       return null;
     const isUrl = /^https?:\/\//i.test(trimmed);
     if (isUrl)
-      return m2`<img src=${trimmed} alt="" style=${{ width: "20px", height: "20px", display: "block" }} />`;
+      return m2`<img class="nr-dashboard-switch__icon-wrapper" src=${trimmed} alt="" />`;
     if (trimmed.startsWith("mi-")) {
       const glyph = trimmed.slice(3);
       return m2`<span class=${`material-icons ${trimmed}`} aria-hidden="true">${glyph}</span>`;
@@ -4859,16 +4847,7 @@ function SwitchWidget(props) {
     title=${asSwitch.tooltip || undefined}
   >
     ${showLabel ? m2`<p
-          style=${{
-    margin: 0,
-    padding: "0 0 0 12px",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    color: "var(--nr-dashboard-widgetTextColor, inherit)",
-    fontWeight: 500,
-    fontSize: "14px",
-    lineHeight: "20px"
-  }}
+          class="nr-dashboard-switch__label"
           dangerouslySetInnerHTML=${labelHtml}
         ></p>` : null}
     ${customIcons}
@@ -5340,7 +5319,7 @@ function NumericWidget(props) {
         <span class="material-icons" aria-hidden="true">expand_more</span>
       </button>
 
-      ${isEditable ? m2`<div style=${{ display: "flex", alignItems: "center", gap: "4px" }}>
+      ${isEditable ? m2`<div class="nr-dashboard-numeric__adornment">
             ${pre ? m2`<span class="nr-dashboard-numeric__adorn">${pre}</span>` : null}
             <input
               class=${`nr-dashboard-numeric__input ${asNum.className || ""}`.trim()}
@@ -5354,7 +5333,7 @@ function NumericWidget(props) {
               onInput=${handleChange}
             />
             ${post ? m2`<span class="nr-dashboard-numeric__adorn">${post}</span>` : null}
-          </div>` : m2`<div style=${{ display: "flex", alignItems: "center", gap: "4px" }}>
+          </div>` : m2`<div class="nr-dashboard-numeric__adornment">
             <p
               class="nr-dashboard-numeric__value"
               aria-valuetext=${t4("number_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
@@ -42385,7 +42364,7 @@ function GaugeWidget(props) {
     ]
   }));
   return m2`<div
-    class=${asGauge.className || ""}
+    class=${`${asGauge.className || ""}`.trim()}
     style=${{
     width: "100%",
     minHeight: `${chartHeight}px`,
@@ -42397,18 +42376,12 @@ function GaugeWidget(props) {
   }}
     aria-label=${ariaLabel}
   >
-    <div style=${{ fontWeight: 500, fontSize: "14px", lineHeight: "20px", padding: "10px 10px 4px 10px" }}>${label}</div>
-    <div ref=${chartRef} style=${{ width: "100%", height: `${chartHeight}px` }}></div>
+    <div class="nr-dashboard-gauge__title">${label}</div>
+    <div ref=${chartRef} class="nr-dashboard-gauge__chart" style=${{ height: `${chartHeight}px` }}></div>
   </div>`;
 }
 
 // src/preact/components/styles/fieldStyles.ts
-var fieldLabelStyles = {
-  fontSize: "13px",
-  opacity: 0.85,
-  color: "var(--nr-dashboard-widgetTextColor, inherit)",
-  lineHeight: 1.3
-};
 function buildFieldStyles(opts = {}) {
   const { error: error2, focused, disabled, hasAdornment, dense } = opts;
   const borderColor = error2 ? "var(--nr-dashboard-errorColor, #f87171)" : focused ? "var(--nr-dashboard-widgetColor, #1f8af2)" : "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))";
@@ -42449,31 +42422,6 @@ function DatePickerWidget(props) {
   const [focused, setFocused] = d2(false);
   const inputId = T2(() => `nr-dashboard-date-${index}`, [index]);
   const isDisabled = Boolean(disabled);
-  const containerStyle = T2(() => ({ display: "flex", flexDirection: "column", width: "100%", marginTop: "8px" }), []);
-  const rowStyle = T2(() => ({ display: "flex", alignItems: "center", width: "100%" }), []);
-  const labelStyle = T2(() => ({
-    ...fieldLabelStyles,
-    fontSize: "14px",
-    fontWeight: 500,
-    lineHeight: "20px",
-    marginLeft: "8px",
-    marginRight: "12px",
-    whiteSpace: "nowrap",
-    marginBottom: "0"
-  }), []);
-  const inputContainerStyle = T2(() => ({ position: "relative", flex: "1 1 auto", width: "100%", padding: "0" }), []);
-  const iconStyle = T2(() => ({
-    position: "absolute",
-    right: "6px",
-    top: "-5px",
-    width: "40px",
-    height: "40px",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.54))",
-    pointerEvents: "none"
-  }), []);
   const inputType2 = resolveDateInputType(c3.mode);
   const validate = (next) => {
     if (c3.required && next.trim().length === 0) {
@@ -42492,10 +42440,10 @@ function DatePickerWidget(props) {
     return true;
   };
   const fieldStyles = buildFieldStyles({ error: Boolean(error2), focused, disabled: isDisabled, hasAdornment: true });
-  return m2`<div style=${containerStyle}>
-    <div style=${rowStyle}>
-      <label for=${inputId} style=${labelStyle}>${label}</label>
-      <div style=${inputContainerStyle}>
+  return m2`<div class="nr-dashboard-date-picker__container">
+    <div class="nr-dashboard-date-picker__row">
+      <label for=${inputId} class="nr-dashboard-date-picker__label">${label}</label>
+      <div class="nr-dashboard-date-picker__input-container">
         <input
           id=${inputId}
           class=${c3.className || ""}
@@ -42521,7 +42469,7 @@ function DatePickerWidget(props) {
           min=${c3.min || undefined}
           max=${c3.max || undefined}
         />
-        <span aria-hidden="true" style=${iconStyle}>
+        <span class="nr-dashboard-date-picker__icon" aria-hidden="true">
           <i class="fa fa-calendar" aria-hidden="true"></i>
         </span>
       </div>
@@ -42689,21 +42637,10 @@ function AudioWidget(props) {
       setPlayIntent(false);
     }
   }, [c3.autoplay, c3.play, c3.stop, c3.reset, c3.url, isDisabled]);
-  return m2`<div class=${c3.className || ""} style=${{ width: "100%" }}>
-    <div
-      style=${{
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    padding: "8px 10px",
-    borderRadius: "8px",
-    background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
-    border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.12))",
-    marginBottom: "6px"
-  }}
-    >
-      <i class="fa fa-volume-up" aria-hidden="true" style=${{ fontSize: "16px" }}></i>
-      <div style=${{ fontSize: "14px", fontWeight: 500, opacity: 0.82, lineHeight: "20px" }}>${label}</div>
+  return m2`<div class=${`nr-dashboard-audio__outer ${c3.className || ""}`.trim()}>
+    <div class="nr-dashboard-audio__header">
+      <i class="fa fa-volume-up nr-dashboard-audio__icon" aria-hidden="true"></i>
+      <div class="nr-dashboard-audio__label">${label}</div>
     </div>
     <audio
       ref=${ref}
@@ -42714,7 +42651,8 @@ function AudioWidget(props) {
       aria-disabled=${isDisabled}
       aria-label=${t4("audio_controls", "Audio controls for {label}", { label })}
       tabIndex=${isDisabled ? -1 : undefined}
-      style=${{ width: "100%", pointerEvents: isDisabled ? "none" : "auto", borderRadius: "6px" }}
+      class="nr-dashboard-audio__player"
+      style=${{ pointerEvents: isDisabled ? "none" : "auto" }}
     ></audio>
   </div>`;
 }
@@ -42766,8 +42704,8 @@ function ToastWidget(props) {
     aria-live="polite"
     aria-atomic="true"
   >
-    <div style=${{ fontWeight: 500, marginBottom: "6px", color: toneColor, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
-    <div style=${{ fontSize: "14px", lineHeight: 1.45 }}>${msg}</div>
+    <div class="nr-dashboard-toast__title" style=${{ color: toneColor }}>${label}</div>
+    <div class="nr-dashboard-toast__body">${msg}</div>
     ${dismissible ? m2`<button
           type="button"
           aria-label=${t4("toast_close", "Close notification")}
@@ -42805,7 +42743,7 @@ function LinkWidget(props) {
   const [hovered, setHovered] = d2(false);
   const [pressed, setPressed] = d2(false);
   const focusRing = focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 40%, transparent)" : "none";
-  return m2`<div style=${{ display: "flex", alignItems: "center", width: "100%" }}>
+  return m2`<div class="nr-dashboard-link__container">
     <a
       href=${isDisabled ? undefined : href}
       target=${target}
@@ -42843,8 +42781,8 @@ function LinkWidget(props) {
     transform: pressed ? "translateY(1px)" : "none"
   }}
     >
-      ${icon ? m2`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : m2`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}
-      <span style=${{ fontWeight: 500, letterSpacing: "0.01em", fontSize: "14px", lineHeight: "20px" }}>${label}</span>
+      ${icon ? m2`<i class=${`${icon} nr-dashboard-link__icon`} aria-hidden="true"></i>` : m2`<i class="fa fa-external-link nr-dashboard-link__icon" aria-hidden="true"></i>`}
+      <span class="nr-dashboard-link__label">${label}</span>
     </a>
   </div>`;
 }
@@ -42859,18 +42797,9 @@ function TemplateWidget(props) {
   const { t: t4 } = useI18n();
   const title = c3.name || t4("template_label", "Template {index}", { index: index + 1 });
   const htmlContent = resolveTemplateHtml(c3);
-  return m2`<div class=${c3.className || ""} style=${{ width: "100%", height: "100%", overflowY: "auto" }}>
-    <div
-      style=${{
-    padding: "4px 0",
-    borderRadius: "0",
-    background: "transparent",
-    border: "none",
-    display: "grid",
-    gap: "4px"
-  }}
-    >
-      <div style=${{ fontSize: "14px", lineHeight: "20px", fontWeight: 500, opacity: 0.8 }}>${title}</div>
+  return m2`<div class=${`nr-dashboard-template__outer ${c3.className || ""}`.trim()}>
+    <div class="nr-dashboard-template__inner">
+      <div class="nr-dashboard-template__title">${title}</div>
       <div dangerouslySetInnerHTML=${{ __html: htmlContent }}></div>
     </div>
   </div>`;
@@ -47115,18 +47044,14 @@ function ChartWidget(props) {
     instance.setOption(option, { replaceMerge: ["series", "legend"] });
   }, [instance, option]);
   return m2`<div
-    class=${c3.className || ""}
+    class=${`nr-dashboard-chart__container ${c3.className || ""}`.trim()}
     style=${{
-    width: "100%",
-    minHeight: "260px",
-    padding: "5px",
-    boxSizing: "border-box",
     opacity: disabled ? 0.55 : 1,
     pointerEvents: disabled ? "none" : "auto"
   }}
     aria-label=${t4("chart_value_label", "{label} chart", { label })}
   >
-    <div ref=${chartRef} style=${{ width: "100%", height: "260px" }}></div>
+    <div ref=${chartRef} class="nr-dashboard-chart__chart"></div>
   </div>`;
 }
 
@@ -47744,79 +47669,6 @@ var themeVarMap = {
   "widget-borderColor": "--nr-dashboard-widgetBorderColor",
   "base-color": "--nr-dashboard-baseColor"
 };
-var appStyles = {
-  fontFamily: "Roboto, 'Helvetica Neue', Arial, Helvetica, sans-serif",
-  fontSize: "14px",
-  background: "var(--nr-dashboard-pageBackgroundColor, #eee)",
-  color: "var(--nr-dashboard-pageTextColor, var(--nr-dashboard-widgetTextColor, #000))",
-  minHeight: "100vh",
-  display: "grid"
-};
-var toolbarStyles = {
-  display: "flex",
-  alignItems: "center",
-  gap: "0",
-  padding: "0 16px",
-  boxShadow: "none",
-  borderBottom: "none",
-  background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
-  color: "#fff",
-  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
-  fontWeight: "400",
-  fontSize: "20px",
-  lineHeight: "1.2",
-  letterSpacing: "0.005em",
-  boxSizing: "border-box",
-  width: "100%",
-  margin: "0"
-};
-var iconButtonStyles = {
-  border: "none",
-  background: "transparent",
-  color: "inherit",
-  width: "40px",
-  height: "40px",
-  borderRadius: "50%",
-  display: "inline-grid",
-  placeItems: "center",
-  cursor: "pointer",
-  transition: "background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), color 180ms cubic-bezier(0.25, 0.8, 0.25, 1), transform 140ms ease",
-  position: "relative",
-  overflow: "hidden",
-  marginTop: "0",
-  marginBottom: "0"
-};
-var floatingToggleStyles = {
-  position: "fixed",
-  top: "12px",
-  left: "12px",
-  zIndex: "20",
-  border: "none",
-  background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
-  color: "inherit",
-  borderRadius: "50%",
-  padding: "10px 12px",
-  cursor: "pointer",
-  boxShadow: "0 6px 16px rgba(0,0,0,0.20)",
-  transition: "background 140ms ease, box-shadow 140ms ease"
-};
-var layoutStyles2 = {
-  display: "grid",
-  gridTemplateColumns: "260px 1fr",
-  minHeight: "100vh",
-  position: "relative"
-};
-var navStyles = {
-  borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(128,128,128,0.12))",
-  padding: "0",
-  color: "var(--nr-dashboard-groupTextColor, #00A4DE)",
-  background: "var(--nr-dashboard-pageSidebarBackgroundColor, var(--nr-dashboard-pageBackgroundColor, #eee))",
-  overflowY: "auto"
-};
-var contentStyles = {
-  padding: "0",
-  background: "var(--nr-dashboard-pageBackgroundColor, #eee)"
-};
 function getEffectiveTheme(tab, globalTheme) {
   if (tab?.theme)
     return tab.theme;
@@ -48098,14 +47950,13 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const showFloatingToggle = isSlide && hasMultipleTabs && hideToolbar;
   return m2`
     <div style=${shellStyles} ref=${shellRef}>
-      ${hideToolbar ? null : m2`<header style=${toolbarStyles}>
+      ${hideToolbar ? null : m2`<header class="nr-dashboard-toolbar">
             ${showToggle ? m2`<button
                   type="button"
                   aria-label=${t4("toggle_menu", "Toggle menu")}
                   onClick=${() => setNavOpen((v3) => !v3)}
-                  class="nr-dashboard-icon-press"
+                  class="nr-dashboard-icon-button nr-dashboard-icon-press"
                   style=${{
-    ...iconButtonStyles,
     marginLeft: "-8px",
     marginRight: "0",
     background: navOpen ? "rgba(0,0,0,0.10)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.04))",
@@ -48113,12 +47964,12 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   }}
                 >
                   <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
-                </button>` : !hasMultipleTabs ? m2`<span style=${{ width: "30px", display: "inline-block" }}></span>` : null}
-            <h1 style=${{ fontSize: "inherit", fontWeight: "inherit", margin: "0", lineHeight: "inherit" }}>${toolbarTitle}</h1>
+                </button>` : !hasMultipleTabs ? m2`<span class="nr-dashboard-toolbar-spacer"></span>` : null}
+            <h1>${toolbarTitle}</h1>
           </header>`}
       <section
+        class="nr-dashboard-layout"
         style=${{
-    ...layoutStyles2,
     gridTemplateColumns,
     minHeight: sectionMinHeight
   }}
@@ -48127,14 +47978,12 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
               type="button"
               aria-label=${t4("toggle_menu", "Toggle menu")}
               onClick=${() => setNavOpen((v3) => !v3)}
-              class="nr-dashboard-icon-press"
+              class="nr-dashboard-floating-toggle nr-dashboard-icon-button nr-dashboard-icon-press"
               style=${{
-    ...floatingToggleStyles,
-    ...iconButtonStyles,
     background: navOpen ? "rgba(0,0,0,0.10)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
     width: "44px",
     height: "44px",
-    boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : floatingToggleStyles.boxShadow
+    boxShadow: navOpen ? "0 6px 18px rgba(0,0,0,0.30)" : "0 6px 16px rgba(0,0,0,0.20)"
   }}
             >
               <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
@@ -48144,20 +47993,14 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
                   role="button"
                   aria-label=${t4("close_menu", "Close menu")}
                   onClick=${() => setNavOpen(false)}
+                  class="nr-dashboard-nav-backdrop"
                   style=${{
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: navTop,
-    bottom: 0,
-    background: "rgba(0,0,0,0.48)",
-    zIndex: 80,
-    animation: "nr-dashboard-nav-backdrop 450ms ease-out"
+    top: navTop
   }}
                 ></div>` : null}
             <nav
+              class="nr-dashboard-nav"
               style=${{
-    ...navStyles,
     padding: isIconOnly ? "12px 10px" : "0",
     width: navWidth,
     minWidth: isIconOnly ? "72px" : "64px",
@@ -48168,18 +48011,16 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     bottom: 0,
     transition: "left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)",
     zIndex: 80,
-    boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "none" : "none",
-    backdropFilter: undefined
+    boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "none" : "none"
   }}
             >
-              ${isSlide && !isLocked && !isIconOnly && navOpen && isMobile ? m2`<div style=${{ display: "flex", justifyContent: "flex-end", alignItems: "center", padding: "8px 12px 4px 12px" }}>
+              ${isSlide && !isLocked && !isIconOnly && navOpen && isMobile ? m2`<div class="nr-dashboard-nav-close-container">
                     <button
-                      class="nr-dashboard-icon-press"
+                      class="nr-dashboard-icon-button nr-dashboard-icon-press"
                       type="button"
                       aria-label=${t4("close_menu", "Close menu")}
                       onClick=${() => setNavOpen(false)}
                       style=${{
-    ...iconButtonStyles,
     width: "36px",
     height: "36px",
     border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
@@ -48203,7 +48044,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
               />
             </nav>` : null}
 
-        <main ref=${mainRef} style=${contentStyles} tabIndex=${-1}>
+        <main ref=${mainRef} class="nr-dashboard-content" style=${{ background: "var(--nr-dashboard-pageBackgroundColor, #eee)" }} tabIndex=${-1}>
           ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div class="nr-dashboard-empty">
                 <div class="nr-dashboard-empty__inner">
                   <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" style=${{ opacity: 0.9 }} />

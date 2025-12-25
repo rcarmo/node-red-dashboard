@@ -223,7 +223,7 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
       </button>
 
       ${isEditable
-        ? html`<div style=${{ display: "flex", alignItems: "center", gap: "4px" }}>
+        ? html`<div class="nr-dashboard-numeric__adornment">
             ${pre ? html`<span class="nr-dashboard-numeric__adorn">${pre}</span>` : null}
             <input
               class=${`nr-dashboard-numeric__input ${asNum.className || ""}`.trim()}
@@ -238,7 +238,7 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
             />
             ${post ? html`<span class="nr-dashboard-numeric__adorn">${post}</span>` : null}
           </div>`
-        : html`<div style=${{ display: "flex", alignItems: "center", gap: "4px" }}>
+        : html`<div class="nr-dashboard-numeric__adornment">
             <p
               class="nr-dashboard-numeric__value"
               aria-valuetext=${t("number_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}

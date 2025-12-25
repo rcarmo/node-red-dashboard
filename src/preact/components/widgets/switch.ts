@@ -88,7 +88,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     if (!trimmed) return null;
 
     const isUrl = /^https?:\/\//i.test(trimmed);
-    if (isUrl) return html`<img src=${trimmed} alt="" style=${{ width: "20px", height: "20px", display: "block" }} />`;
+    if (isUrl) return html`<img class="nr-dashboard-switch__icon-wrapper" src=${trimmed} alt="" />`;
 
     if (trimmed.startsWith("mi-")) {
       const glyph = trimmed.slice(3);
@@ -209,16 +209,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   >
     ${showLabel
       ? html`<p
-          style=${{
-            margin: 0,
-            padding: "0 0 0 12px",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            color: "var(--nr-dashboard-widgetTextColor, inherit)",
-            fontWeight: 500,
-            fontSize: "14px",
-            lineHeight: "20px",
-          }}
+          class="nr-dashboard-switch__label"
           dangerouslySetInnerHTML=${labelHtml}
         ></p>`
       : null}

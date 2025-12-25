@@ -35,44 +35,6 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
   const inputId = useMemo(() => `nr-dashboard-date-${index}`, [index]);
   const isDisabled = Boolean(disabled);
 
-  const containerStyle = useMemo(
-    () => ({ display: "flex", flexDirection: "column", width: "100%", marginTop: "8px" }),
-    [],
-  );
-  const rowStyle = useMemo(() => ({ display: "flex", alignItems: "center", width: "100%" }), []);
-  const labelStyle = useMemo(
-    () => ({
-      ...fieldLabelStyles,
-      fontSize: "14px",
-      fontWeight: 500,
-      lineHeight: "20px",
-      marginLeft: "8px",
-      marginRight: "12px",
-      whiteSpace: "nowrap",
-      marginBottom: "0",
-    }),
-    [],
-  );
-  const inputContainerStyle = useMemo(
-    () => ({ position: "relative", flex: "1 1 auto", width: "100%", padding: "0" }),
-    [],
-  );
-  const iconStyle = useMemo(
-    () => ({
-      position: "absolute",
-      right: "6px",
-      top: "-5px",
-      width: "40px",
-      height: "40px",
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.54))",
-      pointerEvents: "none",
-    }),
-    [],
-  );
-
   const inputType = resolveDateInputType(c.mode);
 
   const validate = (next: string): boolean => {
@@ -94,10 +56,10 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
 
   const fieldStyles = buildFieldStyles({ error: Boolean(error), focused, disabled: isDisabled, hasAdornment: true });
 
-  return html`<div style=${containerStyle}>
-    <div style=${rowStyle}>
-      <label for=${inputId} style=${labelStyle}>${label}</label>
-      <div style=${inputContainerStyle}>
+  return html`<div class="nr-dashboard-date-picker__container">
+    <div class="nr-dashboard-date-picker__row">
+      <label for=${inputId} class="nr-dashboard-date-picker__label">${label}</label>
+      <div class="nr-dashboard-date-picker__input-container">
         <input
           id=${inputId}
           class=${c.className || ""}
@@ -121,7 +83,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
           min=${c.min || undefined}
           max=${c.max || undefined}
         />
-        <span aria-hidden="true" style=${iconStyle}>
+        <span class="nr-dashboard-date-picker__icon" aria-hidden="true">
           <i class="fa fa-calendar" aria-hidden="true"></i>
         </span>
       </div>

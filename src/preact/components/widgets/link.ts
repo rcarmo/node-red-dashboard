@@ -33,7 +33,7 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
     ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 40%, transparent)"
     : "none";
 
-  return html`<div style=${{ display: "flex", alignItems: "center", width: "100%" }}>
+  return html`<div class="nr-dashboard-link__container">
     <a
       href=${isDisabled ? undefined : href}
       target=${target}
@@ -77,8 +77,8 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
         transform: pressed ? "translateY(1px)" : "none",
       }}
     >
-      ${icon ? html`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : html`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}
-      <span style=${{ fontWeight: 500, letterSpacing: "0.01em", fontSize: "14px", lineHeight: "20px" }}>${label}</span>
+      ${icon ? html`<i class=${`${icon} nr-dashboard-link__icon`} aria-hidden="true"></i>` : html`<i class="fa fa-external-link nr-dashboard-link__icon" aria-hidden="true"></i>`}
+      <span class="nr-dashboard-link__label">${label}</span>
     </a>
   </div>`;
 }
