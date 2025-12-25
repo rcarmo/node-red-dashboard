@@ -272,7 +272,6 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
   const navTop = hideToolbar ? "0" : toolbarHeight;
 
   const shellStyles = {
-    ...appStyles,
     gridTemplateRows: hideToolbar ? "1fr" : `${toolbarHeight} 1fr`,
   } satisfies Record<string, string>;
 

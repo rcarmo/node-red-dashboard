@@ -46721,7 +46721,6 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const navWidth = `${navWidthNum}px`;
   const navTop = hideToolbar ? "0" : toolbarHeight;
   const shellStyles = {
-    ...appStyles,
     gridTemplateRows: hideToolbar ? "1fr" : `${toolbarHeight} 1fr`
   };
   useLayoutAnnouncements(selectedTab?.items ?? [], sizes, tabId);
