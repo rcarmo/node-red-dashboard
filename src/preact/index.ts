@@ -90,7 +90,7 @@ const toolbarStyles: Record<string, string> = {
   boxShadow: "none",
   borderBottom: "none",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
-  color: "var(--nr-dashboard-pageTextColor, #fff)",
+  color: "#fff",
   fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   fontWeight: "400",
   fontSize: "20px",
@@ -143,7 +143,7 @@ const layoutStyles: Record<string, string> = {
 const navStyles: Record<string, string> = {
   borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(128,128,128,0.12))",
   padding: "0",
-  color: "var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-pageTextColor, inherit))",
+  color: "var(--nr-dashboard-groupTextColor, #00A4DE)",
   background: "var(--nr-dashboard-pageSidebarBackgroundColor, var(--nr-dashboard-pageBackgroundColor, #eee))",
   overflowY: "auto",
 };
@@ -411,7 +411,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
       const direction = dx > 0 ? "right" : "left";
 
       // Menu swipe: right to open, left to close
-      if (allowMenuSwipe && !isLocked && !isIconOnly) {
+      if (allowMenuSwipe && isSlide) {
         if (direction === "right" && !navOpen) {
           // Only open from left edge (within 50px)
           if (startX <= 50) {
@@ -443,7 +443,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
       node.removeEventListener("pointerdown", handlePointerDown);
       node.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [actions, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex, navOpen]);
+  }, [actions, allowSwipe, isSlide, state.menu, state.selectedTabIndex, navOpen]);
 
   const statusLabel = (() => {
     switch (state.connection) {

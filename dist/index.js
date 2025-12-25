@@ -3957,10 +3957,10 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
-      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 10%, transparent);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 10%, transparent);
       color: inherit;
       box-shadow: none;
-      border-right-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetColor, currentColor));
+      border-right-color: var(--nr-dashboard-groupTextColor, #00A4DE);
       font-weight: 600;
     }
 
@@ -3971,13 +3971,13 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 8%, transparent);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 8%, transparent);
       color: inherit;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: none;
-      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 12%, transparent);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 12%, transparent);
       border-right-color: var(--nr-dashboard-nav-border-active);
     }
 
@@ -47761,7 +47761,7 @@ var toolbarStyles = {
   boxShadow: "none",
   borderBottom: "none",
   background: "var(--nr-dashboard-pageTitlebarBackgroundColor, #0094CE)",
-  color: "var(--nr-dashboard-pageTextColor, #fff)",
+  color: "#fff",
   fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   fontWeight: "400",
   fontSize: "20px",
@@ -47810,7 +47810,7 @@ var layoutStyles2 = {
 var navStyles = {
   borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(128,128,128,0.12))",
   padding: "0",
-  color: "var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-pageTextColor, inherit))",
+  color: "var(--nr-dashboard-groupTextColor, #00A4DE)",
   background: "var(--nr-dashboard-pageSidebarBackgroundColor, var(--nr-dashboard-pageBackgroundColor, #eee))",
   overflowY: "auto"
 };
@@ -48046,7 +48046,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       if (event.pointerType === "mouse" && !allowMouseSwipe)
         return;
       const direction = dx > 0 ? "right" : "left";
-      if (allowMenuSwipe && !isLocked && !isIconOnly) {
+      if (allowMenuSwipe && isSlide) {
         if (direction === "right" && !navOpen) {
           if (startX <= 50) {
             setNavOpen(true);
@@ -48073,7 +48073,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       node.removeEventListener("pointerdown", handlePointerDown);
       node.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [actions2, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex, navOpen]);
+  }, [actions2, allowSwipe, isSlide, state.menu, state.selectedTabIndex, navOpen]);
   const statusLabel = (() => {
     switch (state.connection) {
       case "ready":

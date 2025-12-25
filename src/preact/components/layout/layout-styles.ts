@@ -105,10 +105,10 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
-      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 10%, transparent);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 10%, transparent);
       color: inherit;
       box-shadow: none;
-      border-right-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetColor, currentColor));
+      border-right-color: var(--nr-dashboard-groupTextColor, #00A4DE);
       font-weight: 600;
     }
 
@@ -119,13 +119,13 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
-      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 8%, transparent);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 8%, transparent);
       color: inherit;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
       outline: none;
-      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 12%, transparent);
+      background: color-mix(in srgb, var(--nr-dashboard-groupTextColor, #00A4DE) 12%, transparent);
       border-right-color: var(--nr-dashboard-nav-border-active);
     }
 
