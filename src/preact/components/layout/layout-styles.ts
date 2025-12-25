@@ -105,10 +105,10 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
-      background: transparent;
+      background: color-mix(in srgb, var(--nr-dashboard-pageSidebarTextColor, currentColor) 10%, transparent);
       color: inherit;
       box-shadow: none;
-      border-right-color: var(--nr-dashboard-groupTextColor, currentColor);
+      border-right-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-widgetColor, currentColor));
       font-weight: 600;
     }
 
