@@ -68,7 +68,7 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
 
   return html`<ul class=${`nr-dashboard-tabs ${iconOnly ? "nr-dashboard-tabs--icon" : ""}`.trim()}>
     ${visibleMenu.length === 0
-      ? html`<li style=${{ opacity: 0.6 }}>${t("no_tabs", "No tabs yet")}</li>`
+      ? html`<li class="nr-dashboard-empty-message--subtle">${t("no_tabs", "No tabs yet")}</li>`
       : visibleMenu.map(({ tab, originalIndex }, idx) => {
           const active = originalIndex === selectedIndex;
           const label = (tab.header || tab.name || t("tab_label", "Tab {index}", { index: idx + 1 })) as string;

@@ -23,24 +23,18 @@ export function WidgetPreview(props: { control: UiControl; index: number }): VNo
   const { t } = useI18n();
 
   if (type === "text" || type === "ui_text") {
-    return html`<div
-      ref=${ref}
-      style=${{ display: "flex", flexDirection: "column", gap: "4px" }}
-    >
+    return html`<div ref=${ref} class="nr-dashboard-widget-preview">
       <strong>${label}</strong>
-      <span style=${{ opacity: 0.9 }}>${value || t("widget_preview_empty", "(no value yet)")}</span>
-      <span style=${{ opacity: 0.55, fontSize: "10px" }}>
+      <span class="nr-dashboard-widget-preview__value">${value || t("widget_preview_empty", "(no value yet)")}</span>
+      <span class="nr-dashboard-widget-preview__size">
         ${Math.round(size.width)}×${Math.round(size.height)} px
       </span>
     </div>`;
   }
 
-  return html`<div
-    ref=${ref}
-    style=${{ display: "flex", justifyContent: "space-between", gap: "6px" }}
-  >
+  return html`<div ref=${ref} class="nr-dashboard-widget-preview--inline">
     <span>${label}</span>
-    <span style=${{ opacity: 0.65, fontSize: "11px" }}>${type}</span>
+    <span class="nr-dashboard-widget-preview__type">${type}</span>
   </div>`;
 }
 

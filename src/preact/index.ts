@@ -486,7 +486,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                         border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
                         background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))",
                       }}
-                    ><span class="material-icons" aria-hidden="true" style=${{ fontSize: "18px" }}>close</span></button>
+                    ><span class="material-icons nr-dashboard-nav-close-icon" aria-hidden="true">close</span></button>
                   </div>`
                 : null}
               <${TabNav}
@@ -506,7 +506,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
             </nav>`
           : null}
 
-        <main ref=${mainRef} class="nr-dashboard-content" style=${{ background: "var(--nr-dashboard-pageBackgroundColor, #eee)" }} tabIndex=${-1}>
+        <main ref=${mainRef} class="nr-dashboard-content" tabIndex=${-1}>
           ${shouldShowLoading(state.connection)
             ? html`<${LoadingScreen} message=${t("loading", "Loading dashboard...")} />`
             : state.menu.length === 0

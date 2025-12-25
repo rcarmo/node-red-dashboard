@@ -145,7 +145,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
     }}
   >
     ${renderIcon(asButton.icon)}
-    <span class="nr-dashboard-button__label" style=${{ pointerEvents: "none" }} dangerouslySetInnerHTML=${labelHtml}></span>
+    <span class="nr-dashboard-button__label" dangerouslySetInnerHTML=${labelHtml}></span>
     <span
       aria-hidden="true"
       style=${{

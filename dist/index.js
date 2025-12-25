@@ -4341,7 +4341,7 @@ function TabNav(props) {
     return m2`<span class="nr-dashboard-tabs__icon">${letter}</span>`;
   };
   return m2`<ul class=${`nr-dashboard-tabs ${iconOnly ? "nr-dashboard-tabs--icon" : ""}`.trim()}>
-    ${visibleMenu.length === 0 ? m2`<li style=${{ opacity: 0.6 }}>${t4("no_tabs", "No tabs yet")}</li>` : visibleMenu.map(({ tab, originalIndex }, idx) => {
+    ${visibleMenu.length === 0 ? m2`<li class="nr-dashboard-empty-message--subtle">${t4("no_tabs", "No tabs yet")}</li>` : visibleMenu.map(({ tab, originalIndex }, idx) => {
     const active = originalIndex === selectedIndex;
     const label = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
     const icon = tab.icon ? renderIcon(tab, idx) : null;
@@ -4649,7 +4649,7 @@ function ButtonWidget(props) {
   }}
   >
     ${renderIcon(asButton.icon)}
-    <span class="nr-dashboard-button__label" style=${{ pointerEvents: "none" }} dangerouslySetInnerHTML=${labelHtml}></span>
+    <span class="nr-dashboard-button__label" dangerouslySetInnerHTML=${labelHtml}></span>
     <span
       aria-hidden="true"
       style=${{
@@ -4797,37 +4797,21 @@ function SwitchWidget(props) {
   const customIconsActive = Boolean(asSwitch.onicon && asSwitch.officon && asSwitch.oncolor && asSwitch.offcolor);
   const customIcons = customIconsActive ? m2`<div
         onClick=${onEmit ? toggle : undefined}
+        class="nr-dashboard-switch__custom-icon-container"
         style=${{
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "36px",
-    height: "20px",
-    cursor: disabled ? "default" : "grab",
-    padding: "0 8px",
-    position: "relative"
+    cursor: disabled ? "default" : "grab"
   }}
       >
         <span
-          class=${asSwitch.animate || ""}
+          class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{
-    color: checked ? asSwitch.oncolor : "transparent",
-    transition: "opacity 120ms ease, color 120ms ease",
-    position: "absolute",
-    left: 0,
-    right: 0,
-    textAlign: "center"
+    color: checked ? asSwitch.oncolor : "transparent"
   }}
         >${renderIcon(asSwitch.onicon)}</span>
         <span
-          class=${asSwitch.animate || ""}
+          class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{
-    color: !checked ? asSwitch.offcolor : "transparent",
-    transition: "opacity 120ms ease, color 120ms ease",
-    position: "absolute",
-    left: 0,
-    right: 0,
-    textAlign: "center"
+    color: !checked ? asSwitch.offcolor : "transparent"
   }}
         >${renderIcon(asSwitch.officon)}</span>
       </div>` : track;
@@ -5049,7 +5033,7 @@ function TextInputWidget(props) {
       title=${asInput.tooltip || undefined}
     >
       ${hasLabel ? m2`<label class="nr-dashboard-textinput__label" dangerouslySetInnerHTML=${labelHtml}></label>` : null}
-      ${asInput.required ? m2`<span style=${fieldHelperStyles}>${t4("required_label", "Required")}</span>` : null}
+      ${asInput.required ? m2`<span class="nr-dashboard-field-helper">${t4("required_label", "Required")}</span>` : null}
       <div
         class=${`nr-dashboard-textinput__field ${focused ? "is-focused" : ""} ${disabled ? "is-disabled" : ""}`.trim()}
       >
@@ -5077,13 +5061,13 @@ function TextInputWidget(props) {
         />
       </div>
     </div>
-    ${typeof maxLength === "number" ? m2`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end", padding: "0 12px" }}>
+    ${typeof maxLength === "number" ? m2`<span class="nr-dashboard-field-helper nr-dashboard-field-helper--end">
           ${t4("char_counter", "{used}/{max}", { used: value2.length, max: maxLength })}
         </span>` : null}
     ${error ? m2`<span
           id=${`err-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", padding: "0 12px" }}
+          class="nr-dashboard-text-input__error"
         >${error}</span>` : null}
   </div>`;
 }
@@ -43035,7 +43019,7 @@ function FormWidget(props) {
   }}
   >
     ${title ? m2`<p class="formlabel" dangerouslySetInnerHTML=${{ __html: title }}></p>` : null}
-    ${fields.length === 0 ? m2`<div class="nr-dashboard-form__helper" style=${{ padding: "0 6px" }}>${t4("form_no_fields", "No fields configured.")}</div>` : fields.map((f3, idx) => {
+    ${fields.length === 0 ? m2`<div class="nr-dashboard-form__helper nr-dashboard-form__helper--padded">${t4("form_no_fields", "No fields configured.")}</div>` : fields.map((f3, idx) => {
     const rawType = (f3.type || "text").toLowerCase();
     const type = rawType === "number" ? "number" : rawType === "password" ? "password" : rawType === "email" ? "email" : rawType === "date" ? "date" : rawType === "time" ? "time" : rawType === "checkbox" || rawType === "switch" ? "checkbox" : rawType === "multiline" ? "multiline" : rawType === "select" ? "select" : rawType === "radio" ? "radio" : "text";
     const fieldId = `form-${index}-${idx}-${f3.name}`;
@@ -43082,8 +43066,8 @@ function FormWidget(props) {
                 >
                   ${(f3.options || []).map((opt) => m2`<option value=${opt.value}>${opt.label ?? opt.value}</option>`)}
                 </select>` : type === "radio" ? m2`<div class="nr-dashboard-form__radio-group" role="radiogroup" aria-labelledby=${fieldId}>
-                  <span id=${fieldId} class="nr-dashboard-form__field-label" style=${{ paddingBottom: "2px" }}>${f3.label || f3.name}</span>
-                  <div style=${{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <span id=${fieldId} class="nr-dashboard-form__field-label nr-dashboard-form__field-label--spaced">${f3.label || f3.name}</span>
+                  <div class="nr-dashboard-form__radio-container">
                     ${(f3.options || []).map((opt, optIdx) => {
       const optId = `${fieldId}-${optIdx}`;
       return m2`<label class="nr-dashboard-form__radio-row" htmlFor=${optId} key=${optId}>
@@ -43120,7 +43104,7 @@ function FormWidget(props) {
                   disabled=${isDisabled}
                 />`}
 
-            ${typeof f3.maxlength === "number" && type !== "checkbox" && type !== "multiline" && type !== "select" && type !== "radio" ? m2`<span class="nr-dashboard-form__helper" style=${{ alignSelf: "flex-end" }}>
+            ${typeof f3.maxlength === "number" && type !== "checkbox" && type !== "multiline" && type !== "select" && type !== "radio" ? m2`<span class="nr-dashboard-form__helper nr-dashboard-form__helper--end">
                   ${t4("char_counter", "{used}/{max}", {
       used: typeof fieldValue === "string" ? fieldValue.length : 0,
       max: f3.maxlength ?? 0
@@ -47046,23 +47030,17 @@ function WidgetPreview(props) {
   const [ref, size] = useElementSize();
   const { t: t4 } = useI18n();
   if (type === "text" || type === "ui_text") {
-    return m2`<div
-      ref=${ref}
-      style=${{ display: "flex", flexDirection: "column", gap: "4px" }}
-    >
+    return m2`<div ref=${ref} class="nr-dashboard-widget-preview">
       <strong>${label}</strong>
-      <span style=${{ opacity: 0.9 }}>${value2 || t4("widget_preview_empty", "(no value yet)")}</span>
-      <span style=${{ opacity: 0.55, fontSize: "10px" }}>
+      <span class="nr-dashboard-widget-preview__value">${value2 || t4("widget_preview_empty", "(no value yet)")}</span>
+      <span class="nr-dashboard-widget-preview__size">
         ${Math.round(size.width)}×${Math.round(size.height)} px
       </span>
     </div>`;
   }
-  return m2`<div
-    ref=${ref}
-    style=${{ display: "flex", justifyContent: "space-between", gap: "6px" }}
-  >
+  return m2`<div ref=${ref} class="nr-dashboard-widget-preview--inline">
     <span>${label}</span>
-    <span style=${{ opacity: 0.65, fontSize: "11px" }}>${type}</span>
+    <span class="nr-dashboard-widget-preview__type">${type}</span>
   </div>`;
 }
 
@@ -47175,14 +47153,8 @@ function WidgetFrame({ control, disabled, children }) {
   return m2`<div
     class=${`nr-dashboard-widget-frame ${(control.className ?? "").trim()}`.trim()}
     style=${{
-    background: "transparent",
-    border: "none",
-    borderRadius: "0px",
     padding: `${padding}px`,
-    display: "flex",
-    flexDirection: "column",
     gap: `${gap}px`,
-    color: "var(--nr-dashboard-widgetTextColor, inherit)",
     opacity: isDisabled ? 0.55 : 1,
     pointerEvents: isDisabled ? "none" : "auto"
   }}
@@ -47339,7 +47311,7 @@ function GroupGrid(props) {
     return !hidden;
   });
   if (visible.length === 0) {
-    return m2`<div style=${{ opacity: 0.7 }}>${t4("no_groups", "No groups in this tab yet.")}</div>`;
+    return m2`<div class="nr-dashboard-empty-message">${t4("no_groups", "No groups in this tab yet.")}</div>`;
   }
   const gridStyles = layoutMode === "masonry" ? {
     position: "relative",
@@ -47518,63 +47490,27 @@ function GroupGrid(props) {
   </div>`;
 }
 
-// src/preact/components/styles/toastStyles.ts
-var overlayStyles = {
-  position: "fixed",
-  top: "16px",
-  right: "16px",
-  display: "flex",
-  flexDirection: "column",
-  gap: "12px",
-  zIndex: 9999,
-  pointerEvents: "none"
-};
-var cardBaseStyles = {
-  padding: "8px 10px 10px 10px",
-  borderRadius: "4px",
-  background: "var(--nr-dashboard-toastBackgroundColor, rgba(32,32,32,0.92))",
-  color: "var(--nr-dashboard-toastTextColor, #fff)",
-  minWidth: "260px",
-  boxShadow: "var(--nr-dashboard-toastShadow, 0 6px 16px rgba(0,0,0,0.28))",
-  fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
-  pointerEvents: "auto",
-  position: "relative",
-  border: "4px solid var(--nr-dashboard-infoColor, #60a5fa)"
-};
-var titleStyles = {
-  fontWeight: 600,
-  fontSize: "16px",
-  lineHeight: "20px",
-  marginBottom: "2px"
-};
-var messageStyles = {
-  fontSize: "14px",
-  lineHeight: "20px"
-};
-
 // src/preact/components/ToastOverlay.ts
 function ToastOverlay(props) {
   const { toasts } = props;
   if (!toasts.length)
     return null;
   const { t: t4 } = useI18n();
-  return m2`<div
-    style=${overlayStyles}
-  >
+  return m2`<div class="nr-dashboard-toast-overlay">
     ${toasts.map((toast) => {
     const toneColor = resolveToastToneColor(toast.level ?? "info");
     const borderColor = toast.highlight || toneColor;
     const liveMode = toast.level === "error" ? "assertive" : "polite";
-    const messageNode = typeof toast.message === "string" ? m2`<div style=${messageStyles} dangerouslySetInnerHTML=${{ __html: toast.message }}></div>` : m2`<div style=${messageStyles}>${String(toast.message ?? "")}</div>`;
+    const messageNode = typeof toast.message === "string" ? m2`<div class="nr-dashboard-toast-message" dangerouslySetInnerHTML=${{ __html: toast.message }}></div>` : m2`<div class="nr-dashboard-toast-message">${String(toast.message ?? "")}</div>`;
     return m2`<div
         key=${toast.id}
-        class=${toast.className || ""}
-        style=${{ ...cardBaseStyles, border: `4px solid ${borderColor}` }}
+        class=${`nr-dashboard-toast-card ${toast.className || ""}`.trim()}
+        style=${{ border: `4px solid ${borderColor}` }}
         role="status"
         aria-live=${liveMode}
         aria-atomic="true"
       >
-        <div style=${titleStyles}>${toast.title || t4("toast_overlay_title", "Notification")}</div>
+        <div class="nr-dashboard-toast-title">${toast.title || t4("toast_overlay_title", "Notification")}</div>
         ${messageNode}
       </div>`;
   })}
@@ -47987,7 +47923,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     border: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.20))",
     background: "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.06))"
   }}
-                    ><span class="material-icons" aria-hidden="true" style=${{ fontSize: "18px" }}>close</span></button>
+                    ><span class="material-icons nr-dashboard-nav-close-icon" aria-hidden="true">close</span></button>
                   </div>` : null}
               <${TabNav}
                 menu=${state.menu}
@@ -48005,7 +47941,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
               />
             </nav>` : null}
 
-        <main ref=${mainRef} class="nr-dashboard-content" style=${{ background: "var(--nr-dashboard-pageBackgroundColor, #eee)" }} tabIndex=${-1}>
+        <main ref=${mainRef} class="nr-dashboard-content" tabIndex=${-1}>
           ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div class="nr-dashboard-empty">
                 <div class="nr-dashboard-empty__inner">
                   <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" class="nr-dashboard-empty__icon" />

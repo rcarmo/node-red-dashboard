@@ -219,7 +219,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
       title=${asInput.tooltip || undefined}
     >
       ${hasLabel ? html`<label class="nr-dashboard-textinput__label" dangerouslySetInnerHTML=${labelHtml}></label>` : null}
-      ${asInput.required ? html`<span style=${fieldHelperStyles}>${t("required_label", "Required")}</span>` : null}
+      ${asInput.required ? html`<span class="nr-dashboard-field-helper">${t("required_label", "Required")}</span>` : null}
       <div
         class=${`nr-dashboard-textinput__field ${focused ? "is-focused" : ""} ${disabled ? "is-disabled" : ""}`.trim()}
       >
@@ -248,7 +248,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
       </div>
     </div>
     ${typeof maxLength === "number"
-      ? html`<span style=${{ ...fieldHelperStyles, alignSelf: "flex-end", padding: "0 12px" }}>
+      ? html`<span class="nr-dashboard-field-helper nr-dashboard-field-helper--end">
           ${t("char_counter", "{used}/{max}", { used: value.length, max: maxLength })}
         </span>`
       : null}
@@ -256,7 +256,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
       ? html`<span
           id=${`err-${index}`}
           role="alert"
-          style=${{ color: "var(--nr-dashboard-errorColor, #f87171)", fontSize: "12px", padding: "0 12px" }}
+          class="nr-dashboard-text-input__error"
         >${error}</span>`
       : null}
   </div>`;

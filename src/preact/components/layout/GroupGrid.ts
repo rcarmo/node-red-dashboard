@@ -29,7 +29,7 @@ export function GroupGrid(props: {
   });
 
   if (visible.length === 0) {
-    return html`<div style=${{ opacity: 0.7 }}>${t("no_groups", "No groups in this tab yet.")}</div>`;
+    return html`<div class="nr-dashboard-empty-message">${t("no_groups", "No groups in this tab yet.")}</div>`;
   }
 
   const gridStyles: Record<string, string> = layoutMode === "masonry"

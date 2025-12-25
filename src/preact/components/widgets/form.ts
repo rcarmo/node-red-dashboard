@@ -301,7 +301,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
   >
     ${title ? html`<p class="formlabel" dangerouslySetInnerHTML=${{ __html: title as string }}></p>` : null}
     ${fields.length === 0
-      ? html`<div class="nr-dashboard-form__helper" style=${{ padding: "0 6px" }}>${t("form_no_fields", "No fields configured.")}</div>`
+      ? html`<div class="nr-dashboard-form__helper nr-dashboard-form__helper--padded">${t("form_no_fields", "No fields configured.")}</div>`
       : fields.map((f, idx) => {
           const rawType = (f.type || "text").toLowerCase();
           const type = rawType === "number"
@@ -377,8 +377,8 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                 </select>`
               : type === "radio"
               ? html`<div class="nr-dashboard-form__radio-group" role="radiogroup" aria-labelledby=${fieldId}>
-                  <span id=${fieldId} class="nr-dashboard-form__field-label" style=${{ paddingBottom: "2px" }}>${f.label || f.name}</span>
-                  <div style=${{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                  <span id=${fieldId} class="nr-dashboard-form__field-label nr-dashboard-form__field-label--spaced">${f.label || f.name}</span>
+                  <div class="nr-dashboard-form__radio-container">
                     ${(f.options || []).map((opt, optIdx) => {
                       const optId = `${fieldId}-${optIdx}`;
                       return html`<label class="nr-dashboard-form__radio-row" htmlFor=${optId} key=${optId}>
@@ -417,7 +417,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                 />`}
 
             ${typeof f.maxlength === "number" && type !== "checkbox" && type !== "multiline" && type !== "select" && type !== "radio"
-              ? html`<span class="nr-dashboard-form__helper" style=${{ alignSelf: "flex-end" }}>
+              ? html`<span class="nr-dashboard-form__helper nr-dashboard-form__helper--end">
                   ${t("char_counter", "{used}/{max}", {
                     used: typeof fieldValue === "string" ? (fieldValue as string).length : 0,
                     max: f.maxlength ?? 0,

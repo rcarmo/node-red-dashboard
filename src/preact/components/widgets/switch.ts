@@ -156,37 +156,21 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   const customIcons = customIconsActive
     ? html`<div
         onClick=${onEmit ? toggle : undefined}
+        class="nr-dashboard-switch__custom-icon-container"
         style=${{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: "36px",
-          height: "20px",
           cursor: disabled ? "default" : "grab",
-          padding: "0 8px",
-          position: "relative",
         }}
       >
         <span
-          class=${asSwitch.animate || ""}
+          class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{
             color: checked ? asSwitch.oncolor : "transparent",
-            transition: "opacity 120ms ease, color 120ms ease",
-            position: "absolute",
-            left: 0,
-            right: 0,
-            textAlign: "center",
           }}
         >${renderIcon(asSwitch.onicon)}</span>
         <span
-          class=${asSwitch.animate || ""}
+          class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{
             color: !checked ? asSwitch.offcolor : "transparent",
-            transition: "opacity 120ms ease, color 120ms ease",
-            position: "absolute",
-            left: 0,
-            right: 0,
-            textAlign: "center",
           }}
         >${renderIcon(asSwitch.officon)}</span>
       </div>`

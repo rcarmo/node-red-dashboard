@@ -3,7 +3,7 @@ import type { VNode } from "preact";
 import { useMemo, useState } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
-import { buildFieldStyles, fieldLabelStyles, fieldWrapperStyles } from "../styles/fieldStyles";
+import { buildFieldStyles } from "../styles/fieldStyles";
 
 const COLOUR_PICKER_STYLE_ID = "nr-dashboard-colour-picker-style";
 

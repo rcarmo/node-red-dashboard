@@ -20,14 +20,8 @@ export function WidgetFrame({ control, disabled, children }: WidgetFrameProps): 
   return html`<div
     class=${`nr-dashboard-widget-frame ${((control as { className?: string }).className ?? "").trim()}`.trim()}
     style=${{
-      background: "transparent",
-      border: "none",
-      borderRadius: "0px",
       padding: `${padding}px`,
-      display: "flex",
-      flexDirection: "column",
       gap: `${gap}px`,
-      color: "var(--nr-dashboard-widgetTextColor, inherit)",
       opacity: isDisabled ? 0.55 : 1,
       pointerEvents: isDisabled ? "none" : "auto",
     }}
