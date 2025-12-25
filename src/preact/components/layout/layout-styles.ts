@@ -70,7 +70,8 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       box-shadow: none;
       flex-shrink: 0;
       color: inherit;
-      margin: 5px 12px 5px 4px;
+      margin: 5px 4px 5px 0;
+      padding-right: 4px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
@@ -99,9 +100,9 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
       background: transparent;
-      color: var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, inherit));
+      color: inherit;
       box-shadow: none;
-      border-right-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-pageSidebarTextColor, currentColor));
+      border-right-color: var(--nr-dashboard-groupTextColor, currentColor);
       font-weight: 600;
     }
 
@@ -113,7 +114,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
       background: rgba(0, 0, 0, 0.06);
-      color: var(--nr-dashboard-pageSidebarTextColor, inherit);
+      color: inherit;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
@@ -128,7 +129,7 @@ export function ensureLayoutStyles(doc: Document | undefined = typeof document !
       align-items: center;
       line-height: 20px;
       letter-spacing: 0em;
-      color: var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, inherit));
+      color: inherit;
       opacity: 1;
       overflow: hidden;
       text-overflow: ellipsis;

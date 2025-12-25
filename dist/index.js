@@ -3922,7 +3922,8 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       box-shadow: none;
       flex-shrink: 0;
       color: inherit;
-      margin: 5px 12px 5px 4px;
+      margin: 5px 4px 5px 0;
+      padding-right: 4px;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__icon i {
@@ -3951,9 +3952,9 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn.is-active {
       background: transparent;
-      color: var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, inherit));
+      color: inherit;
       box-shadow: none;
-      border-right-color: var(--nr-dashboard-groupTextColor, var(--nr-dashboard-pageSidebarTextColor, currentColor));
+      border-right-color: var(--nr-dashboard-groupTextColor, currentColor);
       font-weight: 600;
     }
 
@@ -3965,7 +3966,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:not(:disabled):hover {
       background: rgba(0, 0, 0, 0.06);
-      color: var(--nr-dashboard-pageSidebarTextColor, inherit);
+      color: inherit;
     }
 
     ${DASHBOARD_SCOPE} .nr-dashboard-tabs__btn:focus-visible {
@@ -3980,7 +3981,7 @@ function ensureLayoutStyles(doc = typeof document !== "undefined" ? document : u
       align-items: center;
       line-height: 20px;
       letter-spacing: 0em;
-      color: var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, inherit));
+      color: inherit;
       opacity: 1;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -47706,7 +47707,7 @@ var appStyles = {
 var toolbarStyles = {
   display: "flex",
   alignItems: "center",
-  gap: "12px",
+  gap: "0",
   padding: "0 16px",
   boxShadow: "0 1px 4px rgba(0,0,0,0.18)",
   borderBottom: "none",
@@ -47714,8 +47715,12 @@ var toolbarStyles = {
   color: "#fff",
   fontFamily: "'Helvetica Neue', Arial, Helvetica, sans-serif",
   fontWeight: "400",
-  fontSize: "18px",
-  lineHeight: "24px"
+  fontSize: "20px",
+  lineHeight: "1.2",
+  letterSpacing: "0.005em",
+  boxSizing: "border-box",
+  width: "100%",
+  margin: "0"
 };
 var iconButtonStyles = {
   border: "none",
@@ -47729,7 +47734,9 @@ var iconButtonStyles = {
   cursor: "pointer",
   transition: "background 120ms ease, color 120ms ease, transform 140ms ease",
   position: "relative",
-  overflow: "hidden"
+  overflow: "hidden",
+  marginTop: "0",
+  marginBottom: "0"
 };
 var floatingToggleStyles = {
   position: "fixed",
@@ -47752,9 +47759,9 @@ var layoutStyles2 = {
   position: "relative"
 };
 var navStyles = {
-  borderRight: "1px solid var(--nr-dashboard-sidebarBorderColor, var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.12)))",
-  padding: "0 0 8px 0",
-  color: "var(--nr-dashboard-pageSidebarTextColor, var(--nr-dashboard-groupTextColor, #00A4DE))",
+  borderRight: "1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.12))",
+  padding: "0",
+  color: "var(--nr-dashboard-groupTextColor, #00A4DE)",
   background: "var(--nr-dashboard-pageSidebarBackgroundColor, #eee)",
   overflowY: "auto"
 };
@@ -47906,10 +47913,10 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const isIconOnly = lockMode === "icon";
   const isSlide = lockMode === "false";
   const hideToolbar = site?.hideToolbar === "true" || site?.hideToolbar === true;
-  const hasMultipleTabs = state.menu.length > 1;
   const hasTabs = state.menu.length > 0;
+  const hasMultipleTabs = state.menu.length > 1;
   const [viewportWidth, setViewportWidth] = d2(typeof window !== "undefined" ? window.innerWidth : 1280);
-  const [navOpen, setNavOpen] = d2(hasMultipleTabs && (isLocked || isIconOnly));
+  const [navOpen, setNavOpen] = d2(hasTabs && (isLocked || isIconOnly));
   y2(() => {
     if (typeof window === "undefined")
       return;
@@ -47917,7 +47924,8 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     window.addEventListener("resize", handleResize, { passive: true });
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-  const toolbarHeight = viewportWidth < 960 ? "48px" : "64px";
+  const isMobile = viewportWidth < 960;
+  const toolbarHeight = isMobile ? "48px" : "64px";
   const navMaxWidth = viewportWidth <= 660 ? 200 : 320;
   const navMinWidth = 64;
   const navBaseWidth = isIconOnly ? 72 : navMaxWidth;
@@ -47943,14 +47951,10 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       setNavOpen(false);
       return;
     }
-    if (!hasMultipleTabs && (isLocked || isIconOnly)) {
-      setNavOpen(true);
-      return;
-    }
-    if (hasMultipleTabs && (isLocked || isIconOnly || lockMode === "true")) {
+    if (hasTabs && (isLocked || isIconOnly || lockMode === "true")) {
       setNavOpen(true);
     }
-  }, [hasMultipleTabs, hasTabs, isIconOnly, isLocked, lockMode]);
+  }, [hasTabs, isIconOnly, isLocked, lockMode]);
   y2(() => {
     const node = shellRef.current;
     const allowMenuSwipe = allowSwipe === "menu";
@@ -48024,8 +48028,8 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
   const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : `${navMaxWidth}px`} 1fr` : "1fr";
   const sectionMinHeight = "100vh";
-  const showToggle = isSlide && hasMultipleTabs;
-  const showFloatingToggle = isSlide && hasMultipleTabs && hideToolbar;
+  const showToggle = isSlide && hasTabs;
+  const showFloatingToggle = isSlide && hasTabs && hideToolbar;
   return m2`
     <div style=${shellStyles} ref=${shellRef}>
       ${hideToolbar ? null : m2`<header style=${toolbarStyles}>
@@ -48036,14 +48040,15 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
                   class="nr-dashboard-icon-press"
                   style=${{
     ...iconButtonStyles,
+    marginLeft: "-8px",
+    marginRight: "0",
     background: navOpen ? "rgba(0,0,0,0.10)" : "var(--nr-dashboard-widgetBackgroundColor, rgba(0,0,0,0.04))",
     transform: navOpen ? "scale(0.98)" : "scale(1)"
   }}
                 >
                   <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
-                </button>` : null}
-            <strong>${toolbarTitle}</strong>
-            <span style=${{ marginLeft: "auto" }}></span>
+                </button>` : m2`<span style=${{ width: "30px", display: "inline-block" }}></span>`}
+            <h1 style=${{ fontSize: "inherit", fontWeight: "inherit", margin: "0", lineHeight: "inherit" }}>${toolbarTitle}</h1>
           </header>`}
       <section
         style=${{
@@ -48079,26 +48084,26 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     right: 0,
     top: navTop,
     bottom: 0,
-    background: "rgba(0,0,0,0.6)",
-    zIndex: 79,
+    background: "rgba(0,0,0,0.48)",
+    zIndex: 80,
     animation: "nr-dashboard-nav-backdrop 180ms ease-out"
   }}
                 ></div>` : null}
             <nav
               style=${{
     ...navStyles,
-    padding: isIconOnly ? "12px 10px" : navStyles.padding,
+    padding: isIconOnly ? "12px 10px" : "0",
     width: navWidth,
     minWidth: isIconOnly ? "72px" : "64px",
     maxWidth: isIconOnly ? "72px" : `${navMaxWidth}px`,
-    background: "var(--nr-dashboard-pageSidebarBackgroundColor, transparent)",
+    background: "var(--nr-dashboard-pageSidebarBackgroundColor, #eee)",
     position: isSlide && !isLocked && !isIconOnly ? "fixed" : "relative",
     left: isSlide && !isLocked && !isIconOnly ? navOpen ? "0" : `-${navWidthNum}px` : undefined,
-    top: isSlide && !isLocked && !isIconOnly ? navTop : undefined,
+    top: isSlide && !isLocked && !isIconOnly ? navTop : "0",
     bottom: 0,
     transition: "left 0.18s ease-out",
     zIndex: 80,
-    boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "0 0 0 rgba(0,0,0,0)" : "2px 0 6px rgba(0,0,0,0.26)",
+    boxShadow: isSlide && !isLocked && !isIconOnly ? navOpen ? "2px 0 10px rgba(0,0,0,0.28)" : "none" : "none",
     backdropFilter: undefined
   }}
             >
