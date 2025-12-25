@@ -94,7 +94,7 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
       class="nr-dashboard-text__value"
       style=${{
         margin: "0.1em 0.25em 0.1em 0",
-        fontSize: fontSize || (isColumn ? "16px" : "15px"),
+        fontSize: fontSize || "14px",
         fontWeight,
         color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
         lineHeight: 1.35,

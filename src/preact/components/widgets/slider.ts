@@ -341,7 +341,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
 
   return html`<div class=${containerClass}>
     ${!isVertical
-      ? html`<div class="nr-dashboard-slider__row">
+      ? html`<div class="nr-dashboard-slider__row" style=${{ marginTop: isDiscrete ? "20px" : undefined }}>
           ${showHorizontalLabel ? html`<span class="nr-dashboard-slider__label">${label}</span>` : null}
           <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
             ${sliderInput}

@@ -189,7 +189,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
     }}
     aria-label=${ariaLabel}
   >
-    <div style=${{ fontWeight: 600, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
+    <div style=${{ fontWeight: 500, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
     <div ref=${chartRef} style=${{ width: "100%", height: `${chartHeight}px` }}></div>
   </div>`;
 }

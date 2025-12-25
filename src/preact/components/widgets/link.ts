@@ -78,7 +78,7 @@ export function LinkWidget(props: { control: UiControl; index: number; disabled?
       }}
     >
       ${icon ? html`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : html`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}
-      <span style=${{ fontWeight: 600, letterSpacing: "0.01em", fontSize: "14px", lineHeight: "20px" }}>${label}</span>
+      <span style=${{ fontWeight: 500, letterSpacing: "0.01em", fontSize: "14px", lineHeight: "20px" }}>${label}</span>
     </a>
   </div>`;
 }

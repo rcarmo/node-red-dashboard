@@ -46,7 +46,7 @@ function ensureColourPickerStyles(doc: Document | undefined = typeof document !=
       height: 32px;
       padding: 0;
       border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35));
-      border-radius: 4px;
+      border-radius: 3px;
       background: transparent;
       cursor: pointer;
     }
@@ -63,7 +63,7 @@ function ensureColourPickerStyles(doc: Document | undefined = typeof document !=
       font-size: 13px;
       line-height: 18px;
       padding: 2px 6px;
-      border-radius: 3px;
+      border-radius: 2px;
       border: 0;
       color: var(--nr-dashboard-widgetTextColor, inherit);
       background: transparent;

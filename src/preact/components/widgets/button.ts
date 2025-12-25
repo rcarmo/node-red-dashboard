@@ -130,7 +130,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       fontSize: "14px",
       fontWeight: 500,
       textTransform: "uppercase",
-      letterSpacing: "0.04em",
+      letterSpacing: "0.01em",
       display: "inline-flex",
       alignItems: "center",
       justifyContent: "center",

@@ -54,14 +54,14 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
       padding: "12px 14px 12px 16px",
       background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
       position: "relative",
-      borderRadius: "8px",
+      borderRadius: "2px",
       margin: `${6 + stackOffset}px 0 6px 0`,
     }}
     role="status"
     aria-live="polite"
     aria-atomic="true"
   >
-    <div style=${{ fontWeight: 700, marginBottom: "6px", color: toneColor, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
+    <div style=${{ fontWeight: 500, marginBottom: "6px", color: toneColor, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
     <div style=${{ fontSize: "14px", lineHeight: 1.45 }}>${msg}</div>
     ${dismissible
       ? html`<button

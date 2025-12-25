@@ -26,7 +26,7 @@ function ensureNumericStyles(doc: Document | undefined = typeof document !== "un
 
     .nr-dashboard-numeric .label {
       margin: 0 8px 0 0;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 20px;
       font-weight: 500;
       line-height: 1.4;
@@ -45,8 +45,8 @@ function ensureNumericStyles(doc: Document | undefined = typeof document !== "un
 
     .nr-dashboard-numeric__button {
       margin: 0;
-      width: 34px;
-      height: 34px;
+      width: 40px;
+      height: 40px;
       border: none;
       background: transparent;
       color: var(--nr-dashboard-widgetTextColor, inherit);
@@ -96,7 +96,7 @@ function ensureNumericStyles(doc: Document | undefined = typeof document !== "un
     }
 
     .nr-dashboard-numeric__adorn {
-      font-size: 13px;
+      font-size: 14px;
       opacity: 0.9;
       padding: 0 2px;
     }

@@ -4460,7 +4460,7 @@ function TextWidget(props) {
       class="nr-dashboard-text__value"
       style=${{
     margin: "0.1em 0.25em 0.1em 0",
-    fontSize: fontSize || (isColumn ? "16px" : "15px"),
+    fontSize: fontSize || "14px",
     fontWeight,
     color: color || "var(--nr-dashboard-widgetTextColor, inherit)",
     lineHeight: 1.35,
@@ -4620,7 +4620,7 @@ function ButtonWidget(props) {
     fontSize: "14px",
     fontWeight: 500,
     textTransform: "uppercase",
-    letterSpacing: "0.04em",
+    letterSpacing: "0.01em",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -5142,7 +5142,7 @@ function ensureNumericStyles(doc = typeof document !== "undefined" ? document : 
 
     .nr-dashboard-numeric .label {
       margin: 0 8px 0 0;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 20px;
       font-weight: 500;
       line-height: 1.4;
@@ -5161,8 +5161,8 @@ function ensureNumericStyles(doc = typeof document !== "undefined" ? document : 
 
     .nr-dashboard-numeric__button {
       margin: 0;
-      width: 34px;
-      height: 34px;
+      width: 40px;
+      height: 40px;
       border: none;
       background: transparent;
       color: var(--nr-dashboard-widgetTextColor, inherit);
@@ -5212,7 +5212,7 @@ function ensureNumericStyles(doc = typeof document !== "undefined" ? document : 
     }
 
     .nr-dashboard-numeric__adorn {
-      font-size: 13px;
+      font-size: 14px;
       opacity: 0.9;
       padding: 0 2px;
     }
@@ -5910,7 +5910,7 @@ function SliderWidget(props) {
       >${formatter.format(value2)}</span>` : null;
   const valueDisplay = m2`<span class="nr-dashboard-slider__value">${formatter.format(value2)}</span>`;
   return m2`<div class=${containerClass}>
-    ${!isVertical ? m2`<div class="nr-dashboard-slider__row">
+    ${!isVertical ? m2`<div class="nr-dashboard-slider__row" style=${{ marginTop: isDiscrete ? "20px" : undefined }}>
           ${showHorizontalLabel ? m2`<span class="nr-dashboard-slider__label">${label}</span>` : null}
           <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
             ${sliderInput}
@@ -42367,7 +42367,7 @@ function GaugeWidget(props) {
   }}
     aria-label=${ariaLabel}
   >
-    <div style=${{ fontWeight: 600, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
+    <div style=${{ fontWeight: 500, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
     <div ref=${chartRef} style=${{ width: "100%", height: `${chartHeight}px` }}></div>
   </div>`;
 }
@@ -42547,7 +42547,7 @@ function ensureColourPickerStyles(doc = typeof document !== "undefined" ? docume
       height: 32px;
       padding: 0;
       border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.35));
-      border-radius: 4px;
+      border-radius: 3px;
       background: transparent;
       cursor: pointer;
     }
@@ -42564,7 +42564,7 @@ function ensureColourPickerStyles(doc = typeof document !== "undefined" ? docume
       font-size: 13px;
       line-height: 18px;
       padding: 2px 6px;
-      border-radius: 3px;
+      border-radius: 2px;
       border: 0;
       color: var(--nr-dashboard-widgetTextColor, inherit);
       background: transparent;
@@ -42729,14 +42729,14 @@ function ToastWidget(props) {
     padding: "12px 14px 12px 16px",
     background: "var(--nr-dashboard-widgetBackgroundColor, transparent)",
     position: "relative",
-    borderRadius: "8px",
+    borderRadius: "2px",
     margin: `${6 + stackOffset}px 0 6px 0`
   }}
     role="status"
     aria-live="polite"
     aria-atomic="true"
   >
-    <div style=${{ fontWeight: 700, marginBottom: "6px", color: toneColor, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
+    <div style=${{ fontWeight: 500, marginBottom: "6px", color: toneColor, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
     <div style=${{ fontSize: "14px", lineHeight: 1.45 }}>${msg}</div>
     ${dismissible ? m2`<button
           type="button"
@@ -42814,7 +42814,7 @@ function LinkWidget(props) {
   }}
     >
       ${icon ? m2`<i class=${icon} aria-hidden="true" style=${{ fontSize: "18px" }}></i>` : m2`<i class="fa fa-external-link" aria-hidden="true" style=${{ fontSize: "18px" }}></i>`}
-      <span style=${{ fontWeight: 600, letterSpacing: "0.01em", fontSize: "14px", lineHeight: "20px" }}>${label}</span>
+      <span style=${{ fontWeight: 500, letterSpacing: "0.01em", fontSize: "14px", lineHeight: "20px" }}>${label}</span>
     </a>
   </div>`;
 }
@@ -42999,7 +42999,7 @@ function ensureFormStyles(doc = typeof document !== "undefined" ? document : und
       background-color: var(--nr-dashboard-widgetBackgroundColor, #2563eb);
       color: #fff;
       border-radius: 4px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       box-sizing: border-box;
     }

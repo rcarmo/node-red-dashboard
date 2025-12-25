@@ -155,7 +155,7 @@ function ensureFormStyles(doc: Document | undefined = typeof document !== "undef
       background-color: var(--nr-dashboard-widgetBackgroundColor, #2563eb);
       color: #fff;
       border-radius: 4px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
       box-sizing: border-box;
     }
