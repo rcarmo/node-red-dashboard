@@ -38,6 +38,25 @@ export function findFirstFocusable(root: HTMLElement | null | undefined): HTMLEl
   return candidate ?? root;
 }
 
+function findNextTabIndex(menu: UiMenuItem[], currentIndex: number, delta: number): number | null {
+  const len = menu.length;
+  if (len <= 1) return null;
+  
+  // Search for next enabled and visible tab, wrapping around
+  for (let i = currentIndex + delta; i !== currentIndex; i += delta) {
+    // Wrap around using modulo
+    let idx = i % len;
+    if (idx < 0) idx += len;
+    
+    const item = menu[idx];
+    if (!item.disabled && !item.hidden) {
+      return idx;
+    }
+  }
+  
+  return null;
+}
+
 const themeVarMap: Record<string, string> = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
   "page-textColor": "--nr-dashboard-pageTextColor",
@@ -385,18 +404,28 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
       const dy = event.clientY - startY;
       activePointerId = null;
 
+      // Require minimum horizontal swipe distance and ensure it's more horizontal than vertical
       if (Math.abs(dx) < 40 || Math.abs(dy) > Math.abs(dx)) return;
       if (event.pointerType === "mouse" && !allowMouseSwipe) return;
 
-      const direction = dx < 0 ? "left" : "right";
+      const direction = dx > 0 ? "right" : "left";
 
+      // Menu swipe: right to open, left to close
       if (allowMenuSwipe && !isLocked && !isIconOnly) {
-        setNavOpen(direction === "right");
+        if (direction === "right" && !navOpen) {
+          // Only open from left edge (within 50px)
+          if (startX <= 50) {
+            setNavOpen(true);
+          }
+        } else if (direction === "left" && navOpen) {
+          setNavOpen(false);
+        }
         return;
       }
 
+      // Tab swipe: left to go forward, right to go back
       if (allowTabSwipe) {
-        const delta = direction === "left" ? -1 : 1;
+        const delta = direction === "left" ? 1 : -1;
         const next = findNextTabIndex(state.menu, state.selectedTabIndex ?? 0, delta);
         if (next != null) {
           if (typeof window !== "undefined") {
@@ -414,7 +443,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
       node.removeEventListener("pointerdown", handlePointerDown);
       node.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [actions, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex]);
+  }, [actions, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex, navOpen]);
 
   const statusLabel = (() => {
     switch (state.connection) {
@@ -437,11 +466,11 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
     return tabTitle ?? siteTitle ?? "";
   })();
 
-  const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
+  const shouldRenderNav = hasMultipleTabs && (navOpen || isLocked || isIconOnly);
   const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : `${navMaxWidth}px`} 1fr` : "1fr";
   const sectionMinHeight = "100vh";
-  const showToggle = isSlide && hasTabs;
-  const showFloatingToggle = isSlide && hasTabs && hideToolbar;
+  const showToggle = isSlide && hasMultipleTabs;
+  const showFloatingToggle = isSlide && hasMultipleTabs && hideToolbar;
 
   return html`
     <div style=${shellStyles} ref=${shellRef}>
@@ -466,7 +495,9 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
                 >
                   <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
                 </button>`
-              : html`<span style=${{ width: "30px", display: "inline-block" }}></span>`}
+              : !hasMultipleTabs
+              ? html`<span style=${{ width: "30px", display: "inline-block" }}></span>`
+              : null}
             <h1 style=${{ fontSize: "inherit", fontWeight: "inherit", margin: "0", lineHeight: "inherit" }}>${toolbarTitle}</h1>
           </header>`}
       <section

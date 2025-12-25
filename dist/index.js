@@ -47715,6 +47715,21 @@ function findFirstFocusable(root) {
   const candidate = typeof root.querySelector === "function" ? root.querySelector(selector) : null;
   return candidate ?? root;
 }
+function findNextTabIndex(menu, currentIndex, delta) {
+  const len2 = menu.length;
+  if (len2 <= 1)
+    return null;
+  for (let i3 = currentIndex + delta;i3 !== currentIndex; i3 += delta) {
+    let idx = i3 % len2;
+    if (idx < 0)
+      idx += len2;
+    const item = menu[idx];
+    if (!item.disabled && !item.hidden) {
+      return idx;
+    }
+  }
+  return null;
+}
 var themeVarMap = {
   "page-backgroundColor": "--nr-dashboard-pageBackgroundColor",
   "page-textColor": "--nr-dashboard-pageTextColor",
@@ -48030,13 +48045,19 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
         return;
       if (event.pointerType === "mouse" && !allowMouseSwipe)
         return;
-      const direction = dx < 0 ? "left" : "right";
+      const direction = dx > 0 ? "right" : "left";
       if (allowMenuSwipe && !isLocked && !isIconOnly) {
-        setNavOpen(direction === "right");
+        if (direction === "right" && !navOpen) {
+          if (startX <= 50) {
+            setNavOpen(true);
+          }
+        } else if (direction === "left" && navOpen) {
+          setNavOpen(false);
+        }
         return;
       }
       if (allowTabSwipe) {
-        const delta = direction === "left" ? -1 : 1;
+        const delta = direction === "left" ? 1 : -1;
         const next = findNextTabIndex(state.menu, state.selectedTabIndex ?? 0, delta);
         if (next != null) {
           if (typeof window !== "undefined") {
@@ -48052,7 +48073,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       node.removeEventListener("pointerdown", handlePointerDown);
       node.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [actions2, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex]);
+  }, [actions2, allowSwipe, isIconOnly, isLocked, state.menu, state.selectedTabIndex, navOpen]);
   const statusLabel = (() => {
     switch (state.connection) {
       case "ready":
@@ -48071,11 +48092,11 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
     }
     return tabTitle ?? siteTitle ?? "";
   })();
-  const shouldRenderNav = hasTabs && (navOpen || isLocked || isIconOnly);
+  const shouldRenderNav = hasMultipleTabs && (navOpen || isLocked || isIconOnly);
   const gridTemplateColumns = isLocked || isIconOnly ? `${isIconOnly ? "72px" : `${navMaxWidth}px`} 1fr` : "1fr";
   const sectionMinHeight = "100vh";
-  const showToggle = isSlide && hasTabs;
-  const showFloatingToggle = isSlide && hasTabs && hideToolbar;
+  const showToggle = isSlide && hasMultipleTabs;
+  const showFloatingToggle = isSlide && hasMultipleTabs && hideToolbar;
   return m2`
     <div style=${shellStyles} ref=${shellRef}>
       ${hideToolbar ? null : m2`<header style=${toolbarStyles}>
@@ -48093,7 +48114,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
   }}
                 >
                   <span class="material-icons" aria-hidden="true">${navOpen ? "close" : "menu"}</span>
-                </button>` : m2`<span style=${{ width: "30px", display: "inline-block" }}></span>`}
+                </button>` : !hasMultipleTabs ? m2`<span style=${{ width: "30px", display: "inline-block" }}></span>` : null}
             <h1 style=${{ fontSize: "inherit", fontWeight: "inherit", margin: "0", lineHeight: "inherit" }}>${toolbarTitle}</h1>
           </header>`}
       <section
