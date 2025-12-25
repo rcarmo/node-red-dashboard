@@ -4,8 +4,6 @@ import { useMemo, useState, useEffect } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 
-const FORM_STYLE_ID = "nr-dashboard-form-style";
-
 export type FormField = {
   name: string;
   label?: string;

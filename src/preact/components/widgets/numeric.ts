@@ -5,9 +5,6 @@ import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { formatNumber } from "../../lib/format";
 
-const NUMERIC_STYLE_ID = "nr-dashboard-numeric-style";
-
-
 function toNumber(value: unknown, fallback: number): number {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;

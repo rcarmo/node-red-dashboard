@@ -4,8 +4,6 @@ import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 
-const DROPDOWN_STYLE_ID = "nr-dashboard-dropdown-style";
-
 export type DropdownOption = { label: string; value: unknown; type?: string; disabled?: boolean };
 export type DropdownControl = UiControl & {
   label?: string;

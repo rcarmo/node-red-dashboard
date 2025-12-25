@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
-const TEXT_INPUT_STYLE_ID = "nr-dashboard-textinput-style";
 
 export type TextInputControl = UiControl & {
   label?: string;

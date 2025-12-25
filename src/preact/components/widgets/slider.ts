@@ -22,7 +22,6 @@ export type SliderControl = UiControl & {
 };
 
 const DEFAULT_THROTTLE_MS = 10;
-const SLIDER_STYLE_ID = "nr-dashboard-slider-style";
 
 function toNumber(value: unknown, fallback: number): number {
   const n = Number(value);

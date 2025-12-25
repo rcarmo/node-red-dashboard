@@ -5,8 +5,6 @@ import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { buildFieldStyles } from "../styles/fieldStyles";
 
-const COLOUR_PICKER_STYLE_ID = "nr-dashboard-colour-picker-style";
-
 export type ColourPickerControl = UiControl & {
   name?: string;
   label?: string;
