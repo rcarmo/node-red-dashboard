@@ -104,9 +104,9 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 12px;
-      width: 12px;
-      margin-top: -7px;
+      height: 20px;
+      width: 20px;
+      margin-top: -9px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
@@ -145,12 +145,12 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
     }
 
     .nr-dashboard-slider__range::-moz-range-thumb {
-      height: 12px;
-      width: 12px;
+      height: 20px;
+      width: 20px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
-      margin-top: -1px;
+      margin-top: -8px;
     }
 
     .nr-dashboard-slider__value {

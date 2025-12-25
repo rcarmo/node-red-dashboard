@@ -4654,8 +4654,7 @@ function ButtonWidget(props) {
     cursor: onEmit ? "pointer" : "default",
     outline: "none",
     boxShadow: "none",
-    filter: !isDisabled && hovered ? "brightness(1.06)" : "none",
-    transition: "filter 140ms ease, background 140ms ease",
+    transition: "background 300ms cubic-bezier(0.4, 0, 0.2, 1)",
     position: "relative",
     overflow: "hidden",
     opacity: isDisabled ? 0.55 : 1
@@ -4670,7 +4669,7 @@ function ButtonWidget(props) {
     inset: 0,
     background: "radial-gradient(circle at center, rgba(255,255,255,0.16), transparent 60%)",
     opacity: ripple ? pressed ? 0.32 : 0.18 : 0,
-    transition: "opacity 150ms ease",
+    transition: "opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)",
     pointerEvents: "none"
   }}
     ></span>
@@ -5724,9 +5723,9 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
 
     .nr-dashboard-slider__range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 12px;
-      width: 12px;
-      margin-top: -7px;
+      height: 20px;
+      width: 20px;
+      margin-top: -9px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
@@ -5765,12 +5764,12 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
     }
 
     .nr-dashboard-slider__range::-moz-range-thumb {
-      height: 12px;
-      width: 12px;
+      height: 20px;
+      width: 20px;
       border-radius: 50%;
       background: var(--nr-dashboard-slider-thumb);
       border: 1px solid transparent;
-      margin-top: -1px;
+      margin-top: -8px;
     }
 
     .nr-dashboard-slider__value {

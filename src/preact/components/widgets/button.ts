@@ -138,8 +138,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       cursor: onEmit ? "pointer" : "default",
       outline: "none",
       boxShadow: "none",
-      filter: !isDisabled && hovered ? "brightness(1.06)" : "none",
-      transition: "filter 140ms ease, background 140ms ease",
+      transition: "background 300ms cubic-bezier(0.4, 0, 0.2, 1)",
       position: "relative",
       overflow: "hidden",
       opacity: isDisabled ? 0.55 : 1,
@@ -154,7 +153,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
         inset: 0,
         background: "radial-gradient(circle at center, rgba(255,255,255,0.16), transparent 60%)",
         opacity: ripple ? (pressed ? 0.32 : 0.18) : 0,
-        transition: "opacity 150ms ease",
+        transition: "opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)",
         pointerEvents: "none",
       }}
     ></span>
