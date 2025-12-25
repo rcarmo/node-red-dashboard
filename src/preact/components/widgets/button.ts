@@ -122,7 +122,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
       height: "100%",
       minWidth: "0",
       minHeight: "36px",
-      padding: "0",
+      padding: "2px",
       borderRadius: "2px",
       border: "none",
       background: backgroundColor,

@@ -85,7 +85,7 @@ function ensureTextInputStyles(doc: Document | undefined = typeof document !== "
 
     .nr-dashboard-textinput__input[type="color"] {
       border: none;
-      padding-left: 0;
+      padding-left: 25%;
     }
   `;
   doc.head.appendChild(style);

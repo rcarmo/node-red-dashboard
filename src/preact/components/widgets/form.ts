@@ -79,14 +79,14 @@ function ensureFormStyles(doc: Document | undefined = typeof document !== "undef
 
     .nr-dashboard-form .nr-dashboard-form__textarea {
       width: 100%;
-      padding: 10px 8px 6px 0;
+      padding: 10px 2px 1px 0;
       background: transparent;
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16));
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
       color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
       font-family: inherit;
       font-size: 14px;
       line-height: 1.35;
-      border-radius: 4px;
       box-sizing: border-box;
       min-height: 72px;
     }

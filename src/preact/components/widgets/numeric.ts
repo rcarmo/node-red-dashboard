@@ -83,7 +83,6 @@ function ensureNumericStyles(doc: Document | undefined = typeof document !== "un
       text-align: center;
       font-weight: 700;
       border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
       background: transparent;
       min-width: 70px;
       padding: 6px 4px;

@@ -530,9 +530,11 @@ export function ChartWidget(props: { control: UiControl; index: number; disabled
 
   return html`<div
     class=${c.className || ""}
-    style=${{
+    style=${{  
       width: "100%",
       minHeight: "260px",
+      padding: "5px",
+      boxSizing: "border-box",
       opacity: disabled ? 0.55 : 1,
       pointerEvents: disabled ? "none" : "auto",
     }}

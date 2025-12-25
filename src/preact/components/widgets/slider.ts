@@ -47,6 +47,10 @@ function ensureSliderStyles(doc: Document | undefined = typeof document !== "und
       padding: 0 12px;
     }
 
+    .nr-dashboard-slider.discrete-end {
+      margin-top: 20px;
+    }
+
     .nr-dashboard-slider.is-vertical {
       flex-direction: column;
       padding: 0;
@@ -299,7 +303,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
         background: `linear-gradient(to right, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`,
       };
 
-  const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
+  const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : "", (isDiscrete && !isVertical) ? "discrete-end" : ""].filter(Boolean).join(" ");
 
   const showHorizontalLabel = !isVertical && Number(asSlider.width ?? 0) >= Number(asSlider.height ?? 0) && Boolean(label);
   const showVerticalLabel = isVertical && Boolean(label);
@@ -341,7 +345,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
 
   return html`<div class=${containerClass}>
     ${!isVertical
-      ? html`<div class="nr-dashboard-slider__row" style=${{ marginTop: isDiscrete ? "20px" : undefined }}>
+      ? html`<div class="nr-dashboard-slider__row">
           ${showHorizontalLabel ? html`<span class="nr-dashboard-slider__label">${label}</span>` : null}
           <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
             ${sliderInput}

@@ -4612,7 +4612,7 @@ function ButtonWidget(props) {
     height: "100%",
     minWidth: "0",
     minHeight: "36px",
-    padding: "0",
+    padding: "2px",
     borderRadius: "2px",
     border: "none",
     background: backgroundColor,
@@ -4759,7 +4759,7 @@ function SwitchWidget(props) {
     borderRadius: "10px",
     background: bg,
     position: "relative",
-    transition: "background 120ms ease, box-shadow 120ms ease",
+    transition: "background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
     boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 32%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
     overflow: "hidden",
     cursor: disabled ? "default" : "grab"
@@ -4774,6 +4774,8 @@ function SwitchWidget(props) {
     height: "20px",
     borderRadius: "50%",
     background: checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+    transition: "left 180ms cubic-bezier(0.25, 0.8, 0.25, 1), background 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
     boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
     transition: "left 120ms ease, background 120ms ease"
   }}
@@ -4932,7 +4934,7 @@ function ensureTextInputStyles(doc = typeof document !== "undefined" ? document 
 
     .nr-dashboard-textinput__input[type="color"] {
       border: none;
-      padding-left: 0;
+      padding-left: 25%;
     }
   `;
   doc.head.appendChild(style);
@@ -5199,7 +5201,6 @@ function ensureNumericStyles(doc = typeof document !== "undefined" ? document : 
       text-align: center;
       font-weight: 700;
       border: none;
-      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
       background: transparent;
       min-width: 70px;
       padding: 6px 4px;
@@ -5640,6 +5641,10 @@ function ensureSliderStyles(doc = typeof document !== "undefined" ? document : u
       padding: 0 12px;
     }
 
+    .nr-dashboard-slider.discrete-end {
+      margin-top: 20px;
+    }
+
     .nr-dashboard-slider.is-vertical {
       flex-direction: column;
       padding: 0;
@@ -5878,7 +5883,7 @@ function SliderWidget(props) {
     width: "100%",
     background: `linear-gradient(to right, var(--nr-dashboard-slider-fill) ${percent * 100}%, var(--nr-dashboard-slider-track) ${percent * 100}%)`
   };
-  const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : ""].filter(Boolean).join(" ");
+  const containerClass = ["nr-dashboard-slider", asSlider.className || "", isVertical ? "is-vertical" : "", isDiscrete && !isVertical ? "discrete-end" : ""].filter(Boolean).join(" ");
   const showHorizontalLabel = !isVertical && Number(asSlider.width ?? 0) >= Number(asSlider.height ?? 0) && Boolean(label);
   const showVerticalLabel = isVertical && Boolean(label);
   const sliderInput = m2`<input
@@ -5910,7 +5915,7 @@ function SliderWidget(props) {
       >${formatter.format(value2)}</span>` : null;
   const valueDisplay = m2`<span class="nr-dashboard-slider__value">${formatter.format(value2)}</span>`;
   return m2`<div class=${containerClass}>
-    ${!isVertical ? m2`<div class="nr-dashboard-slider__row" style=${{ marginTop: isDiscrete ? "20px" : undefined }}>
+    ${!isVertical ? m2`<div class="nr-dashboard-slider__row">
           ${showHorizontalLabel ? m2`<span class="nr-dashboard-slider__label">${label}</span>` : null}
           <div class=${`nr-dashboard-slider__track ${isVertical ? "is-vertical" : ""}`.trim()}>
             ${sliderInput}
@@ -42367,7 +42372,7 @@ function GaugeWidget(props) {
   }}
     aria-label=${ariaLabel}
   >
-    <div style=${{ fontWeight: 500, fontSize: "14px", lineHeight: "20px" }}>${label}</div>
+    <div style=${{ fontWeight: 500, fontSize: "14px", lineHeight: "20px", padding: "10px 10px 4px 10px" }}>${label}</div>
     <div ref=${chartRef} style=${{ width: "100%", height: `${chartHeight}px` }}></div>
   </div>`;
 }
@@ -42829,7 +42834,7 @@ function TemplateWidget(props) {
   const { t: t4 } = useI18n();
   const title = c3.name || t4("template_label", "Template {index}", { index: index + 1 });
   const htmlContent = resolveTemplateHtml(c3);
-  return m2`<div class=${c3.className || ""} style=${{ width: "100%" }}>
+  return m2`<div class=${c3.className || ""} style=${{ width: "100%", height: "100%", overflowY: "auto" }}>
     <div
       style=${{
     padding: "4px 0",
@@ -42923,14 +42928,14 @@ function ensureFormStyles(doc = typeof document !== "undefined" ? document : und
 
     .nr-dashboard-form .nr-dashboard-form__textarea {
       width: 100%;
-      padding: 10px 8px 6px 0;
+      padding: 10px 2px 1px 0;
       background: transparent;
-      border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.16));
+      border: none;
+      border-bottom: 1px solid var(--nr-dashboard-widgetTextColor, rgba(0,0,0,0.6));
       color: var(--nr-dashboard-widgetTextColor, #e9ecf1);
       font-family: inherit;
       font-size: 14px;
       line-height: 1.35;
-      border-radius: 4px;
       box-sizing: border-box;
       min-height: 72px;
     }
@@ -47089,6 +47094,8 @@ function ChartWidget(props) {
     style=${{
     width: "100%",
     minHeight: "260px",
+    padding: "5px",
+    boxSizing: "border-box",
     opacity: disabled ? 0.55 : 1,
     pointerEvents: disabled ? "none" : "auto"
   }}

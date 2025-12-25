@@ -122,20 +122,20 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     tabIndex=${disabled ? -1 : 0}
     role="switch"
     aria-checked=${checked}
-    style=${{
+    style=${{  
       width: "36px",
       height: "20px",
       borderRadius: "10px",
       background: bg,
       position: "relative",
-      transition: "background 120ms ease, box-shadow 120ms ease",
+      transition: "background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
       boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 32%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
       overflow: "hidden",
       cursor: disabled ? "default" : "grab",
     }}
   >
     <div
-      style=${{
+      style=${{  
         position: "absolute",
         top: "-2px",
         left: checked ? "18px" : "-2px",
@@ -143,6 +143,8 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
         height: "20px",
         borderRadius: "50%",
         background: checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)",
+        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+        transition: "left 180ms cubic-bezier(0.25, 0.8, 0.25, 1), background 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
         boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
         transition: "left 120ms ease, background 120ms ease",
       }}

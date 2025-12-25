@@ -22,7 +22,7 @@ export function TemplateWidget(props: { control: UiControl; index: number }): VN
   const title = c.name || t("template_label", "Template {index}", { index: index + 1 });
   const htmlContent = resolveTemplateHtml(c);
 
-  return html`<div class=${c.className || ""} style=${{ width: "100%" }}>
+  return html`<div class=${c.className || ""} style=${{ width: "100%", height: "100%", overflowY: "auto" }}>
     <div
       style=${{
         padding: "4px 0",
