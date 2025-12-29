@@ -62,24 +62,26 @@
 
 ### 4) Widget Suite
 - [x] Create `src/preact/components/` with widgets for text, button, switch, text-input, numeric, dropdown, slider, gauge, form, date-picker, colour-picker, audio, toast, link, template, spacer.
-- [ ] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`.
+- [x] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`, `useOneColor`, `useDifferentColor`.
 - [x] Build `Gauge` using ECharts gauge/donut/compass to replace JustGage (wave pending).
 - [x] Build remaining core widgets: Form, Date/Colour picker, Audio/TTS, Toast/Dialog, Link, Template, Spacer.
 - [x] Add shared `WidgetFrame` for labels, disabled state, sizing units, `className`.
 
 ### 5) Charts with Apache ECharts
 - [x] Add shared ECharts loader (resize hook) and use it in gauge.
-- [ ] Map Chart.js options to ECharts (axes, tooltips with time formatting via `dayjs`, stacked bars, multi-series colors, `spanGaps`, smoothing/step, donut cutout).
-- [ ] Implement streaming updates: maintain series arrays, apply `remove`, call `setOption({series,xAxis,yAxis},{notMerge:false,replaceMerge:['series']}).
+- [x] Map Chart.js options to ECharts (axes, tooltips with time formatting via `dayjs`, stacked bars, multi-series colors, `spanGaps`, smoothing/step, donut cutout).
+- [x] Implement streaming updates: maintain series arrays, apply `remove`, call `setOption` with `replaceMerge` approach.
 
-#### ECharts chart panel plan (ui_chart parity)
-- Supported looks: line (time/number x-axis), bar/horizontalBar, pie, polar-area, radar; respect `legend`, `interpolate` (cubic/monotone/linear/bezier/step), `dot`, `useOneColor`, `useDifferentColor`, `colors`, `cutout`, `spanGaps`, `animation`, `useUTC`, `xformat`, `ymin/ymax`, className.
-- Data contract: handle full dataset payloads `{key,id, values:{series[], data[][], labels[]}}` and streaming `newPoint/update/remove` records with timestamped points for line charts; reset on empty array.
-- Tooltip/labels: format timestamps with `xformat` (fallback relative calendar) using dayjs; number formatting via locale; show series/label for pie/polar.
-- Legend interaction: toggle series visibility and persist hidden state per series in `replaceMerge`.
-- Theming: use CSS vars for text/grid colors; adopt widget text color for axes/legend; background transparent.
-- Performance: reuse chart instance via `useECharts`; throttle resize via existing hook; avoid `setOption` churn by keeping series state in a reducer and applying `replaceMerge` on `series`.
-- Tests: unit test option mapping for each look, streaming update behavior (append, remove), `useUTC`/`xformat` formatting, spanGaps, legend toggle state, and pie/bar data shape mapping.
+#### ECharts chart panel implementation (ui_chart parity) ✅
+All features implemented in `src/preact/components/widgets/chart.ts`:
+- Supported looks: line (time/number x-axis), bar/horizontalBar, pie, polar-area, radar
+- Options: `legend`, `interpolate` (cubic/monotone/linear/bezier/step), `dot`, `useOneColor`, `useDifferentColor`, `colors`, `cutout`, `spanGaps`, `animation`, `useUTC`, `xformat`, `ymin/ymax`, className
+- Data contract: full dataset payloads `{key,id, values:{series[], data[][], labels[]}}` and streaming `newPoint/update/remove` with timestamped points
+- Tooltip/labels: format timestamps with `xformat` (fallback relative calendar) using dayjs; number formatting via locale
+- Legend interaction: toggle series visibility with hidden state persistence
+- Theming: CSS vars for text/grid/split-line colors; transparent background
+- Performance: `useECharts` hook reuses instance; throttled resize
+- Tests: 19 unit tests covering all looks, streaming updates, windowing, stacking, legend state, `useOneColor`
 
 ### 6) Forms & Message Contract
 - [x] Keep inbound `msg` handling identical; ensure outgoing emits include `msg.socketid` and node IDs.

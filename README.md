@@ -42,10 +42,10 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 | **Link** | ✅ Complete | Internal/external links, disabled state |
 | **Template** | ✅ Complete | HTML injection, dynamic updates |
 | **Spacer** | ✅ Complete | Empty placeholder widget |
+| **Chart** | ✅ Complete | Line/bar/horizontalBar/pie/polar/radar via ECharts, streaming updates, time windowing, stacking, legend interaction |
 
 ### Pending Work
 
-- **Chart Panel**: ECharts implementation for line/bar/pie/polar/radar with streaming adapter
 - **Wave Gauge**: Animated wave fill gauge variant
 - **E2E Tests**: Playwright integration tests
 - **Legacy Cleanup**: Remove gulp/Angular after full parity

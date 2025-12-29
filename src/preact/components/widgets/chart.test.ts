@@ -243,4 +243,46 @@ describe("Chart adapter", () => {
     expect(normalizeLook("radar")).toBe("radar");
     expect(normalizeLook(undefined)).toBe("line");
   });
+
+  test("bar chart with useOneColor false applies per-bar colors for single series", () => {
+    const data: ChartData = {
+      labels: ["A", "B", "C"],
+      series: [{ name: "S", data: [1, 2, 3] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "bar", useOneColor: false }, data, "en", t);
+    const series = option.series as Array<{ data: Array<{ value: number; itemStyle: { color: string } }> }>;
+    expect(series[0].data[0].itemStyle.color).toBeDefined();
+    expect(series[0].data[1].itemStyle.color).toBeDefined();
+    expect(series[0].data[0].itemStyle.color).not.toBe(series[0].data[1].itemStyle.color);
+  });
+
+  test("bar chart with useOneColor true uses series color", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [{ name: "S", data: [1, 2] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "bar", useOneColor: true }, data, "en", t);
+    const series = option.series as Array<{ data: number[] }>;
+    // Data should be plain numbers, not objects with itemStyle
+    expect(series[0].data[0]).toBe(1);
+    expect(series[0].data[1]).toBe(2);
+  });
+
+  test("bar chart with multiple series ignores useOneColor", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [
+        { name: "S1", data: [1, 2] },
+        { name: "S2", data: [3, 4] },
+      ],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "bar", useOneColor: false }, data, "en", t);
+    const series = option.series as Array<{ data: number[] }>;
+    // Multi-series bar charts use series colors, not per-bar
+    expect(series[0].data[0]).toBe(1);
+    expect(series[1].data[0]).toBe(3);
+  });
 });

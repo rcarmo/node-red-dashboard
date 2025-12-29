@@ -265,18 +265,30 @@ function buildBarSeries(
   stackMap: Record<string, string> | undefined,
   showStackLabel: boolean,
   valueFormatter: (v: number) => string,
+  useOneColor: boolean,
+  colors: string[],
 ): EChartsOption["series"] {
   const stackName = stackKey || (stacked ? "stack" : undefined);
+  // When useOneColor is false and there's only one series, color each bar differently
+  const applyPerBarColor = !useOneColor && data.series.length === 1;
+
   return data.series.map((s) => {
+    const seriesData = applyPerBarColor
+      ? s.data.map((val, i) => ({
+          value: val,
+          itemStyle: { color: colors[i % colors.length] },
+        }))
+      : s.data;
+
     const series: Record<string, unknown> = {
       type: "bar",
       name: s.name,
-      data: s.data,
+      data: seriesData,
       label: showStackLabel
         ? {
             show: true,
             position: "inside",
-            formatter: ({ value }) => valueFormatter(Number(value)),
+            formatter: ({ value }: { value: unknown }) => valueFormatter(Number(value)),
           }
         : { show: false },
     };
@@ -435,9 +447,10 @@ export function buildChartOption(
     }
 
     option.grid = { left: 10, right: 10, top: 24, bottom: 20, containLabel: true };
+    const useOneColor = Boolean(control.useOneColor);
     option.series = look === "line"
       ? buildLineSeries(control, data)
-      : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter);
+      : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter, useOneColor, colors);
   } else if (look === "pie" || look === "polar-area") {
     option.series = buildPieSeries(look, control, data, colors);
   } else if (look === "radar") {
