@@ -170,16 +170,32 @@ export function App(): VNode {
   const locales = useMemo(() => state.locales ?? hydrateLocales(), [state.locales]);
   const lang = resolveLanguage(state.lang, state.site as { lang?: string; locale?: string } | null, typeof navigator !== "undefined" ? navigator.language : undefined);
 
-  // Hash-based routing to mirror legacy /<tabIndex>
+  // Hash-based routing to mirror legacy /<tabIndex> or /<tabName>
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
     const applyHash = () => {
-      const match = window.location.hash.match(/#\/(\d+)/);
-      if (!match) return;
-      const idx = Number(match[1]);
-      if (!Number.isNaN(idx) && idx >= 0 && idx < state.menu.length) {
-        actions.selectTab(idx);
+      const hash = window.location.hash;
+      // Try numeric index first: #/0, #/1, etc.
+      const numericMatch = hash.match(/#\/(\d+)/);
+      if (numericMatch) {
+        const idx = Number(numericMatch[1]);
+        if (!Number.isNaN(idx) && idx >= 0 && idx < state.menu.length) {
+          actions.selectTab(idx);
+          return;
+        }
+      }
+      
+      // Try tab name: #/Home, #/Settings, etc.
+      const nameMatch = hash.match(/#\/(.+)/);
+      if (nameMatch) {
+        const tabName = decodeURIComponent(nameMatch[1]);
+        const idx = state.menu.findIndex(
+          (tab) => tab.header === tabName || tab.name === tabName
+        );
+        if (idx >= 0 && !state.menu[idx].disabled) {
+          actions.selectTab(idx);
+        }
       }
     };
 

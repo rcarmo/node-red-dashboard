@@ -23,6 +23,8 @@ export function GroupCard(props: {
   const title = header?.name || t("group_label", "Group {index}", { index: index + 1 });
   const items = (group.items ?? []) as UiControl[];
   const collapseEnabled = Boolean((header?.config as { collapse?: boolean } | undefined)?.collapse);
+  // disp property controls whether the header title is displayed (defaults to true)
+  const showHeader = (header?.config as { disp?: boolean } | undefined)?.disp !== false;
   const groupKey = useMemo(() => {
     const base = `${tabName ?? ""} ${header?.name ?? ""}`.trim();
     return (base || header?.id || `group-${index}`).toString().replace(/ /g, "_");
@@ -66,7 +68,7 @@ export function GroupCard(props: {
     data-grid-key=${header?.id ?? index}
     style=${sectionStyle}
   >
-    <header
+    ${showHeader ? html`<header
       class="nr-dashboard-group-card__header"
     >
       <span class="nr-dashboard-group-card__title">${title}</span>
@@ -81,7 +83,7 @@ export function GroupCard(props: {
             <i class=${collapsed ? "fa fa-caret-down" : "fa fa-caret-up"}></i>
           </button>`
         : null}
-    </header>
+    </header>` : null}
     ${collapsed
       ? html`<div class="nr-dashboard-group-card__message">${t("collapsed", "Collapsed")}</div>`
       : items.length === 0

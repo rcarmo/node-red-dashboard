@@ -5,6 +5,25 @@ import { useI18n } from "../../lib/i18n";
 
 type TabNavVariant = "full" | "icon";
 
+function handleLinkTab(tab: UiMenuItem): boolean {
+  if (!tab.link) return false;
+  
+  // newtab: Open in new browser tab
+  if (tab.target === "newtab") {
+    window.open(tab.link, tab.header ?? tab.name ?? "_blank");
+    return true;
+  }
+  
+  // thistab: Navigate current tab to the link (closes dashboard)
+  if (tab.target === "thistab") {
+    window.open(tab.link, "_self");
+    return true;
+  }
+  
+  // iframe: Fall through to normal selection (renders in iframe)
+  return false;
+}
+
 export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null; onSelect: (index: number) => void; variant?: TabNavVariant }): VNode {
   const { menu, selectedIndex, onSelect, variant = "full" } = props;
   const { t } = useI18n();
@@ -71,6 +90,13 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
           const active = originalIndex === selectedIndex;
           const label = (tab.header || tab.name || t("tab_label", "Tab {index}", { index: idx + 1 })) as string;
           const icon = tab.icon ? renderIcon(tab, idx) : null;
+          const handleClick = () => {
+            // Check if this is a link tab with external target
+            if (handleLinkTab(tab)) {
+              return; // External navigation handled, don't select
+            }
+            onSelect(originalIndex);
+          };
           return html`<li key=${tab.id ?? tab.header ?? originalIndex}>
             <button
               class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active nr-menu-item-active" : ""}`.trim()}
@@ -79,7 +105,7 @@ export function TabNav(props: { menu: UiMenuItem[]; selectedIndex: number | null
               aria-label=${label}
               title=${label}
               aria-current=${active ? "page" : undefined}
-              onClick=${() => onSelect(originalIndex)}
+              onClick=${handleClick}
             >
               ${icon}
               <span class="nr-dashboard-tabs__label">${label}</span>
