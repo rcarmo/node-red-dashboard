@@ -98,6 +98,22 @@
 }]</pre>
     <p>Options: <code>heatmapMin</code>/<code>heatmapMax</code> (color scale range)</p>
 
+    <h3>Data Zoom</h3>
+    <p>Enable pan/zoom on large datasets (line, bar, horizontalBar, scatter charts):</p>
+    <ul>
+        <li><code>dataZoom</code>: Enable zoom (true/false)</li>
+        <li><code>dataZoomType</code>: "slider" (handle), "inside" (scroll/pinch), or "both"</li>
+        <li><code>dataZoomStart</code>/<code>dataZoomEnd</code>: Initial zoom range (0-100%)</li>
+    </ul>
+
+    <h3>Mark Lines (Thresholds)</h3>
+    <p>Add horizontal/vertical reference lines (line, bar, horizontalBar, scatter charts):</p>
+    <pre>markLines: [
+  { value: 75, label: "Target", color: "#00FF00" },
+  { value: 25, label: "Min", lineStyle: "dashed" }
+]</pre>
+    <p>Options per line: <code>value</code>, <code>label</code>, <code>color</code>, <code>lineStyle</code> (solid/dashed/dotted), <code>axis</code> (x/y)</p>
+
     <h3>Clearing the Chart</h3>
     <p>Send <code>msg.payload</code> containing an empty array <code>[]</code> to clear the chart.</p>
 

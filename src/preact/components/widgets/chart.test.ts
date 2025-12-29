@@ -392,4 +392,141 @@ describe("Chart adapter", () => {
     const xAxis = option.xAxis as { type: string };
     expect(xAxis.type).toBe("time");
   });
+
+  test("dataZoom slider adds zoom control to line chart", () => {
+    const data: ChartData = {
+      labels: ["A", "B", "C"],
+      series: [{ name: "S", data: [1, 2, 3] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "line", dataZoom: true, dataZoomType: "slider" }, data, "en", t);
+    expect(option.dataZoom).toBeDefined();
+    const zooms = option.dataZoom as Array<{ type: string }>;
+    expect(zooms.length).toBe(1);
+    expect(zooms[0].type).toBe("slider");
+    // Grid should have extra bottom padding
+    const grid = option.grid as { bottom: number };
+    expect(grid.bottom).toBe(40);
+  });
+
+  test("dataZoom both adds slider and inside zoom", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [{ name: "S", data: [1, 2] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "bar", dataZoom: true, dataZoomType: "both" }, data, "en", t);
+    const zooms = option.dataZoom as Array<{ type: string }>;
+    expect(zooms.length).toBe(2);
+    expect(zooms.map((z) => z.type).sort()).toEqual(["inside", "slider"]);
+  });
+
+  test("dataZoom inside enables scroll/pinch zoom", () => {
+    const data: ChartData = {
+      labels: [],
+      series: [{ name: "S", data: [[1, 2], [3, 4]] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "scatter", dataZoom: true, dataZoomType: "inside" }, data, "en", t);
+    const zooms = option.dataZoom as Array<{ type: string; zoomOnMouseWheel?: boolean }>;
+    expect(zooms.length).toBe(1);
+    expect(zooms[0].type).toBe("inside");
+    expect(zooms[0].zoomOnMouseWheel).toBe(true);
+  });
+
+  test("dataZoom respects start and end percentages", () => {
+    const data: ChartData = {
+      labels: ["A", "B", "C", "D", "E"],
+      series: [{ name: "S", data: [1, 2, 3, 4, 5] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption(
+      { look: "line", dataZoom: true, dataZoomStart: 20, dataZoomEnd: 80 },
+      data, "en", t
+    );
+    const zooms = option.dataZoom as Array<{ start: number; end: number }>;
+    expect(zooms[0].start).toBe(20);
+    expect(zooms[0].end).toBe(80);
+  });
+
+  test("markLines adds threshold lines to line chart", () => {
+    const data: ChartData = {
+      labels: ["A", "B", "C"],
+      series: [{ name: "S", data: [1, 5, 3] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({
+      look: "line",
+      markLines: [
+        { value: 4, label: "Threshold", color: "#FF0000", lineStyle: "dashed" },
+      ],
+    }, data, "en", t);
+    const series = option.series as Array<{ markLine?: { data: Array<{ yAxis: number }> } }>;
+    expect(series[0].markLine).toBeDefined();
+    expect(series[0].markLine!.data.length).toBe(1);
+    expect(series[0].markLine!.data[0].yAxis).toBe(4);
+  });
+
+  test("markLines supports multiple thresholds", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [{ name: "S", data: [1, 2] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({
+      look: "bar",
+      markLines: [
+        { value: 1.5, label: "Low" },
+        { value: 3, label: "High", color: "#00FF00" },
+      ],
+    }, data, "en", t);
+    const series = option.series as Array<{ markLine?: { data: Array<{ yAxis: number }> } }>;
+    expect(series[0].markLine!.data.length).toBe(2);
+  });
+
+  test("markLines on horizontalBar uses xAxis", () => {
+    const data: ChartData = {
+      labels: ["A"],
+      series: [{ name: "S", data: [5] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({
+      look: "horizontalBar",
+      markLines: [{ value: 3, axis: "x" }],
+    }, data, "en", t);
+    const series = option.series as Array<{ markLine?: { data: Array<{ xAxis?: number; yAxis?: number }> } }>;
+    expect(series[0].markLine!.data[0].xAxis).toBe(3);
+    expect(series[0].markLine!.data[0].yAxis).toBeUndefined();
+  });
+
+  test("markLines on scatter chart", () => {
+    const data: ChartData = {
+      labels: [],
+      series: [{ name: "S", data: [[1, 2], [3, 4]] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({
+      look: "scatter",
+      markLines: [{ value: 3, label: "Y=3" }],
+    }, data, "en", t);
+    const series = option.series as Array<{ markLine?: { data: unknown[] } }>;
+    expect(series[0].markLine).toBeDefined();
+    expect(series[0].markLine!.data.length).toBe(1);
+  });
+
+  test("dataZoom and markLines work together", () => {
+    const data: ChartData = {
+      labels: ["A", "B", "C", "D"],
+      series: [{ name: "S", data: [1, 2, 3, 4] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({
+      look: "line",
+      dataZoom: true,
+      markLines: [{ value: 2.5, label: "Mid" }],
+    }, data, "en", t);
+    expect(option.dataZoom).toBeDefined();
+    const series = option.series as Array<{ markLine?: { data: unknown[] } }>;
+    expect(series[0].markLine).toBeDefined();
+  });
 });

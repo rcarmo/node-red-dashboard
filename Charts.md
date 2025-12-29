@@ -94,6 +94,53 @@ Options:
 - `heatmapXLabels`: Custom X-axis labels (overrides `labels`)
 - `heatmapYLabels`: Custom Y-axis labels (overrides series names)
 
+## Chart Features (ECharts)
+
+### Data Zoom
+
+Data zoom allows users to pan and zoom on charts with large datasets. Available for line, bar, horizontalBar, and scatter charts.
+
+Options:
+- `dataZoom`: Enable data zoom (true/false)
+- `dataZoomType`: Type of zoom control
+  - `"slider"`: Visible slider handle at bottom (default)
+  - `"inside"`: Scroll wheel and pinch-to-zoom
+  - `"both"`: Both slider and inside zoom
+- `dataZoomStart`: Initial zoom start percentage (0-100, default: 0)
+- `dataZoomEnd`: Initial zoom end percentage (0-100, default: 100)
+
+Example configuration:
+
+    {
+        "dataZoom": true,
+        "dataZoomType": "both",
+        "dataZoomStart": 0,
+        "dataZoomEnd": 50
+    }
+
+### Mark Lines (Threshold Lines)
+
+Mark lines display horizontal or vertical threshold/reference lines on charts. Available for line, bar, horizontalBar, and scatter charts.
+
+Options:
+- `markLines`: Array of mark line configurations
+  - `value`: The axis value where the line appears (required)
+  - `label`: Text label for the line (optional)
+  - `color`: Line color (default: red)
+  - `lineStyle`: Line style - `"solid"`, `"dashed"` (default), or `"dotted"`
+  - `axis`: Which axis - `"x"` or `"y"` (default: `"y"` for vertical charts, `"x"` for horizontal)
+
+Example configuration:
+
+    {
+        "markLines": [
+            { "value": 75, "label": "Target", "color": "#00FF00", "lineStyle": "solid" },
+            { "value": 25, "label": "Minimum", "color": "#FF0000", "lineStyle": "dashed" }
+        ]
+    }
+
+Multiple mark lines can be combined with data zoom for interactive threshold monitoring.
+
 ## Stored data
 
 To display a complete chart in one go - for example from a set of points retrieved from a database,

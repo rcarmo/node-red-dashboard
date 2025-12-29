@@ -17,6 +17,8 @@ import {
   TooltipComponent,
   TitleComponent,
   VisualMapComponent,
+  DataZoomComponent,
+  MarkLineComponent,
 } from "echarts/components";
 import type { EChartsOption } from "echarts";
 import dayjs from "dayjs";
@@ -38,6 +40,8 @@ registerEChartsModules([
   TooltipComponent,
   TitleComponent,
   VisualMapComponent,
+  DataZoomComponent,
+  MarkLineComponent,
 ]);
 
 dayjs.extend(utc);
@@ -90,6 +94,19 @@ export type ChartControl = UiControl & {
   heatmapMax?: number | string;
   heatmapXLabels?: string[];
   heatmapYLabels?: string[];
+  // Data zoom options
+  dataZoom?: boolean;
+  dataZoomType?: "slider" | "inside" | "both" | string;
+  dataZoomStart?: number | string;
+  dataZoomEnd?: number | string;
+  // Mark line options (threshold lines)
+  markLines?: Array<{
+    value: number;
+    label?: string;
+    color?: string;
+    lineStyle?: "solid" | "dashed" | "dotted";
+    axis?: "x" | "y";
+  }>;
 };
 
 export type ChartSeries = {
@@ -156,6 +173,92 @@ function toPositiveNumber(value: unknown): number | undefined {
 function toOptionalNumber(value: unknown): number | undefined {
   const n = Number(value);
   return Number.isFinite(n) ? n : undefined;
+}
+
+function buildDataZoom(control: ChartControl, look: ChartLook): EChartsOption["dataZoom"] {
+  if (!control.dataZoom) return undefined;
+
+  const zoomType = control.dataZoomType || "slider";
+  const start = toOptionalNumber(control.dataZoomStart) ?? 0;
+  const end = toOptionalNumber(control.dataZoomEnd) ?? 100;
+  const isHorizontal = look !== "horizontalBar";
+  const result: EChartsOption["dataZoom"] = [];
+
+  // Slider zoom (visible handle at bottom/right)
+  if (zoomType === "slider" || zoomType === "both") {
+    result.push({
+      type: "slider",
+      xAxisIndex: isHorizontal ? 0 : undefined,
+      yAxisIndex: isHorizontal ? undefined : 0,
+      start,
+      end,
+      height: isHorizontal ? 20 : undefined,
+      width: isHorizontal ? undefined : 20,
+      bottom: isHorizontal ? 0 : undefined,
+      right: isHorizontal ? undefined : 0,
+      borderColor: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))",
+      backgroundColor: "var(--nr-dashboard-chartSplitAreaLow, rgba(0,0,0,0.05))",
+      fillerColor: "var(--nr-dashboard-widgetColor, rgba(31,119,180,0.2))",
+      handleStyle: { color: "var(--nr-dashboard-widgetColor, #1F77B4)" },
+      textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+      dataBackground: {
+        lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" },
+        areaStyle: { color: "var(--nr-dashboard-chartSplitAreaHigh, rgba(0,0,0,0.1))" },
+      },
+    });
+  }
+
+  // Inside zoom (scroll/pinch to zoom)
+  if (zoomType === "inside" || zoomType === "both") {
+    result.push({
+      type: "inside",
+      xAxisIndex: isHorizontal ? 0 : undefined,
+      yAxisIndex: isHorizontal ? undefined : 0,
+      start,
+      end,
+      zoomOnMouseWheel: true,
+      moveOnMouseMove: true,
+      moveOnMouseWheel: false,
+    });
+  }
+
+  return result.length > 0 ? result : undefined;
+}
+
+type MarkLineItem = {
+  value: number;
+  label?: string;
+  color?: string;
+  lineStyle?: "solid" | "dashed" | "dotted";
+  axis?: "x" | "y";
+};
+
+function buildMarkLine(markLines: MarkLineItem[] | undefined, look: ChartLook): Record<string, unknown> | undefined {
+  if (!markLines || markLines.length === 0) return undefined;
+
+  const isHorizontal = look !== "horizontalBar";
+
+  return {
+    silent: true,
+    symbol: "none",
+    data: markLines.map((ml) => {
+      const isYAxis = ml.axis === "y" || (ml.axis == null && isHorizontal);
+      return {
+        [isYAxis ? "yAxis" : "xAxis"]: ml.value,
+        label: {
+          show: Boolean(ml.label),
+          formatter: ml.label || String(ml.value),
+          position: isYAxis ? "end" : "start",
+          color: ml.color || "var(--nr-dashboard-widgetTextColor, #000)",
+        },
+        lineStyle: {
+          color: ml.color || "var(--nr-dashboard-chartColor5, #D62728)",
+          type: ml.lineStyle || "dashed",
+          width: 2,
+        },
+      };
+    }),
+  };
 }
 
 function cloneData(data: ChartData): ChartData {
@@ -560,11 +663,24 @@ export function buildChartOption(
       option.yAxis = valueAxis;
     }
 
-    option.grid = { left: 10, right: 10, top: 24, bottom: 20, containLabel: true };
+    option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
     const useOneColor = Boolean(control.useOneColor);
-    option.series = look === "line"
+    const baseSeries = look === "line"
       ? buildLineSeries(control, data)
       : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter, useOneColor, colors);
+
+    // Add mark lines to first series if configured
+    const markLine = buildMarkLine(control.markLines, look);
+    if (markLine && Array.isArray(baseSeries) && baseSeries.length > 0) {
+      (baseSeries[0] as Record<string, unknown>).markLine = markLine;
+    }
+    option.series = baseSeries;
+
+    // Add data zoom if enabled
+    const dataZoom = buildDataZoom(control, look);
+    if (dataZoom) {
+      option.dataZoom = dataZoom;
+    }
   } else if (look === "pie" || look === "polar-area") {
     option.series = buildPieSeries(look, control, data, colors);
   } else if (look === "radar") {
@@ -613,8 +729,21 @@ export function buildChartOption(
     };
     option.xAxis = xAxis;
     option.yAxis = yAxis;
-    option.grid = { left: 10, right: 10, top: 24, bottom: 20, containLabel: true };
-    option.series = buildScatterSeries(data, control);
+    option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
+
+    const scatterSeries = buildScatterSeries(data, control);
+    // Add mark lines to first series if configured
+    const markLine = buildMarkLine(control.markLines, look);
+    if (markLine && Array.isArray(scatterSeries) && scatterSeries.length > 0) {
+      (scatterSeries[0] as Record<string, unknown>).markLine = markLine;
+    }
+    option.series = scatterSeries;
+
+    // Add data zoom if enabled
+    const dataZoom = buildDataZoom(control, look);
+    if (dataZoom) {
+      option.dataZoom = dataZoom;
+    }
   } else if (look === "funnel") {
     option.series = buildFunnelSeries(data, control, colors);
   } else if (look === "heatmap") {

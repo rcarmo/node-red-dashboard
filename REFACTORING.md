@@ -16,7 +16,7 @@
 - [x] I18n provider with locale fallback (`ui-control` lang → site lang/locale → browser → en) and localized aria/value strings across widgets; resolveLanguage unit tests added.
 - [x] Full ui-control parity: tab show/hide/enable/disable, group show/hide/collapse/expand, tab navigation (+1/-1/by name), link tabs (newtab/thistab/iframe), group disp property, ui-collapse emission.
 - [x] ARIA accessibility: keyboard navigation for dropdown/date-picker/colour-picker, proper roles (switch, slider, combobox), focus management, screen reader labels.
-- [x] 145 tests passing across 33 test files (28 chart tests, wave gauge tests included).
+- [x] 154 tests passing across 33 test files (37 chart tests, wave gauge tests included).
 
 ## Goals & Constraints Checklist
 - [x] Frontend rewritten in Preact; charts/gauges on Apache ECharts.
@@ -74,6 +74,8 @@
 - [x] Add scatter chart type with configurable symbolSize.
 - [x] Add funnel chart type with sort/align/gap options.
 - [x] Add heatmap chart type with visualMap, category axes, and matrix data support.
+- [x] Add dataZoom component for pan/zoom on large datasets (slider, inside, both modes).
+- [x] Add markLine component for threshold/reference lines with customizable style.
 
 #### ECharts chart panel implementation (ui_chart parity) ✅
 All features implemented in `src/preact/components/widgets/chart.ts`:
@@ -82,12 +84,14 @@ All features implemented in `src/preact/components/widgets/chart.ts`:
 - Scatter options: `symbolSize`
 - Funnel options: `funnelSort` (ascending/descending/none), `funnelAlign` (left/center/right), `funnelGap`
 - Heatmap options: `heatmapMin`, `heatmapMax`, `heatmapXLabels`, `heatmapYLabels`, matrix data as `[xIdx, yIdx, value]`
+- **Data Zoom options**: `dataZoom`, `dataZoomType` (slider/inside/both), `dataZoomStart`, `dataZoomEnd`
+- **Mark Line options**: `markLines` array with `value`, `label`, `color`, `lineStyle` (solid/dashed/dotted), `axis` (x/y)
 - Data contract: full dataset payloads `{key,id, values:{series[], data[][], labels[]}}` and streaming `newPoint/update/remove` with timestamped points
 - Tooltip/labels: format timestamps with `xformat` (fallback relative calendar) using dayjs; number formatting via locale
 - Legend interaction: toggle series visibility with hidden state persistence
 - Theming: CSS vars for text/grid/split-line colors; transparent background
 - Performance: `useECharts` hook reuses instance; throttled resize
-- Tests: 28 unit tests covering all looks including scatter/funnel/heatmap
+- Tests: 37 unit tests covering all looks, dataZoom, and markLines
 
 ### 6) Forms & Message Contract
 - [x] Keep inbound `msg` handling identical; ensure outgoing emits include `msg.socketid` and node IDs.
