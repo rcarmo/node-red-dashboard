@@ -8,7 +8,7 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 ## Status
 
 - **Active development**: replacing the Angular v1 client with a Preact runtime while keeping the existing Node-RED editor nodes and saved flows.
-- **131 tests passing** across 33 test files covering widgets, layout, state, socket, and i18n.
+- **154 tests passing** across 33 test files covering widgets, layout, state, socket, and i18n.
 
 ### Current Runtime Features
 
@@ -42,7 +42,31 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 | **Link** | ✅ Complete | Internal/external links, disabled state |
 | **Template** | ✅ Complete | HTML injection, dynamic updates |
 | **Spacer** | ✅ Complete | Empty placeholder widget |
-| **Chart** | ✅ Complete | Line/bar/horizontalBar/pie/polar/radar/scatter/funnel/heatmap via ECharts |
+| **Chart** | ✅ Complete | 9 chart types via ECharts with data zoom and threshold lines (see below) |
+
+### Chart Types & Features
+
+The chart widget supports 9 chart types powered by Apache ECharts:
+
+| Type | Description |
+|------|-------------|
+| **Line** | Time-based with smoothing, dot markers, span gaps |
+| **Bar** | Vertical bars, stacked, per-bar colors |
+| **Horizontal Bar** | Horizontal orientation with stacking |
+| **Pie** | Pie/donut with cutout percentage |
+| **Polar Area** | Rose/nightingale chart |
+| **Radar** | Spider/radar for multi-axis comparison |
+| **Scatter** | X/Y scatter plots with configurable point size |
+| **Funnel** | Pipeline/conversion visualization with sort/align options |
+| **Heatmap** | Matrix data with color intensity scale |
+
+**Interactive Features:**
+- **Data Zoom**: Pan/zoom on large datasets (slider, scroll wheel, pinch-to-zoom)
+- **Mark Lines**: Threshold/reference lines with custom colors and styles
+- **Legend Toggle**: Click legend to show/hide series
+- **Streaming Updates**: Real-time data with automatic old point removal
+
+See [Charts.md](Charts.md) for data formats and configuration options.
 
 ### Pending Work
 
@@ -60,7 +84,7 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 ## Goals
 
 - Modern runtime: Preact + HTM, zero jQuery/Angular in the client.
-- Charting on Apache ECharts (line/bar/pie/donut/radar etc.) with streaming support and theming.
+- Charting on Apache ECharts (line/bar/pie/radar/scatter/funnel/heatmap) with streaming, data zoom, mark lines, and theming.
 - Theming via CSS variables (no runtime Less); accessible defaults; respects reduced motion.
 - Lean dependencies and Bun-only scripts for development, build, and tests.
 
@@ -102,7 +126,8 @@ Legacy Angular sources remain under `src/` for reference during migration.
 
 ## Test Coverage
 
-- **131 tests** across **33 test files**
+- **154 tests** across **33 test files**
+- **37 chart tests** covering all 9 chart types, data zoom, and mark lines
 - Unit tests for all widgets, layout components, state handlers, socket bridge, and i18n
 - Contract tests for dropdown, slider, form, toast, audio behaviors
 - Disabled behavior tests across all interactive widgets

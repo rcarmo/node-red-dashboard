@@ -93,6 +93,40 @@ All features implemented in `src/preact/components/widgets/chart.ts`:
 - Performance: `useECharts` hook reuses instance; throttled resize
 - Tests: 37 unit tests covering all looks, dataZoom, and markLines
 
+#### Future ECharts Enhancements (optional)
+Additional chart types and features available in ECharts that could be added:
+
+**New Chart Types:**
+- [ ] `CandlestickChart`: Financial OHLC data (stocks, crypto) — useful for trading dashboards
+- [ ] `BoxplotChart`: Statistical distributions (quartiles, outliers) — useful for sensor analytics
+- [ ] `TreemapChart`: Hierarchical proportions (disk usage, budgets) — useful for resource monitoring
+- [ ] `SunburstChart`: Multi-level pie (org charts, file trees) — useful for hierarchical data
+- [ ] `SankeyChart`: Flow relationships (energy flow, traffic) — useful for process monitoring
+- [ ] `GraphChart`: Node-link diagrams (dependencies, networks) — useful for topology views
+- [ ] `TreeChart`: Hierarchical tree structures (org charts) — useful for device hierarchies
+- [ ] `ParallelChart`: Multivariate comparison (many dimensions) — useful for multi-sensor correlation
+- [ ] `ThemeRiverChart`: Thematic evolution over time — useful for trend analysis
+- [ ] `CalendarComponent` + `HeatmapChart`: Calendar-based heatmap (contributions, activity) — useful for historical patterns
+- [ ] `PictorialBarChart`: Infographic-style icons as bars — useful for visual dashboards
+- [ ] `MapChart` + GeoJSON: Geographic data visualization — useful for location-based IoT
+
+**Feature Enhancements:**
+- [ ] `MarkAreaComponent`: Highlight regions/ranges on charts (e.g., operating zones)
+- [ ] Multiple Y-axes: Dual/triple axis for different scales (temperature + humidity)
+- [ ] Mixed charts: Combine line + bar on same chart
+- [ ] Waterfall bars: Show cumulative effect of sequential values
+- [ ] `appendData` API: Optimized real-time streaming for high-frequency data
+- [ ] Export to image: Save chart as PNG/SVG
+- [ ] `BrushComponent`: Select regions to filter/highlight data
+
+**Priority recommendations for IoT/Dashboard use:**
+1. Candlestick — common for financial/trading dashboards
+2. Sankey — energy/flow monitoring
+3. Calendar heatmap — activity tracking (GitHub-style)
+4. Multiple Y-axes — correlate different metrics
+5. Mixed charts — overlay trend line on bar data
+6. Mark areas — highlight operating zones/thresholds
+
 ### 6) Forms & Message Contract
 - [x] Keep inbound `msg` handling identical; ensure outgoing emits include `msg.socketid` and node IDs.
 - [x] Preserve tab/group hide/show storage (`th*`/`td*`/`g*`) in localStorage; trigger resize after changes.
