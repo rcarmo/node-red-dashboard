@@ -4208,10 +4208,6 @@ function ButtonWidget(props) {
   const labelHtml = { __html: label };
   const backgroundColor = resolveButtonColor(asButton);
   const textColor = typeof asButton.color === "string" && asButton.color ? asButton.color : "var(--nr-dashboard-widgetTextColor, #fff)";
-  const [hovered, setHovered] = d2(false);
-  const [pressed, setPressed] = d2(false);
-  const isDisabled = Boolean(disabled);
-  const ripple = !isDisabled && (hovered || pressed);
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
     onEmit?.("ui-control", payload);
@@ -4267,54 +4263,16 @@ function ButtonWidget(props) {
     class=${`nr-dashboard-button ${asButton.className || ""}`.trim()}
     disabled=${Boolean(disabled)}
     onClick=${onEmit ? handleClick : undefined}
-    onMouseEnter=${() => setHovered(true)}
-    onMouseLeave=${() => setHovered(false)}
-    onMouseDown=${() => setPressed(true)}
-    onMouseUp=${() => setPressed(false)}
-    onBlur=${() => {
-    setPressed(false);
-  }}
-    onFocus=${() => {}}
     style=${{
-    width: "100%",
-    height: "100%",
-    minWidth: "0",
-    minHeight: "36px",
-    padding: "2px",
-    borderRadius: "2px",
-    border: "none",
-    background: backgroundColor,
-    color: textColor,
-    fontSize: "14px",
-    fontWeight: 500,
-    textTransform: "uppercase",
-    letterSpacing: "0.01em",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: asButton.icon ? "6px" : "0px",
-    cursor: onEmit ? "pointer" : "default",
-    outline: "none",
-    boxShadow: "none",
-    transition: "background 300ms cubic-bezier(0.4, 0, 0.2, 1)",
-    position: "relative",
-    overflow: "hidden",
-    opacity: isDisabled ? 0.55 : 1
+    "--nr-button-bg": backgroundColor,
+    "--nr-button-color": textColor,
+    "--nr-button-gap": asButton.icon ? "6px" : "0px",
+    cursor: onEmit ? undefined : "default"
   }}
   >
     ${renderIcon(asButton.icon)}
     <span class="nr-dashboard-button__label" dangerouslySetInnerHTML=${labelHtml}></span>
-    <span
-      aria-hidden="true"
-      style=${{
-    position: "absolute",
-    inset: 0,
-    background: "radial-gradient(circle at center, rgba(255,255,255,0.16), transparent 60%)",
-    opacity: ripple ? pressed ? 0.32 : 0.18 : 0,
-    transition: "opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)",
-    pointerEvents: "none"
-  }}
-    ></span>
+    <span class="nr-dashboard-button__ripple" aria-hidden="true"></span>
   </button>`;
 }
 
@@ -4406,8 +4364,11 @@ function SwitchWidget(props) {
     return null;
   };
   const resolvedColor = resolveSwitchColors(asSwitch, checked);
-  const bg = checked ? resolvedColor : resolveSwitchColors(asSwitch, false);
+  const trackBg = checked ? resolvedColor : resolveSwitchColors(asSwitch, false);
+  const thumbBg = checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)";
+  const thumbLeft = checked ? "18px" : "-2px";
   const track = m2`<div
+    class="nr-dashboard-switch__track"
     onClick=${onEmit ? toggle : undefined}
     onFocus=${() => setFocused(true)}
     onBlur=${() => setFocused(false)}
@@ -4421,30 +4382,14 @@ function SwitchWidget(props) {
     role="switch"
     aria-checked=${checked}
     style=${{
-    width: "36px",
-    height: "20px",
-    borderRadius: "10px",
-    background: bg,
-    position: "relative",
-    transition: "background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
-    boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 32%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
-    overflow: "hidden",
-    cursor: disabled ? "default" : "grab"
+    "--nr-switch-track-bg": trackBg
   }}
   >
     <div
+      class="nr-dashboard-switch__thumb"
       style=${{
-    position: "absolute",
-    top: "-2px",
-    left: checked ? "18px" : "-2px",
-    width: "20px",
-    height: "20px",
-    borderRadius: "50%",
-    background: checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-    transition: "left 180ms cubic-bezier(0.25, 0.8, 0.25, 1), background 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
-    transition: "left 120ms ease, background 120ms ease"
+    "--nr-switch-thumb-left": thumbLeft,
+    "--nr-switch-thumb-bg": thumbBg
   }}
     ></div>
   </div>`;
@@ -4452,30 +4397,24 @@ function SwitchWidget(props) {
   const customIcons = customIconsActive ? m2`<div
         onClick=${onEmit ? toggle : undefined}
         class="nr-dashboard-switch__custom-icon-container"
-        style=${{
-    cursor: disabled ? "default" : "grab"
-  }}
       >
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
-          style=${{
-    color: checked ? asSwitch.oncolor : "transparent"
-  }}
+          style=${{ color: checked ? asSwitch.oncolor : "transparent" }}
         >${renderIcon(asSwitch.onicon)}</span>
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
-          style=${{
-    color: !checked ? asSwitch.offcolor : "transparent"
-  }}
+          style=${{ color: !checked ? asSwitch.offcolor : "transparent" }}
         >${renderIcon(asSwitch.officon)}</span>
       </div>` : track;
+  const containerClass = [
+    "nr-dashboard-switch",
+    asSwitch.className || "",
+    disabled ? "is-disabled" : "",
+    isCenter ? "is-centered" : ""
+  ].filter(Boolean).join(" ");
   return m2`<div
-    class=${`nr-dashboard-switch ${asSwitch.className || ""}`.trim()}
-    style=${{
-    justifyContent: isCenter ? "center" : "space-between",
-    cursor: disabled ? "default" : "grab",
-    opacity: disabled ? 0.55 : 1
-  }}
+    class=${containerClass}
     title=${asSwitch.tooltip || undefined}
   >
     ${showLabel ? m2`<p
@@ -41798,10 +41737,9 @@ function ToastWidget(props) {
   const [visible, setVisible] = d2(true);
   const dismissible = c3.dismissible !== false;
   const displayMs = Number.isFinite(c3.displayTime) ? Math.max(0, Number(c3.displayTime)) : 3000;
-  const [stackOffset, setStackOffset] = d2(index * 4);
+  const stackOffset = index * 4;
   y2(() => {
     setVisible(true);
-    setStackOffset(index * 4);
     if (displayMs > 0) {
       const timer = window.setTimeout(() => setVisible(false), displayMs);
       return () => window.clearTimeout(timer);
@@ -41813,21 +41751,20 @@ function ToastWidget(props) {
   return m2`<div
     class=${`nr-dashboard-toast__container ${c3.className || ""}`.trim()}
     style=${{
-    borderLeft: `4px solid ${toneColor}`,
-    margin: `${6 + stackOffset}px 0 6px 0`
+    "--nr-toast-tone": toneColor,
+    "--nr-toast-margin": `${6 + stackOffset}px 0 6px 0`
   }}
     role="status"
     aria-live="polite"
     aria-atomic="true"
   >
-    <div class="nr-dashboard-toast__title" style=${{ color: toneColor }}>${label}</div>
+    <div class="nr-dashboard-toast__title">${label}</div>
     <div class="nr-dashboard-toast__body">${msg}</div>
     ${dismissible ? m2`<button
           type="button"
           class="nr-dashboard-toast__close"
           aria-label=${t4("toast_close", "Close notification")}
           onClick=${() => setVisible(false)}
-          style=${{ color: toneColor }}
         >×</button>` : null}
   </div>`;
 }
@@ -41845,15 +41782,13 @@ function LinkWidget(props) {
   const target = c3.target || "_blank";
   const icon = c3.icon;
   const isDisabled = Boolean(disabled);
-  const [focused, setFocused] = d2(false);
-  const [hovered, setHovered] = d2(false);
-  const [pressed, setPressed] = d2(false);
-  const focusRing = focused ? "0 0 0 2px color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 40%, transparent)" : "none";
+  const anchorClass = `nr-dashboard-link__anchor${isDisabled ? " is-disabled" : ""}`;
   return m2`<div class="nr-dashboard-link__container">
     <a
       href=${isDisabled ? undefined : href}
       target=${target}
       rel="noreferrer noopener"
+      class=${anchorClass}
       aria-disabled=${isDisabled}
       aria-label=${t4("link_open", "Open {label}", { label })}
       tabIndex=${isDisabled ? -1 : undefined}
@@ -41862,30 +41797,6 @@ function LinkWidget(props) {
     e4.preventDefault();
     e4.stopPropagation();
   } : undefined}
-      onMouseEnter=${() => setHovered(true)}
-      onMouseLeave=${() => setHovered(false)}
-      onMouseDown=${() => setPressed(true)}
-      onMouseUp=${() => setPressed(false)}
-      onFocus=${() => setFocused(true)}
-      onBlur=${() => {
-    setPressed(false);
-    setFocused(false);
-  }}
-      style=${{
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "10px",
-    padding: "10px 12px",
-    borderRadius: "8px",
-    background: "transparent",
-    color: isDisabled ? "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.45))" : hovered ? "color-mix(in srgb, var(--nr-dashboard-widgetColor, #61dafb) 90%, white 10%)" : "var(--nr-dashboard-widgetColor, #61dafb)",
-    pointerEvents: isDisabled ? "none" : "auto",
-    textDecoration: hovered ? "underline" : "none",
-    boxShadow: focusRing,
-    transition: "box-shadow 140ms ease, color 140ms ease, text-decoration-color 140ms ease",
-    width: "100%",
-    transform: pressed ? "translateY(1px)" : "none"
-  }}
     >
       ${icon ? m2`<i class=${`${icon} nr-dashboard-link__icon`} aria-hidden="true"></i>` : m2`<i class="fa fa-external-link nr-dashboard-link__icon" aria-hidden="true"></i>`}
       <span class="nr-dashboard-link__label">${label}</span>
@@ -42022,6 +41933,7 @@ function FormWidget(props) {
                   maxLength=${f3.maxlength || undefined}
                   value=${typeof fieldValue === "string" ? fieldValue : ""}
                   onInput=${(ev) => setField(f3.name, ev.target.value)}
+                  style=${{ "--nr-form-textarea-height": `${(f3.rows || 3) * 24}px` }}
                 ></textarea>` : type === "checkbox" ? m2`<label class="nr-dashboard-form__checkbox-row" htmlFor=${fieldId}>
                   <input
                     id=${fieldId}
@@ -46132,13 +46044,12 @@ function WidgetFrame({ control, disabled, children }) {
   const controlDisabled = control.disabled === true;
   const controlEnabled = control.enabled;
   const isDisabled = Boolean((disabled ?? controlDisabled) || controlEnabled === false);
+  const frameClass = `nr-dashboard-widget-frame${isDisabled ? " is-disabled" : ""} ${(control.className ?? "").trim()}`.trim();
   return m2`<div
-    class=${`nr-dashboard-widget-frame ${(control.className ?? "").trim()}`.trim()}
+    class=${frameClass}
     style=${{
-    padding: `${padding}px`,
-    gap: `${gap}px`,
-    opacity: isDisabled ? 0.55 : 1,
-    pointerEvents: isDisabled ? "none" : "auto"
+    "--nr-widget-padding": `${padding}px`,
+    "--nr-widget-gap": `${gap}px`
   }}
     aria-disabled=${isDisabled}
   >
@@ -46227,17 +46138,23 @@ function GroupCard(props) {
     const next = !collapsed;
     setCollapsed(next);
   };
+  const sectionStyle = {
+    "--nr-group-row-gap": `${sizes.cy}px`,
+    "--nr-group-col-gap": `${sizes.cx}px`,
+    "--nr-group-item-padding": `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`,
+    gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
+    padding: `${padding.y}px ${padding.x}px`
+  };
+  if (layoutMode === "masonry") {
+    sectionStyle.position = "absolute";
+    sectionStyle.left = `${layoutPos?.left ?? 0}px`;
+    sectionStyle.top = `${layoutPos?.top ?? 0}px`;
+    sectionStyle.width = `${layoutPos?.width ?? "auto"}`;
+  }
   return m2`<section
     class=${`nr-dashboard-group-card ${header?.config?.className ?? ""}`.trim()}
     data-grid-key=${header?.id ?? index}
-    style=${{
-    gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
-    padding: `${padding.y}px ${padding.x}px`,
-    position: layoutMode === "masonry" ? "absolute" : undefined,
-    left: layoutMode === "masonry" ? `${layoutPos?.left ?? 0}px` : undefined,
-    top: layoutMode === "masonry" ? `${layoutPos?.top ?? 0}px` : undefined,
-    width: layoutMode === "masonry" ? `${layoutPos?.width ?? "auto"}` : undefined
-  }}
+    style=${sectionStyle}
   >
     <header
       class="nr-dashboard-group-card__header"
@@ -46253,20 +46170,10 @@ function GroupCard(props) {
             <i class=${collapsed ? "fa fa-caret-down" : "fa fa-caret-up"}></i>
           </button>` : null}
     </header>
-    ${collapsed ? m2`<div class="nr-dashboard-group-card__message">${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div class="nr-dashboard-group-card__message">${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul
-          class="nr-dashboard-group-card__list"
-          style=${{
-    rowGap: `${sizes.cy}px`,
-    columnGap: `${sizes.cx}px`,
-    padding: "0 8px 8px 8px"
-  }}
-        >
+    ${collapsed ? m2`<div class="nr-dashboard-group-card__message">${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div class="nr-dashboard-group-card__message">${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul class="nr-dashboard-group-card__list">
           ${items.map((control, ctrlIdx) => m2`<li
                 class="nr-dashboard-group-card__item"
                 key=${control?.id ?? ctrlIdx}
-                style=${{
-    padding: `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`
-  }}
               >
                 <${WidgetRenderer}
                   control=${control}

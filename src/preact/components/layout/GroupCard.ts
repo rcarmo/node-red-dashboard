@@ -42,17 +42,27 @@ export function GroupCard(props: {
     setCollapsed(next);
   };
 
+  // Build style object with dynamic layout values via CSS custom properties
+  const sectionStyle: Record<string, string | undefined> = {
+    "--nr-group-row-gap": `${sizes.cy}px`,
+    "--nr-group-col-gap": `${sizes.cx}px`,
+    "--nr-group-item-padding": `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`,
+    gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
+    padding: `${padding.y}px ${padding.x}px`,
+  };
+
+  // Masonry layout requires absolute positioning
+  if (layoutMode === "masonry") {
+    sectionStyle.position = "absolute";
+    sectionStyle.left = `${layoutPos?.left ?? 0}px`;
+    sectionStyle.top = `${layoutPos?.top ?? 0}px`;
+    sectionStyle.width = `${layoutPos?.width ?? "auto"}`;
+  }
+
   return html`<section
     class=${`nr-dashboard-group-card ${header?.config?.className ?? ""}`.trim()}
     data-grid-key=${header?.id ?? index}
-    style=${{
-      gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
-      padding: `${padding.y}px ${padding.x}px`,
-      position: layoutMode === "masonry" ? "absolute" : undefined,
-      left: layoutMode === "masonry" ? `${layoutPos?.left ?? 0}px` : undefined,
-      top: layoutMode === "masonry" ? `${layoutPos?.top ?? 0}px` : undefined,
-      width: layoutMode === "masonry" ? `${layoutPos?.width ?? "auto"}` : undefined,
-    }}
+    style=${sectionStyle}
   >
     <header
       class="nr-dashboard-group-card__header"
@@ -74,20 +84,10 @@ export function GroupCard(props: {
       ? html`<div class="nr-dashboard-group-card__message">${t("collapsed", "Collapsed")}</div>`
       : items.length === 0
       ? html`<div class="nr-dashboard-group-card__message">${t("no_widgets", "No widgets in this group yet.")}</div>`
-      : html`<ul
-          class="nr-dashboard-group-card__list"
-          style=${{
-            rowGap: `${sizes.cy}px`,
-            columnGap: `${sizes.cx}px`,
-            padding: "0 8px 8px 8px",
-          }}
-        >
+      : html`<ul class="nr-dashboard-group-card__list">
           ${items.map((control, ctrlIdx) => html`<li
                 class="nr-dashboard-group-card__item"
                 key=${(control as { id?: string | number })?.id ?? ctrlIdx}
-                style=${{
-                  padding: `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`,
-                }}
               >
                 <${WidgetRenderer}
                   control=${control}

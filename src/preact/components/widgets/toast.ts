@@ -31,11 +31,10 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
   const [visible, setVisible] = useState<boolean>(true);
   const dismissible = c.dismissible !== false;
   const displayMs = Number.isFinite(c.displayTime) ? Math.max(0, Number(c.displayTime)) : 3000;
-  const [stackOffset, setStackOffset] = useState<number>(index * 4);
+  const stackOffset = index * 4;
 
   useEffect(() => {
     setVisible(true);
-    setStackOffset(index * 4);
     if (displayMs > 0) {
       const timer = window.setTimeout(() => setVisible(false), displayMs);
       return () => window.clearTimeout(timer);
@@ -47,15 +46,15 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
 
   return html`<div
     class=${`nr-dashboard-toast__container ${c.className || ""}`.trim()}
-    style=${{  
-      borderLeft: `4px solid ${toneColor}`,
-      margin: `${6 + stackOffset}px 0 6px 0`,
+    style=${{
+      "--nr-toast-tone": toneColor,
+      "--nr-toast-margin": `${6 + stackOffset}px 0 6px 0`,
     }}
     role="status"
     aria-live="polite"
     aria-atomic="true"
   >
-    <div class="nr-dashboard-toast__title" style=${{ color: toneColor }}>${label}</div>
+    <div class="nr-dashboard-toast__title">${label}</div>
     <div class="nr-dashboard-toast__body">${msg}</div>
     ${dismissible
       ? html`<button
@@ -63,7 +62,6 @@ export function ToastWidget(props: { control: UiControl; index: number }): VNode
           class="nr-dashboard-toast__close"
           aria-label=${t("toast_close", "Close notification")}
           onClick=${() => setVisible(false)}
-          style=${{ color: toneColor }}
         >×</button>`
       : null}
   </div>`;

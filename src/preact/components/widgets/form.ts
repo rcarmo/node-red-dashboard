@@ -174,6 +174,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
                   maxLength=${f.maxlength || undefined}
                   value=${typeof fieldValue === "string" ? fieldValue : ""}
                   onInput=${(ev: Event) => setField(f.name, (ev.target as HTMLTextAreaElement).value)}
+                  style=${{ "--nr-form-textarea-height": `${(f.rows || 3) * 24}px` }}
                 ></textarea>`
               : type === "checkbox"
               ? html`<label class="nr-dashboard-form__checkbox-row" htmlFor=${fieldId}>

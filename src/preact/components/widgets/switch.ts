@@ -107,9 +107,12 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   };
 
   const resolvedColor = resolveSwitchColors(asSwitch, checked);
-  const bg = checked ? resolvedColor : resolveSwitchColors(asSwitch, false);
+  const trackBg = checked ? resolvedColor : resolveSwitchColors(asSwitch, false);
+  const thumbBg = checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)";
+  const thumbLeft = checked ? "18px" : "-2px";
 
   const track = html`<div
+    class="nr-dashboard-switch__track"
     onClick=${onEmit ? toggle : undefined}
     onFocus=${() => setFocused(true)}
     onBlur=${() => setFocused(false)}
@@ -122,31 +125,15 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     tabIndex=${disabled ? -1 : 0}
     role="switch"
     aria-checked=${checked}
-    style=${{  
-      width: "36px",
-      height: "20px",
-      borderRadius: "10px",
-      background: bg,
-      position: "relative",
-      transition: "background 180ms cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
-      boxShadow: focused ? "0 0 0 3px color-mix(in srgb, var(--nr-dashboard-widgetBackgroundColor, #0094d9) 32%, transparent)" : "0 1px 2px rgba(0,0,0,0.18)",
-      overflow: "hidden",
-      cursor: disabled ? "default" : "grab",
+    style=${{
+      "--nr-switch-track-bg": trackBg,
     }}
   >
     <div
-      style=${{  
-        position: "absolute",
-        top: "-2px",
-        left: checked ? "18px" : "-2px",
-        width: "20px",
-        height: "20px",
-        borderRadius: "50%",
-        background: checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-        transition: "left 180ms cubic-bezier(0.25, 0.8, 0.25, 1), background 180ms cubic-bezier(0.25, 0.8, 0.25, 1)",
-        boxShadow: "0 1px 2px rgba(0,0,0,0.18)",
-        transition: "left 120ms ease, background 120ms ease",
+      class="nr-dashboard-switch__thumb"
+      style=${{
+        "--nr-switch-thumb-left": thumbLeft,
+        "--nr-switch-thumb-bg": thumbBg,
       }}
     ></div>
   </div>`;
@@ -157,32 +144,27 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     ? html`<div
         onClick=${onEmit ? toggle : undefined}
         class="nr-dashboard-switch__custom-icon-container"
-        style=${{
-          cursor: disabled ? "default" : "grab",
-        }}
       >
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
-          style=${{
-            color: checked ? asSwitch.oncolor : "transparent",
-          }}
+          style=${{ color: checked ? asSwitch.oncolor : "transparent" }}
         >${renderIcon(asSwitch.onicon)}</span>
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
-          style=${{
-            color: !checked ? asSwitch.offcolor : "transparent",
-          }}
+          style=${{ color: !checked ? asSwitch.offcolor : "transparent" }}
         >${renderIcon(asSwitch.officon)}</span>
       </div>`
     : track;
 
+  const containerClass = [
+    "nr-dashboard-switch",
+    asSwitch.className || "",
+    disabled ? "is-disabled" : "",
+    isCenter ? "is-centered" : "",
+  ].filter(Boolean).join(" ");
+
   return html`<div
-    class=${`nr-dashboard-switch ${asSwitch.className || ""}`.trim()}
-    style=${{
-      justifyContent: isCenter ? "center" : "space-between",
-      cursor: disabled ? "default" : "grab",
-      opacity: disabled ? 0.55 : 1,
-    }}
+    class=${containerClass}
     title=${asSwitch.tooltip || undefined}
   >
     ${showLabel

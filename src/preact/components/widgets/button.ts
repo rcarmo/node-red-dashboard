@@ -1,6 +1,5 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
-import { useState } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { resolveTypedPayload } from "../../lib/payload";
@@ -40,11 +39,6 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   const labelHtml = { __html: label };
   const backgroundColor = resolveButtonColor(asButton);
   const textColor = typeof asButton.color === "string" && asButton.color ? asButton.color : "var(--nr-dashboard-widgetTextColor, #fff)";
-  const [hovered, setHovered] = useState(false);
-  const [pressed, setPressed] = useState(false);
-  const isDisabled = Boolean(disabled);
-
-  const ripple = !isDisabled && (hovered || pressed);
 
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
@@ -109,53 +103,15 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
     class=${`nr-dashboard-button ${asButton.className || ""}`.trim()}
     disabled=${Boolean(disabled)}
     onClick=${onEmit ? handleClick : undefined}
-    onMouseEnter=${() => setHovered(true)}
-    onMouseLeave=${() => setHovered(false)}
-    onMouseDown=${() => setPressed(true)}
-    onMouseUp=${() => setPressed(false)}
-    onBlur=${() => {
-      setPressed(false);
-    }}
-    onFocus=${() => {}}
     style=${{
-      width: "100%",
-      height: "100%",
-      minWidth: "0",
-      minHeight: "36px",
-      padding: "2px",
-      borderRadius: "2px",
-      border: "none",
-      background: backgroundColor,
-      color: textColor,
-      fontSize: "14px",
-      fontWeight: 500,
-      textTransform: "uppercase",
-      letterSpacing: "0.01em",
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: asButton.icon ? "6px" : "0px",
-      cursor: onEmit ? "pointer" : "default",
-      outline: "none",
-      boxShadow: "none",
-      transition: "background 300ms cubic-bezier(0.4, 0, 0.2, 1)",
-      position: "relative",
-      overflow: "hidden",
-      opacity: isDisabled ? 0.55 : 1,
+      "--nr-button-bg": backgroundColor,
+      "--nr-button-color": textColor,
+      "--nr-button-gap": asButton.icon ? "6px" : "0px",
+      cursor: onEmit ? undefined : "default",
     }}
   >
     ${renderIcon(asButton.icon)}
     <span class="nr-dashboard-button__label" dangerouslySetInnerHTML=${labelHtml}></span>
-    <span
-      aria-hidden="true"
-      style=${{
-        position: "absolute",
-        inset: 0,
-        background: "radial-gradient(circle at center, rgba(255,255,255,0.16), transparent 60%)",
-        opacity: ripple ? (pressed ? 0.32 : 0.18) : 0,
-        transition: "opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)",
-        pointerEvents: "none",
-      }}
-    ></span>
+    <span class="nr-dashboard-button__ripple" aria-hidden="true"></span>
   </button>`;
 }

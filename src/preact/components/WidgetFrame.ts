@@ -17,13 +17,13 @@ export function WidgetFrame({ control, disabled, children }: WidgetFrameProps): 
   const controlEnabled = (control as { enabled?: boolean }).enabled;
   const isDisabled = Boolean((disabled ?? controlDisabled) || controlEnabled === false);
 
+  const frameClass = `nr-dashboard-widget-frame${isDisabled ? " is-disabled" : ""} ${((control as { className?: string }).className ?? "").trim()}`.trim();
+
   return html`<div
-    class=${`nr-dashboard-widget-frame ${((control as { className?: string }).className ?? "").trim()}`.trim()}
+    class=${frameClass}
     style=${{
-      padding: `${padding}px`,
-      gap: `${gap}px`,
-      opacity: isDisabled ? 0.55 : 1,
-      pointerEvents: isDisabled ? "none" : "auto",
+      "--nr-widget-padding": `${padding}px`,
+      "--nr-widget-gap": `${gap}px`,
     }}
     aria-disabled=${isDisabled}
   >
