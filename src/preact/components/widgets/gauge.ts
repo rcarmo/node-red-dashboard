@@ -25,6 +25,12 @@ export type GaugeControl = UiControl & {
   colors?: string[];
   diff?: boolean;
   className?: string;
+  waveoptions?: {
+    circleColor?: string;
+    waveColor?: string;
+    textColor?: string;
+    waveTextColor?: string;
+  };
 };
 
 function computeGaugeHeight(ctrl: GaugeControl): number {
@@ -78,6 +84,154 @@ export function buildSegments(ctrl: GaugeControl, min: number, max: number): Arr
   ];
 }
 
+type WaveGaugeProps = {
+  value: number;
+  min: number;
+  max: number;
+  label: string;
+  units?: string;
+  formatter: Intl.NumberFormat;
+  circleColor?: string;
+  waveColor?: string;
+  textColor?: string;
+  waveTextColor?: string;
+};
+
+function WaveGauge({ value, min, max, label, units, formatter, circleColor, waveColor, textColor, waveTextColor }: WaveGaugeProps): VNode {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const animationRef = useRef<number>(0);
+  const [waveOffset, setWaveOffset] = useState<number>(0);
+  const size = 200;
+  const radius = size / 2 - 10;
+  const strokeWidth = 4;
+  const fillPercent = clamp((value - min) / (max - min || 1), 0, 1);
+  const fillHeight = radius * 2 * fillPercent;
+  const centerY = size / 2;
+  const centerX = size / 2;
+  
+  const circleStroke = circleColor || "var(--nr-dashboard-widgetColor, #178BCA)";
+  const waveFill = waveColor || "var(--nr-dashboard-widgetColor, #178BCA)";
+  const textFill = textColor || "var(--nr-dashboard-widgetTextColor, #045681)";
+  const waveTextFill = waveTextColor || "var(--nr-dashboard-widgetBackgroundColor, #A4DBf8)";
+  
+  // Animate wave
+  useEffect(() => {
+    let startTime: number | null = null;
+    const duration = 3000; // 3 seconds for full wave cycle
+    
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = (elapsed % duration) / duration;
+      setWaveOffset(progress * Math.PI * 4);
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    
+    animationRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationRef.current);
+  }, []);
+  
+  // Generate wave path
+  const generateWavePath = (): string => {
+    const waveHeight = 8;
+    const waveCount = 2;
+    const fillY = centerY + radius - fillHeight;
+    const points: string[] = [];
+    
+    // Start from left edge
+    points.push(`M ${centerX - radius} ${fillY}`);
+    
+    // Generate wave points
+    const steps = 100;
+    for (let i = 0; i <= steps; i++) {
+      const x = centerX - radius + (i / steps) * radius * 2;
+      const normalizedX = (i / steps) * Math.PI * 2 * waveCount + waveOffset;
+      const waveY = Math.sin(normalizedX) * waveHeight;
+      points.push(`L ${x} ${fillY + waveY}`);
+    }
+    
+    // Complete the path to fill the bottom of circle
+    points.push(`L ${centerX + radius} ${centerY + radius + 10}`);
+    points.push(`L ${centerX - radius} ${centerY + radius + 10}`);
+    points.push("Z");
+    
+    return points.join(" ");
+  };
+  
+  const formattedValue = formatter.format(value);
+  const displayText = units ? `${formattedValue}${units}` : formattedValue;
+  
+  const clipId = `wave-clip-${label.replace(/\s/g, "-")}`;
+  
+  return html`
+    <svg
+      ref=${svgRef}
+      viewBox="0 0 ${size} ${size}"
+      width=${size}
+      height=${size}
+      class="nr-dashboard-gauge__wave"
+      role="img"
+      aria-label=${`${label}: ${displayText}`}
+    >
+      <defs>
+        <clipPath id=${clipId}>
+          <circle cx=${centerX} cy=${centerY} r=${radius - strokeWidth / 2} />
+        </clipPath>
+      </defs>
+      
+      <!-- Outer circle -->
+      <circle
+        cx=${centerX}
+        cy=${centerY}
+        r=${radius}
+        fill="none"
+        stroke=${circleStroke}
+        stroke-width=${strokeWidth}
+      />
+      
+      <!-- Wave fill clipped to circle -->
+      <g clip-path=${`url(#${clipId})`}>
+        <!-- Background circle -->
+        <circle
+          cx=${centerX}
+          cy=${centerY}
+          r=${radius}
+          fill="var(--nr-dashboard-widgetBackgroundColor, #1a1f2a)"
+        />
+        <!-- Wave path -->
+        <path
+          d=${generateWavePath()}
+          fill=${waveFill}
+          opacity="0.8"
+        />
+        <!-- Text above wave (different color) -->
+        <text
+          x=${centerX}
+          y=${centerY}
+          text-anchor="middle"
+          dominant-baseline="middle"
+          fill=${waveTextFill}
+          font-size="28"
+          font-weight="500"
+        >${displayText}</text>
+      </g>
+      
+      <!-- Text outside wave (clipped inverse) - shows when wave is below text -->
+      <text
+        x=${centerX}
+        y=${centerY}
+        text-anchor="middle"
+        dominant-baseline="middle"
+        fill=${textFill}
+        font-size="28"
+        font-weight="500"
+        clip-path=${`url(#${clipId})`}
+        style="pointer-events: none"
+      >${displayText}</text>
+    </svg>
+  `;
+}
+
 export function GaugeWidget(props: { control: UiControl; index: number }): VNode {
   const { control, index } = props;
   const asGauge = control as GaugeControl;
@@ -116,6 +270,38 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
     prevValue.current = value;
   }, [value]);
 
+  // Render wave gauge using custom SVG component
+  if (isWave) {
+    const waveOpts = asGauge.waveoptions ?? {};
+    return html`<div
+      class=${`${asGauge.className || ""}`.trim()}
+      style=${{
+        width: "100%",
+        minHeight: `${chartHeight}px`,
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+      aria-label=${ariaLabel}
+    >
+      <div class="nr-dashboard-gauge__title">${label}</div>
+      <${WaveGauge}
+        value=${value}
+        min=${min}
+        max=${max}
+        label=${label}
+        units=${asGauge.units}
+        formatter=${formatter}
+        circleColor=${waveOpts.circleColor}
+        waveColor=${waveOpts.waveColor}
+        textColor=${waveOpts.textColor}
+        waveTextColor=${waveOpts.waveTextColor}
+      />
+    </div>`;
+  }
+
   useECharts(
     chartRef,
     [value, min, max, segments, showTicks, showMinMax, isDonut, isWave, isCompass, formatted, label, reverse, formatter, chartHeight],
@@ -131,7 +317,7 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
           splitNumber: isCompass ? 8 : showTicks ? 6 : 0,
           progress: {
             show: true,
-            width: isDonut || isWave ? 14 : 10,
+            width: isDonut ? 14 : 10,
             roundCap: true,
             itemStyle: {
               color: segments[segments.length - 1][1],
@@ -156,14 +342,14 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
               return dirs[idx];
             },
           },
-          pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
-          anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+          pointer: { show: !isDonut, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+          anchor: { show: !isDonut, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
           detail: {
             valueAnimation: true,
             formatter: () => formatted,
             color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
             fontSize: 16,
-            offsetCenter: isWave ? [0, "34%"] : [0, "54%"],
+            offsetCenter: [0, "54%"],
           },
           data: [
             {

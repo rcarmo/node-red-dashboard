@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { createSocketBridge, UiSocketBridge } from "./socket";
-import { speakText } from "./lib/tts";
+import { speakText, initVoices } from "./lib/tts";
 import type { LocaleMap } from "./lib/i18n";
 
 export type UiGroup = {
@@ -148,6 +148,9 @@ export function useDashboardState(): DashboardStore {
   const [bridge, setBridge] = useState<UiSocketBridge | null>(null);
 
   useEffect(() => {
+    // Initialize TTS voices early
+    initVoices();
+    
     // TODO: add socket contract tests covering ui-control/ui-replay/ui-change payloads.
     const b = createSocketBridge({
       onConnect: (id) => {
@@ -184,7 +187,7 @@ export function useDashboardState(): DashboardStore {
         setState((prev) => pushToast(prev, payload));
       },
       onAudio: (payload) => {
-        handleAudioEvent(payload);
+        handleAudioEvent(payload, b, setState);
       },
     });
     setBridge(b);
@@ -386,25 +389,60 @@ function handleUiControl(prev: DashboardState, payload: unknown): DashboardState
   return { ...prev, menu: [...menu], selectedTabIndex };
 }
 
-function handleAudioEvent(payload: unknown): void {
+function handleAudioEvent(
+  payload: unknown,
+  bridge: UiSocketBridge | null,
+  setState: (fn: (prev: DashboardState) => DashboardState) => void,
+): void {
   const msg = (payload || {}) as { reset?: boolean; stop?: boolean; tts?: string; voice?: string; vol?: number; audio?: ArrayBuffer | Uint8Array };
+  
+  const emitStatus = (status: string) => {
+    bridge?.emit("ui-audio", { status });
+  };
+  
   if (msg.reset || msg.stop) {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+    emitStatus("reset");
     return;
   }
+  
   if (msg.tts) {
-    speakText(msg.tts, msg.voice, typeof msg.vol === "number" ? msg.vol / 100 : undefined);
+    speakText(
+      msg.tts,
+      msg.voice,
+      typeof msg.vol === "number" ? msg.vol / 100 : undefined,
+      // Status callback
+      (status) => emitStatus(status),
+      // Fallback callback - show as toast when TTS not available
+      (text) => {
+        setState((prev) => pushToast(prev, {
+          message: text,
+          title: "Computer says...",
+          displayTime: 3000,
+        }));
+      },
+    );
     return;
   }
+  
   if (msg.audio && typeof window !== "undefined") {
     const buffer = msg.audio instanceof Uint8Array ? msg.audio : new Uint8Array(msg.audio as ArrayBuffer);
     const blob = new Blob([buffer], { type: "audio/mpeg" });
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
     audio.volume = typeof msg.vol === "number" ? Math.max(0, Math.min(1, msg.vol / 100)) : 1;
-    void audio.play().finally(() => URL.revokeObjectURL(url));
+    audio.onplay = () => emitStatus("playing");
+    audio.onended = () => {
+      emitStatus("complete");
+      URL.revokeObjectURL(url);
+    };
+    audio.onerror = () => {
+      emitStatus("error: playback failed");
+      URL.revokeObjectURL(url);
+    };
+    void audio.play();
   }
 }
 
