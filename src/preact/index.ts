@@ -382,7 +382,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
     };
   }, [actions, allowSwipe, isSlide, state.menu, state.selectedTabIndex, navOpen]);
 
-  const statusLabel = (() => {
+  const _statusLabel = (() => {
     switch (state.connection) {
       case "ready":
         return t("status_connected", "Connected");

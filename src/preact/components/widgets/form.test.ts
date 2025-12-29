@@ -29,14 +29,14 @@ describe("Form helpers", () => {
   });
 
   test("supports checkbox fields", () => {
-    const ctrl: any = { label: "Form", fields: [{ name: "agree", type: "checkbox", value: true }] };
-    const payload = buildFormEmit(ctrl, "Form 1", { agree: true } as any);
+    const ctrl = { label: "Form", fields: [{ name: "agree", type: "checkbox", value: true }] };
+    const payload = buildFormEmit(ctrl, "Form 1", { agree: true });
     expect(payload.payload.agree).toBe(true);
   });
 
   test("supports multiline rows", () => {
-    const ctrl: any = { label: "Form", fields: [{ name: "notes", type: "multiline", rows: 4 }] };
-    const emit = buildFormEmit(ctrl, "Form 1", { notes: "hello" } as any);
+    const ctrl = { label: "Form", fields: [{ name: "notes", type: "multiline", rows: 4 }] };
+    const emit = buildFormEmit(ctrl, "Form 1", { notes: "hello" });
     expect(emit.type).toBe("form");
     expect(emit.payload.notes).toBe("hello");
   });

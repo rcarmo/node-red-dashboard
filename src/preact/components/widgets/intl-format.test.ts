@@ -5,8 +5,9 @@ import { SliderWidget } from "./slider";
 import { NumericWidget } from "./numeric";
 import { DatePickerWidget } from "./date-picker";
 import { I18nProvider } from "../../lib/i18n";
+import type { VNode } from "preact";
 
-const renderWithI18n = (node: preact.VNode, lang: string) =>
+const renderWithI18n = (node: VNode, lang: string) =>
   render(h(I18nProvider, { lang, locales: { [lang]: {} } }, node));
 
 describe("Locale formatting", () => {
@@ -34,7 +35,7 @@ describe("Locale formatting", () => {
       "de",
     );
 
-    const label = container.querySelector("span[style]") as HTMLElement;
+    const _label = container.querySelector("span[style]") as HTMLElement;
     expect(container.textContent).toContain("1.234");
     const input = container.querySelector("input[type=number]") as HTMLInputElement;
     expect(input.getAttribute("aria-valuetext")).toContain("1.234");

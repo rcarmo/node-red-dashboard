@@ -1,3 +1,4 @@
+import { describe, expect, test } from "bun:test";
 import { resolveLanguage } from "./index";
 
 describe("i18n pipeline language selection", () => {

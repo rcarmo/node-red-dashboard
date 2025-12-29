@@ -65,7 +65,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
 
   const initial = clampSliderValue(toNumber(asSlider.value ?? min, min), min, max);
   const [value, setValue] = useState<number>(initial);
-  const [dragging, setDragging] = useState<boolean>(false);
+  const [_dragging, setDragging] = useState<boolean>(false);
 
   useEffect(() => {
     setValue(clampSliderValue(toNumber(asSlider.value ?? min, min), min, max));

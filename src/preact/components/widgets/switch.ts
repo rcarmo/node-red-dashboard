@@ -59,7 +59,7 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   };
 
   const [checked, setChecked] = useState<boolean>(toChecked(asSwitch.value ?? asSwitch.state));
-  const [focused, setFocused] = useState(false);
+  const [_focused, setFocused] = useState(false);
 
   useEffect(() => {
     setChecked(toChecked(asSwitch.value ?? asSwitch.state));

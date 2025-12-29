@@ -74,7 +74,7 @@ export function TextWidget(props: { control: UiControl; index: number }): VNode 
     asText.style,
   );
 
-  const isColumn = container.flexDirection === "column";
+  const _isColumn = container.flexDirection === "column";
 
   return html`<div ref=${ref} class=${`nr-dashboard-text ${asText.className || ""}`.trim()} style=${container}>
     <p

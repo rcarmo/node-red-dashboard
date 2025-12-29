@@ -2,7 +2,7 @@ export type TtsStatusCallback = (status: "playing" | "complete" | `error: ${stri
 
 export type TtsFallbackCallback = (text: string) => void;
 
-let cachedVoices: SpeechSynthesisVoice[] = [];
+let cachedVoices: globalThis.SpeechSynthesisVoice[] = [];
 
 export function initVoices(): void {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -12,7 +12,7 @@ export function initVoices(): void {
   };
 }
 
-export function getVoices(): SpeechSynthesisVoice[] {
+export function getVoices(): globalThis.SpeechSynthesisVoice[] {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return [];
   if (cachedVoices.length === 0) {
     cachedVoices = window.speechSynthesis.getVoices();

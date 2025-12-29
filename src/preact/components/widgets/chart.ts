@@ -357,14 +357,14 @@ export function buildChartOption(
       backgroundColor: "rgba(136,136,136,0.95)",
       borderColor: "rgba(0,0,0,0.25)",
       textStyle: { color: "#fff" },
-      formatter: (params: any) => {
+      formatter: (params: unknown) => {
         const items = Array.isArray(params) ? params : [params];
         if (!items.length) return "";
-        const first = items[0];
+        const first = items[0] as Record<string, unknown>;
         const axisValue = first.axisValueLabel ?? first.name;
-        const header = data.isTimeSeries ? timeFormatter(Number(first.axisValue ?? first.value?.[0] ?? Date.now())) : axisValue;
-        const lines = items.map((it: any) => {
-          const val = Array.isArray(it.value) ? it.value[1] : it.value;
+        const header = data.isTimeSeries ? timeFormatter(Number(first.axisValue ?? (first.value as number[])?.[0] ?? Date.now())) : axisValue;
+        const lines = items.map((it: Record<string, unknown>) => {
+          const val = Array.isArray(it.value) ? (it.value as number[])[1] : it.value;
           return `${it.marker || ""}${it.seriesName}: ${valueFormatter(Number(val))}`;
         });
         return [header, ...lines].join("\n");
