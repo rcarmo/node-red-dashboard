@@ -1,6 +1,6 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
-import { useMemo, useState } from "preact/hooks";
+import { useCallback, useMemo, useState } from "preact/hooks";
 import type { UiControl, UiGroup } from "../../state";
 import { WidgetRenderer } from "../widget-renderer";
 import { useI18n } from "../../lib/i18n";
@@ -37,10 +37,12 @@ export function GroupCard(props: {
 
   const [collapsed, setCollapsed] = useState<boolean>(initialCollapsed);
 
-  const toggleCollapse = () => {
+  const toggleCollapse = useCallback(() => {
     const next = !collapsed;
     setCollapsed(next);
-  };
+    // Emit ui-collapse event for Node-RED ui_ui_control
+    onEmit?.("ui-collapse", { group: groupKey, state: !next });
+  }, [collapsed, groupKey, onEmit]);
 
   // Build style object with dynamic layout values via CSS custom properties
   const sectionStyle: Record<string, string | undefined> = {

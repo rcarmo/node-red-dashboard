@@ -77,12 +77,21 @@ export type ToastMessage = {
   raw?: boolean; // Allow raw HTML
   dismissible?: boolean;
   position?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "top-center" | "bottom-center";
+  // For response back to Node-RED
+  nodeId?: string;
+  originalMsg?: Record<string, unknown>;
+};
+
+export type DialogResult = {
+  ok: boolean;
+  value?: string;
 };
 
 export type DashboardActions = {
   selectTab: (index: number) => void;
   emit: UiSocketBridge["emit"] | null;
   dismissToast: (id: string) => void;
+  handleDialogResult: (toastId: string, result: DialogResult) => void;
 };
 
 export type DashboardStore = {
@@ -219,6 +228,25 @@ export function useDashboardState(): DashboardStore {
     };
   }, [state.toasts]);
 
+  const handleDialogResult = (toastId: string, result: DialogResult): void => {
+    // Find the toast to get original message data
+    const toast = state.toasts.find((t) => t.id === toastId);
+    if (toast && toast.nodeId) {
+      // Build the response payload matching Angular behavior
+      const responseMsg = { ...(toast.originalMsg ?? {}) };
+      if (result.ok) {
+        responseMsg.payload = result.value !== undefined ? result.value : toast.okLabel ?? "OK";
+        if (result.value === "") responseMsg.payload = "";
+      } else {
+        responseMsg.payload = toast.cancelLabel ?? "Cancel";
+      }
+      // Emit back to Node-RED via the beforeSend mechanism
+      bridge?.emit("ui-control", { id: toast.nodeId, value: { msg: responseMsg } });
+    }
+    // Dismiss the toast
+    setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t) => t.id !== toastId) }));
+  };
+
   return {
     state,
     selectedTab,
@@ -226,6 +254,7 @@ export function useDashboardState(): DashboardStore {
       selectTab,
       emit: bridge?.emit ?? null,
       dismissToast: (id: string) => setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t) => t.id !== id) })),
+      handleDialogResult,
     },
   };
 }
@@ -323,16 +352,39 @@ function pushToast(prev: DashboardState, payload: unknown): DashboardState {
     displayTime?: number;
     className?: string;
     highlight?: string;
+    // Dialog support from Node-RED
+    dialog?: boolean;
+    prompt?: boolean;
+    ok?: string;
+    cancel?: string;
+    position?: string;
+    raw?: boolean;
+    msg?: Record<string, unknown>;
   };
   const id = msg.id?.toString() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  
+  // Determine dialog type from Node-RED position or dialog/prompt flags
+  let dialogType: ToastMessage["dialogType"] = undefined;
+  if (msg.dialog || msg.position === "dialog" || msg.position === "prompt") {
+    dialogType = msg.prompt || msg.position === "prompt" ? "prompt" : "dialog";
+  }
+  
   const toast = {
     id,
     title: msg.title,
     message: msg.message,
     level: msg.level === "error" || msg.level === "warn" ? msg.level : undefined,
-    displayTime: typeof msg.displayTime === "number" ? msg.displayTime : 3000,
+    displayTime: typeof msg.displayTime === "number" ? msg.displayTime : (dialogType ? 0 : 3000),
     highlight: typeof msg.highlight === "string" ? msg.highlight : undefined,
     className: msg.className,
+    dialogType,
+    okLabel: msg.ok,
+    cancelLabel: msg.cancel,
+    showCancel: Boolean(msg.cancel),
+    raw: msg.raw,
+    position: (msg.position && !["dialog", "prompt"].includes(msg.position)) ? msg.position as ToastMessage["position"] : undefined,
+    nodeId: msg.id?.toString(),
+    originalMsg: msg.msg,
   } satisfies ToastMessage;
   const nextToasts = [...prev.toasts.filter((t) => t.id !== id), toast];
   return { ...prev, toasts: nextToasts };
@@ -346,6 +398,16 @@ function handleUiControl(prev: DashboardState, payload: unknown): DashboardState
 
   if (msg.control && controlId !== undefined) {
     menu = updateControlById(menu, controlId, msg.control as Record<string, unknown>);
+  }
+
+  // Template dynamic updates: msg.template updates the template content
+  if (msg.template !== undefined && controlId !== undefined) {
+    menu = updateControlById(menu, controlId, { template: msg.template });
+  }
+
+  // Forward msg.msg for template widgets that need the full message
+  if (msg.msg !== undefined && controlId !== undefined) {
+    menu = updateControlById(menu, controlId, { msg: msg.msg });
   }
 
   // Dropdown legacy parity: accept option updates/reset/value sent via ui-control

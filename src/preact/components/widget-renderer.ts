@@ -17,6 +17,7 @@ import { LinkWidget } from "./widgets/link";
 import { TemplateWidget } from "./widgets/template";
 import { FormWidget } from "./widgets/form";
 import { ChartWidget } from "./widgets/chart";
+import { SpacerWidget } from "./widgets/spacer";
 import { WidgetPreview } from "./widget-preview";
 import { WidgetFrame } from "./WidgetFrame";
 
@@ -92,6 +93,10 @@ export function WidgetRenderer(props: { control: UiControl; index: number; onEmi
 
   if (type === "form" || type === "ui_form") {
     return html`<${WidgetFrame} control=${control} disabled=${disabled}><${FormWidget} control=${control} index=${index} onEmit=${onEmit} disabled=${disabled} /></${WidgetFrame}>`;
+  }
+
+  if (type === "spacer" || type === "ui_spacer") {
+    return html`<${SpacerWidget} control=${control} index=${index} />`;
   }
 
   return html`<${WidgetFrame} control=${control} disabled=${disabled}><${WidgetPreview} control=${control} index=${index} /></${WidgetFrame}>`;

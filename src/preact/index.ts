@@ -213,7 +213,11 @@ export function App(): VNode {
         tabId=${tabId}
         actions=${actions}
       />
-      <${ToastOverlay} toasts=${state.toasts} onDismiss=${actions.dismissToast} />
+      <${ToastOverlay}
+        toasts=${state.toasts}
+        onDismiss=${actions.dismissToast}
+        onDialogResult=${(id: string, result: { ok: boolean; value?: string }) => actions.handleDialogResult(id, result)}
+      />
     </${SizesProvider}>
   </${I18nProvider}>`;
 }
