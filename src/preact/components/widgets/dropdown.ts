@@ -1,5 +1,5 @@
 import { html } from "htm/preact";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import type { VNode } from "preact";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
@@ -90,6 +90,9 @@ export function buildDropdownEmit(ctrl: DropdownControl, fallbackLabel: string, 
   };
 }
 
+// Threshold for showing search filter (matches Angular behavior)
+const SEARCH_THRESHOLD = 7;
+
 export function DropdownWidget(props: { control: UiControl; index: number; disabled?: boolean; onEmit?: (event: string, msg?: Record<string, unknown>) => void }): VNode {
   const { control, index, disabled, onEmit } = props;
   const asDrop = control as DropdownControl;
@@ -100,7 +103,32 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const multiple = Boolean(asDrop.multiple);
   const [value, setValue] = useState<unknown>(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = useRef<boolean>(false);
-  const [focused, setFocused] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Show search when more than threshold options
+  const showSearch = opts.length > SEARCH_THRESHOLD;
+
+  // Filter options by search term
+  const filteredOpts = useMemo(() => {
+    if (!searchTerm.trim()) return opts;
+    const term = searchTerm.toLowerCase();
+    return opts.filter((opt) => {
+      const labelText = String(opt.label ?? opt.value).toLowerCase();
+      return labelText.includes(term);
+    });
+  }, [opts, searchTerm]);
+
+  // Check if all non-disabled options are selected
+  const enabledOpts = useMemo(() => opts.filter((o) => !o.disabled), [opts]);
+  const allSelected = useMemo(() => {
+    if (!multiple || !Array.isArray(value)) return false;
+    return enabledOpts.every((opt) =>
+      (value as unknown[]).some((v) => serializeOptionValue(v) === serializeOptionValue(opt.value))
+    );
+  }, [multiple, value, enabledOpts]);
 
   useEffect(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
@@ -125,69 +153,179 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
     }
   }, [asDrop.resetSelection, multiple]);
 
-  const handleChange = (e: Event) => {
-    const target = e.target as HTMLSelectElement;
-    if (multiple) {
-      const selected: unknown[] = [];
-      Array.from(target.selectedOptions).forEach((opt) => {
-        selected.push(parseOptionValue(opt.value, opt.dataset.type));
-      });
-      setValue(selected);
-      if (onEmit) onEmit("ui-control", buildDropdownEmit(asDrop, label, selected));
-    } else {
-      const opt = target.selectedOptions[0];
-      if (!opt) return;
-      const parsed = parseOptionValue(opt.value, opt.dataset.type);
-      setValue(parsed);
-      if (onEmit) onEmit("ui-control", buildDropdownEmit(asDrop, label, parsed));
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+        setSearchTerm("");
+        // Emit on close for multiple mode (batch selection)
+        if (multiple && onEmit) {
+          onEmit("ui-control", buildDropdownEmit(asDrop, label, value));
+        }
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, multiple, onEmit, asDrop, label, value]);
+
+  // Focus search input when opening
+  useEffect(() => {
+    if (isOpen && showSearch && searchRef.current) {
+      searchRef.current.focus();
+    }
+  }, [isOpen, showSearch]);
+
+  const handleToggle = () => {
+    if (disabled) return;
+    setIsOpen(!isOpen);
+    if (isOpen) {
+      setSearchTerm("");
+      // Emit on close for multiple mode
+      if (multiple && onEmit) {
+        onEmit("ui-control", buildDropdownEmit(asDrop, label, value));
+      }
     }
   };
 
+  const handleOptionClick = useCallback((opt: DropdownOption) => {
+    if (opt.disabled) return;
+    const optValue = parseOptionValue(serializeOptionValue(opt.value), inferType(opt));
+
+    if (multiple) {
+      const arr = Array.isArray(value) ? (value as unknown[]) : [];
+      const exists = arr.some((v) => serializeOptionValue(v) === serializeOptionValue(optValue));
+      const newValue = exists
+        ? arr.filter((v) => serializeOptionValue(v) !== serializeOptionValue(optValue))
+        : [...arr, optValue];
+      setValue(newValue);
+      // Don't emit immediately in multiple mode - emit on close
+    } else {
+      setValue(optValue);
+      setIsOpen(false);
+      setSearchTerm("");
+      if (onEmit) onEmit("ui-control", buildDropdownEmit(asDrop, label, optValue));
+    }
+  }, [multiple, value, onEmit, asDrop, label]);
+
+  const handleSelectAll = useCallback(() => {
+    if (!multiple) return;
+    if (allSelected) {
+      setValue([]);
+    } else {
+      const allValues = enabledOpts.map((opt) =>
+        parseOptionValue(serializeOptionValue(opt.value), inferType(opt))
+      );
+      setValue(allValues);
+    }
+  }, [multiple, allSelected, enabledOpts]);
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsOpen(false);
+      setSearchTerm("");
+    } else if (e.key === "Enter" && !isOpen) {
+      setIsOpen(true);
+    }
+  };
+
+  // Build display text
+  const displayText = useMemo(() => {
+    if (multiple) {
+      const arr = Array.isArray(value) ? (value as unknown[]) : [];
+      if (arr.length === 0) return asDrop.place || t("dropdown_select", "Select...");
+      if (arr.length === 1) {
+        const match = opts.find((o) => serializeOptionValue(o.value) === serializeOptionValue(arr[0]));
+        return match ? String(match.label ?? match.value) : String(arr[0]);
+      }
+      return t("dropdown_selected_count", "{count} selected", { count: arr.length });
+    }
+    if (value === null || value === undefined || value === "") {
+      return asDrop.place || t("dropdown_select", "Select...");
+    }
+    const match = opts.find((o) => serializeOptionValue(o.value) === serializeOptionValue(value));
+    return match ? String(match.label ?? match.value) : String(value);
+  }, [value, multiple, opts, asDrop.place, t]);
+
+  const isOptionSelected = useCallback((opt: DropdownOption): boolean => {
+    if (multiple) {
+      const arr = Array.isArray(value) ? (value as unknown[]) : [];
+      return arr.some((v) => serializeOptionValue(v) === serializeOptionValue(opt.value));
+    }
+    return serializeOptionValue(value) === serializeOptionValue(opt.value);
+  }, [value, multiple]);
+
   const showLabel = !(Number(asDrop.width) === 1) && label.length > 0;
 
-  return html`<div class=${`nr-dashboard-dropdown ${asDrop.className || ""}`.trim()} title=${asDrop.tooltip || undefined}>
+  return html`<div
+    ref=${containerRef}
+    class=${`nr-dashboard-dropdown ${asDrop.className || ""} ${isOpen ? "is-open" : ""}`.trim()}
+    title=${asDrop.tooltip || undefined}
+    onKeyDown=${handleKeyDown}
+  >
     ${showLabel ? html`<p class="nr-dashboard-dropdown__label" dangerouslySetInnerHTML=${labelHtml}></p>` : null}
     <div class="nr-dashboard-dropdown__field">
-      <select
-        multiple=${multiple}
-        class="nr-dashboard-dropdown__select"
-        title=${asDrop.tooltip || undefined}
+      <button
+        type="button"
+        class=${`nr-dashboard-dropdown__trigger ${isOpen ? "is-open" : ""}`.trim()}
         disabled=${Boolean(disabled)}
-        value=${!multiple ? serializeOptionValue(value) : undefined}
-        onChange=${handleChange}
-        onFocus=${() => setFocused(true)}
-        onBlur=${() => setFocused(false)}
-        style=${{
-          borderBottomColor: focused ? "var(--nr-dashboard-widgetBackgroundColor, #1f8af2)" : undefined,
-          cursor: Boolean(disabled) ? "not-allowed" : "pointer",
-        }}
+        onClick=${handleToggle}
+        aria-haspopup="listbox"
+        aria-expanded=${isOpen}
+        aria-label=${label}
       >
-        ${asDrop.place && !multiple
-          ? html`<option value="" disabled selected=${value == null || value === ""}>${asDrop.place}</option>`
-          : null}
-        ${opts.map((opt) => {
-          const serialized = typeof opt.value === "string" ? opt.value : JSON.stringify(opt.value);
-          const inferredType = opt.type
-            ? opt.type
-            : typeof opt.value === "number"
-            ? "number"
-            : typeof opt.value === "string"
-            ? "string"
-            : "json";
-          const selected = multiple
-            ? Array.isArray(value) && (value as unknown[]).some((v) => JSON.stringify(v) === JSON.stringify(opt.value))
-            : JSON.stringify(value) === JSON.stringify(opt.value);
-          return html`<option
-            value=${serialized}
-            data-type=${inferredType}
-            disabled=${opt.disabled || false}
-            selected=${selected}
-          >
-            ${opt.label ?? opt.value}
-          </option>`;
-        })}
-      </select>
-      <span class="nr-dashboard-dropdown__chevron" aria-hidden="true">▼</span>
+        <span class="nr-dashboard-dropdown__value">${displayText}</span>
+        <span class="nr-dashboard-dropdown__chevron" aria-hidden="true">▼</span>
+      </button>
+      ${isOpen ? html`<div class="nr-dashboard-dropdown__menu" role="listbox" aria-multiselectable=${multiple}>
+        ${showSearch ? html`<div class="nr-dashboard-dropdown__search">
+          <input
+            ref=${searchRef}
+            type="text"
+            class="nr-dashboard-dropdown__search-input"
+            placeholder=${t("dropdown_search", "Search...")}
+            value=${searchTerm}
+            onInput=${(e: Event) => setSearchTerm((e.target as HTMLInputElement).value)}
+            onClick=${(e: Event) => e.stopPropagation()}
+          />
+        </div>` : null}
+        ${multiple && enabledOpts.length > 1 ? html`<div class="nr-dashboard-dropdown__select-all">
+          <label class="nr-dashboard-dropdown__option nr-dashboard-dropdown__option--all">
+            <input
+              type="checkbox"
+              checked=${allSelected}
+              onChange=${handleSelectAll}
+              class="nr-dashboard-dropdown__checkbox"
+            />
+            <span>${allSelected ? t("dropdown_deselect_all", "Deselect all") : t("dropdown_select_all", "Select all")}</span>
+          </label>
+        </div>` : null}
+        <ul class="nr-dashboard-dropdown__options">
+          ${filteredOpts.length === 0
+            ? html`<li class="nr-dashboard-dropdown__empty">${t("dropdown_no_results", "No results")}</li>`
+            : filteredOpts.map((opt) => {
+                const selected = isOptionSelected(opt);
+                return html`<li
+                  key=${serializeOptionValue(opt.value)}
+                  class=${`nr-dashboard-dropdown__option ${selected ? "is-selected" : ""} ${opt.disabled ? "is-disabled" : ""}`.trim()}
+                  role="option"
+                  aria-selected=${selected}
+                  aria-disabled=${opt.disabled}
+                  onClick=${() => handleOptionClick(opt)}
+                >
+                  ${multiple ? html`<input
+                    type="checkbox"
+                    checked=${selected}
+                    disabled=${opt.disabled}
+                    class="nr-dashboard-dropdown__checkbox"
+                    tabIndex=${-1}
+                  />` : null}
+                  <span>${opt.label ?? opt.value}</span>
+                </li>`;
+              })}
+        </ul>
+      </div>` : null}
     </div>
   </div>`;
 }

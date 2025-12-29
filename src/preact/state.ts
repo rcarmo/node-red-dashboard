@@ -67,6 +67,16 @@ export type ToastMessage = {
   displayTime?: number;
   highlight?: string;
   className?: string;
+  // Dialog/prompt support
+  dialogType?: "notification" | "dialog" | "prompt";
+  okLabel?: string;
+  cancelLabel?: string;
+  showCancel?: boolean;
+  promptDefault?: string;
+  promptPlaceholder?: string;
+  raw?: boolean; // Allow raw HTML
+  dismissible?: boolean;
+  position?: "top-right" | "top-left" | "bottom-right" | "bottom-left" | "top-center" | "bottom-center";
 };
 
 export type DashboardActions = {
