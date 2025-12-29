@@ -113,7 +113,7 @@ describe("Widget disabled behavior", () => {
 
   test("Colour picker blocks emit when disabled", () => {
     const emitted: Array<Record<string, unknown>> = [];
-    const { getByLabelText } = withI18n(
+    const { container } = withI18n(
       h(ColourPickerWidget, {
         control: { label: "Colour", value: "#000000" },
         index: 0,
@@ -122,9 +122,11 @@ describe("Widget disabled behavior", () => {
       }),
     );
 
-    const input = getByLabelText("Colour") as HTMLInputElement;
-    fireEvent.input(input, { target: { value: "#ffffff" } });
-    expect(input.disabled).toBe(true);
+    // Colour picker uses a button trigger when not inline
+    const trigger = container.querySelector(".nr-dashboard-colour-picker__trigger") as HTMLButtonElement;
+    expect(trigger.disabled).toBe(true);
+    fireEvent.click(trigger);
+    // Panel should not open when disabled, so no emit
     expect(emitted.length).toBe(0);
     cleanup();
   });

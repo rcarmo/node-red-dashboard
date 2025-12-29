@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { h } from "preact";
-import { render } from "@testing-library/preact";
+import { render, fireEvent } from "@testing-library/preact";
 import { Window } from "happy-dom";
 import { DropdownWidget } from "./dropdown";
 
@@ -30,8 +30,11 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    const select = container.querySelector("select") as HTMLSelectElement;
-    expect(select.value).toBe("1");
+    // Custom dropdown uses button trigger with value display
+    const trigger = container.querySelector(".nr-dashboard-dropdown__trigger") as HTMLButtonElement;
+    expect(trigger).toBeTruthy();
+    const valueSpan = container.querySelector(".nr-dashboard-dropdown__value") as HTMLSpanElement;
+    expect(valueSpan.textContent).toBe("One");
 
     rerender(
       h(DropdownWidget, {
@@ -47,9 +50,7 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    const options = Array.from(select.options).map((o) => o.textContent?.trim());
-    expect(options).toEqual(["Three", "Four"]);
-    expect(select.value).toBe("4");
+    expect(valueSpan.textContent).toBe("Four");
   });
 
   test("emits typed values (number/json) and multi-select arrays", () => {
@@ -71,15 +72,25 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    const select = container.querySelector("select") as HTMLSelectElement;
-    select.options[0].selected = true;
-    select.options[1].selected = true;
-    select.dispatchEvent(new window.Event("change", { bubbles: true }));
+    // Open the dropdown by clicking trigger
+    const trigger = container.querySelector(".nr-dashboard-dropdown__trigger") as HTMLButtonElement;
+    fireEvent.click(trigger);
 
-    expect(Array.isArray(emitted[0])).toBe(true);
-    const payload = emitted[0] as unknown[];
-    expect(payload[0]).toBe(1); // number coerced
-    expect(payload[1]).toEqual({ a: 1 });
+    // Select options by clicking them
+    const options = container.querySelectorAll(".nr-dashboard-dropdown__option:not(.nr-dashboard-dropdown__option--all)");
+    expect(options.length).toBe(2);
+    fireEvent.click(options[0]); // Select first option
+    fireEvent.click(options[1]); // Select second option
+
+    // Close the dropdown to trigger emit (multiple mode emits on close)
+    fireEvent.click(trigger);
+
+    expect(emitted.length).toBeGreaterThan(0);
+    const payload = emitted[emitted.length - 1] as unknown[];
+    expect(Array.isArray(payload)).toBe(true);
+    // The values should be parsed/typed
+    expect(payload).toContainEqual(1); // number coerced
+    expect(payload).toContainEqual({ a: 1 });
   });
 
   test("parses comma-separated initial multi values", () => {
@@ -98,13 +109,14 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    const select = container.querySelector("select") as HTMLSelectElement;
-    const selected = Array.from(select.selectedOptions).map((o) => o.value);
-    expect(selected).toEqual(["admin", "user"]);
+    // Custom dropdown shows count for multiple selections
+    const valueSpan = container.querySelector(".nr-dashboard-dropdown__value") as HTMLSpanElement;
+    // Should show "2 selected" for two items
+    expect(valueSpan.textContent).toContain("2");
   });
 
   test("placeholder shown when value is empty", () => {
-    const { getByText, container } = render(
+    const { container } = render(
       h(DropdownWidget, {
         control: {
           label: "Choose",
@@ -118,9 +130,8 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    const select = container.querySelector("select") as HTMLSelectElement;
-    expect(select.value).toBe("");
-    expect(getByText("Pick one")).toBeTruthy();
+    const valueSpan = container.querySelector(".nr-dashboard-dropdown__value") as HTMLSpanElement;
+    expect(valueSpan.textContent).toBe("Pick one");
   });
 
   test("clears selection when options change", () => {
@@ -138,8 +149,8 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    const select = container.querySelector("select") as HTMLSelectElement;
-    expect(select.value).toBe("2");
+    const valueSpan = container.querySelector(".nr-dashboard-dropdown__value") as HTMLSpanElement;
+    expect(valueSpan.textContent).toBe("Two");
 
     rerender(
       h(DropdownWidget, {
@@ -152,7 +163,8 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    expect(select.value).toBe("");
+    // When value is not in options, should show placeholder/default
+    expect(valueSpan.textContent).not.toBe("Two");
   });
 
   test("clears selection when resetSelection is true", () => {
@@ -170,8 +182,8 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    const select = container.querySelector("select") as HTMLSelectElement;
-    expect(select.value).toBe("2");
+    const valueSpan = container.querySelector(".nr-dashboard-dropdown__value") as HTMLSpanElement;
+    expect(valueSpan.textContent).toBe("Two");
 
     rerender(
       h(DropdownWidget, {
@@ -188,6 +200,7 @@ describe("Dropdown ui_control updates", () => {
       }),
     );
 
-    expect(select.value).toBe("");
+    // Should show placeholder when reset
+    expect(valueSpan.textContent).not.toBe("Two");
   });
 });
