@@ -285,4 +285,16 @@ describe("Chart adapter", () => {
     expect(series[0].data[0]).toBe(1);
     expect(series[1].data[0]).toBe(3);
   });
+
+  test("options override merges custom settings", () => {
+    const data: ChartData = {
+      labels: ["A"],
+      series: [{ name: "S", data: [1] }],
+      isTimeSeries: false,
+    };
+    const customOptions = { backgroundColor: "#123456", customField: true };
+    const option = buildChartOption({ look: "bar", options: customOptions }, data, "en", t);
+    expect((option as { backgroundColor: string }).backgroundColor).toBe("#123456");
+    expect((option as { customField: boolean }).customField).toBe(true);
+  });
 });

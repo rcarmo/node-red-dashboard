@@ -33,7 +33,7 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 | **Numeric** | ✅ Complete | Wrap/clamp, format, locale, spinner controls |
 | **Dropdown** | ✅ Complete | Custom dropdown (not native select), multi-select, search, keyboard navigation |
 | **Slider** | ✅ Complete | Vertical, invert, ticks, step, discrete mode, ARIA slider |
-| **Gauge** | ✅ Complete | Standard/donut/compass on ECharts (wave pending) |
+| **Gauge** | ✅ Complete | Standard/donut/compass/wave on ECharts + custom SVG |
 | **Form** | ✅ Complete | All field types, validation, reset, dynamic fields |
 | **Date Picker** | ✅ Complete | Custom calendar, keyboard navigation, locale formatting |
 | **Colour Picker** | ✅ Complete | Swatch, hue/saturation picker, keyboard accessible |
@@ -46,7 +46,6 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 
 ### Pending Work
 
-- **Wave Gauge**: Animated wave fill gauge variant
 - **E2E Tests**: Playwright integration tests
 - **Legacy Cleanup**: Remove gulp/Angular after full parity
 

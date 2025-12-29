@@ -121,8 +121,8 @@ All features implemented in `src/preact/components/widgets/chart.ts`:
 - [ ] Verify Socket.IO path/auth with Node-RED settings (custom `ui: { middleware }` compatibility).
 
 ## Immediate Next Steps
-- [ ] Implement the ECharts chart panel (line/bar/hbar/pie/polar/radar) plus streaming adapter and legend/tooltip parity.
-- [ ] Implement wave gauge variant using ECharts liquid fill or custom rendering.
+- [x] Implement the ECharts chart panel (line/bar/hbar/pie/polar/radar) plus streaming adapter and legend/tooltip parity.
+- [x] Implement wave gauge variant using custom SVG rendering with animated wave fill.
 - [ ] Finish theme variable coverage (remaining Less tokens) and apply to widget chrome hover/error states.
 - [ ] Add E2E tests via Playwright for tab navigation, theme switching, and widget interactions.
 - [ ] Remove gulp/legacy build once parity is acceptable; point Node-RED runtime to `dist/` by default.
@@ -138,7 +138,7 @@ All features implemented in `src/preact/components/widgets/chart.ts`:
 - **Numeric**: Wrap/clamp modes, locale-aware formatting, spinner controls, keyboard accessible.
 - **Dropdown**: Custom dropdown (not native select), single/multi-select, search filter, keyboard navigation, option reset.
 - **Slider**: Horizontal/vertical, invert, step with ticks, discrete mode, value display, ARIA slider role, keyboard control.
-- **Gauge**: Standard/donut/compass on ECharts, segments, min/max/unit labels, theme colors. (Wave pending)
+- **Gauge**: Standard/donut/compass on ECharts, segments, min/max/unit labels, theme colors, wave (animated SVG).
 - **Form**: All field types (text/number/email/password/checkbox/select/radio/multiline), validation, reset, disabled state.
 - **Date Picker**: Custom calendar overlay, keyboard navigation (arrows/home/end), locale formatting, min/max constraints.
 - **Colour Picker**: Swatch trigger, hue bar, saturation/lightness picker, keyboard accessible, hex input.
@@ -149,8 +149,8 @@ All features implemented in `src/preact/components/widgets/chart.ts`:
 - **Spacer**: Empty placeholder widget with aria-hidden.
 
 ### ⏳ Pending
-- **Chart**: ECharts panel for line/bar/pie/polar/radar with streaming adapter, legend, tooltips, stacked series.
-- **Wave Gauge**: Animated liquid fill gauge variant.
+- ~~**Chart**: ECharts panel for line/bar/pie/polar/radar~~ ✅ Complete with streaming, legend, tooltips, stacked, nodata.
+- ~~**Wave Gauge**: Animated liquid fill gauge variant~~ ✅ Complete with custom SVG rendering.
 
 ### Layout & Shell
 - Tab navigation: ✅ Index and name-based hash routing, link tabs (newtab/thistab/iframe)

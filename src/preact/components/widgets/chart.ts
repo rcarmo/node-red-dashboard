@@ -46,7 +46,7 @@ export type ChartControl = UiControl & {
   stackMap?: Record<string, string>;
   stackLabel?: boolean;
   interpolate?: "cubic" | "monotone" | "linear" | "bezier" | "step" | string;
-  nodata?: boolean;
+  nodata?: string;
   width?: number | string;
   height?: number | string;
   ymin?: number | string;
@@ -70,6 +70,7 @@ export type ChartControl = UiControl & {
   removeOlderPoints?: number | string;
   className?: string;
   value?: unknown;
+  options?: Record<string, unknown>;
 };
 
 export type ChartSeries = {
@@ -483,6 +484,11 @@ export function buildChartOption(
     textStyle: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)", fontSize: 14, fontWeight: 600 },
   };
 
+  // Allow override of any options if really required (matches legacy behavior)
+  if (control.options && typeof control.options === "object") {
+    Object.assign(option, control.options);
+  }
+
   return option;
 }
 
@@ -541,6 +547,10 @@ export function ChartWidget(props: { control: UiControl; index: number; disabled
     instance.setOption(option, { replaceMerge: ["series", "legend"] });
   }, [instance, option]);
 
+  // Show nodata message when chart is empty
+  const isEmpty = data.series.length === 0 || data.series.every((s) => s.data.length === 0);
+  const nodataText = c.nodata || "";
+
   return html`<div
     class=${`nr-dashboard-chart__container ${c.className || ""}`.trim()}
     style=${{  
@@ -549,6 +559,9 @@ export function ChartWidget(props: { control: UiControl; index: number; disabled
     }}
     aria-label=${t("chart_value_label", "{label} chart", { label })}
   >
-    <div ref=${chartRef} class="nr-dashboard-chart__chart"></div>
+    ${isEmpty && nodataText
+      ? html`<div class="nr-dashboard-chart__nodata">${nodataText}</div>`
+      : null}
+    <div ref=${chartRef} class="nr-dashboard-chart__chart" style=${{ visibility: isEmpty && nodataText ? "hidden" : "visible" }}></div>
   </div>`;
 }

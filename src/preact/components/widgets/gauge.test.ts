@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildSegments, formatGaugeDetail, formatGaugeValue } from "./gauge";
+import { buildSegments, formatGaugeDetail, formatGaugeValue, type GaugeControl } from "./gauge";
 
 describe("Gauge helpers", () => {
   test("formats value with fallback template", () => {
@@ -25,5 +25,21 @@ describe("Gauge helpers", () => {
     expect(formatGaugeDetail(10, 2, "{{value}}", "V", fmt)).toBe("10 (+2)");
     expect(formatGaugeDetail(8, -1.5, "{{value}}", "V", fmt)).toBe("8 (-1.5)");
     expect(formatGaugeDetail(5, 0, "{{value}}", "V", fmt)).toBe("5 (0)");
+  });
+
+  test("builds segments with custom thresholds", () => {
+    const ctrl: GaugeControl = { seg1: 30, seg2: 70, colors: ["#00ff00", "#ffff00", "#ff0000"] };
+    const segments = buildSegments(ctrl, 0, 100);
+    expect(segments[0][0]).toBeCloseTo(0.3);
+    expect(segments[0][1]).toBe("#00ff00");
+    expect(segments[1][0]).toBeCloseTo(0.7);
+    expect(segments[1][1]).toBe("#ffff00");
+    expect(segments[2][0]).toBe(1);
+    expect(segments[2][1]).toBe("#ff0000");
+  });
+
+  test("wave gauge type is recognized", () => {
+    const ctrl: GaugeControl = { gtype: "wave" };
+    expect(ctrl.gtype).toBe("wave");
   });
 });
