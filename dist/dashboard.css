@@ -531,6 +531,11 @@
   border: 1px solid var(--nr-dashboard-widgetColor, #1f8af2);
 }
 
+.nr-dashboard-calendar__cell.is-focused span {
+  outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
+  outline-offset: 1px;
+}
+
 .nr-dashboard-calendar__cell.is-selected span {
   background: var(--nr-dashboard-widgetColor, #1f8af2);
   color: #fff;
@@ -1860,6 +1865,12 @@
 
 .nr-dashboard-dropdown__option.is-selected {
   background: color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 15%, transparent);
+}
+
+.nr-dashboard-dropdown__option.is-focused {
+  outline: 2px solid var(--nr-dashboard-widgetColor, #1f8af2);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--nr-dashboard-widgetColor, #1f8af2) 10%, transparent);
 }
 
 .nr-dashboard-dropdown__option.is-disabled {

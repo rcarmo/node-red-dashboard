@@ -842,6 +842,11 @@ function T2(n3, r3) {
   var u3 = p2(t3++, 7);
   return C2(u3.__H, r3) && (u3.__ = n3(), u3.__H = r3, u3.__h = n3), u3.__;
 }
+function q2(n3, t4) {
+  return o2 = 8, T2(function() {
+    return n3;
+  }, t4);
+}
 function x2(n3) {
   var u3 = r2.context[n3.__c], i3 = p2(t3++, 9);
   return i3.c = n3, u3 ? (i3.__ == null && (i3.__ = true, u3.sub(r2)), u3.props.value) : n3.__;
@@ -3540,12 +3545,35 @@ function createSocketBridge(handlers = {}) {
 }
 
 // src/preact/lib/tts.ts
-function speakText(text, voiceUri, volume) {
+var cachedVoices = [];
+function initVoices() {
   if (typeof window === "undefined" || !("speechSynthesis" in window))
     return;
+  cachedVoices = window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    cachedVoices = window.speechSynthesis.getVoices();
+  };
+}
+function getVoices() {
+  if (typeof window === "undefined" || !("speechSynthesis" in window))
+    return [];
+  if (cachedVoices.length === 0) {
+    cachedVoices = window.speechSynthesis.getVoices();
+  }
+  return cachedVoices;
+}
+function speakText(text, voiceUri, volume, onStatus, onFallback) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    onFallback?.(text);
+    return;
+  }
+  const voices = getVoices();
+  if (voices.length === 0) {
+    onFallback?.(text);
+    return;
+  }
   const utterance = new SpeechSynthesisUtterance(text);
-  if (typeof voiceUri === "string" && window.speechSynthesis) {
-    const voices = window.speechSynthesis.getVoices();
+  if (typeof voiceUri === "string") {
     const found = voices.find((v3) => v3.voiceURI === voiceUri);
     if (found)
       utterance.voice = found;
@@ -3554,6 +3582,9 @@ function speakText(text, voiceUri, volume) {
     const clamped = Math.max(0, Math.min(1, volume));
     utterance.volume = clamped;
   }
+  utterance.onstart = () => onStatus?.("playing");
+  utterance.onend = () => onStatus?.("complete");
+  utterance.onerror = (event) => onStatus?.(`error: ${event.error}`);
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(utterance);
 }
@@ -3612,6 +3643,7 @@ function useDashboardState() {
   const [state, setState] = d2(initialState);
   const [bridge, setBridge] = d2(null);
   y2(() => {
+    initVoices();
     const b = createSocketBridge({
       onConnect: (id) => {
         setState((prev) => ({ ...prev, connection: "ready", socketId: id }));
@@ -3647,7 +3679,7 @@ function useDashboardState() {
         setState((prev) => pushToast(prev, payload));
       },
       onAudio: (payload) => {
-        handleAudioEvent(payload);
+        handleAudioEvent(payload, b, setState);
       }
     });
     setBridge(b);
@@ -3676,13 +3708,29 @@ function useDashboardState() {
       timers.forEach((t4) => window.clearTimeout(t4));
     };
   }, [state.toasts]);
+  const handleDialogResult = (toastId, result) => {
+    const toast = state.toasts.find((t4) => t4.id === toastId);
+    if (toast && toast.nodeId) {
+      const responseMsg = { ...toast.originalMsg ?? {} };
+      if (result.ok) {
+        responseMsg.payload = result.value !== undefined ? result.value : toast.okLabel ?? "OK";
+        if (result.value === "")
+          responseMsg.payload = "";
+      } else {
+        responseMsg.payload = toast.cancelLabel ?? "Cancel";
+      }
+      bridge?.emit("ui-control", { id: toast.nodeId, value: { msg: responseMsg } });
+    }
+    setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t4) => t4.id !== toastId) }));
+  };
   return {
     state,
     selectedTab,
     actions: {
       selectTab,
       emit: bridge?.emit ?? null,
-      dismissToast: (id) => setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t4) => t4.id !== id) }))
+      dismissToast: (id) => setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t4) => t4.id !== id) })),
+      handleDialogResult
     }
   };
 }
@@ -3770,14 +3818,26 @@ function applyGroupVisibility(menu, groupMsg) {
 function pushToast(prev, payload) {
   const msg = payload;
   const id = msg.id?.toString() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  let dialogType = undefined;
+  if (msg.dialog || msg.position === "dialog" || msg.position === "prompt") {
+    dialogType = msg.prompt || msg.position === "prompt" ? "prompt" : "dialog";
+  }
   const toast = {
     id,
     title: msg.title,
     message: msg.message,
     level: msg.level === "error" || msg.level === "warn" ? msg.level : undefined,
-    displayTime: typeof msg.displayTime === "number" ? msg.displayTime : 3000,
+    displayTime: typeof msg.displayTime === "number" ? msg.displayTime : dialogType ? 0 : 3000,
     highlight: typeof msg.highlight === "string" ? msg.highlight : undefined,
-    className: msg.className
+    className: msg.className,
+    dialogType,
+    okLabel: msg.ok,
+    cancelLabel: msg.cancel,
+    showCancel: Boolean(msg.cancel),
+    raw: msg.raw,
+    position: msg.position && !["dialog", "prompt"].includes(msg.position) ? msg.position : undefined,
+    nodeId: msg.id?.toString(),
+    originalMsg: msg.msg
   };
   const nextToasts = [...prev.toasts.filter((t4) => t4.id !== id), toast];
   return { ...prev, toasts: nextToasts };
@@ -3789,6 +3849,12 @@ function handleUiControl(prev, payload) {
   const controlId = msg.id;
   if (msg.control && controlId !== undefined) {
     menu = updateControlById(menu, controlId, msg.control);
+  }
+  if (msg.template !== undefined && controlId !== undefined) {
+    menu = updateControlById(menu, controlId, { template: msg.template });
+  }
+  if (msg.msg !== undefined && controlId !== undefined) {
+    menu = updateControlById(menu, controlId, { msg: msg.msg });
   }
   if (msg.options && controlId !== undefined) {
     const nextValue = msg.value ?? msg.payload;
@@ -3826,16 +3892,26 @@ function handleUiControl(prev, payload) {
   }
   return { ...prev, menu: [...menu], selectedTabIndex };
 }
-function handleAudioEvent(payload) {
+function handleAudioEvent(payload, bridge, setState) {
   const msg = payload || {};
+  const emitStatus = (status) => {
+    bridge?.emit("ui-audio", { status });
+  };
   if (msg.reset || msg.stop) {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+    emitStatus("reset");
     return;
   }
   if (msg.tts) {
-    speakText(msg.tts, msg.voice, typeof msg.vol === "number" ? msg.vol / 100 : undefined);
+    speakText(msg.tts, msg.voice, typeof msg.vol === "number" ? msg.vol / 100 : undefined, (status) => emitStatus(status), (text) => {
+      setState((prev) => pushToast(prev, {
+        message: text,
+        title: "Computer says...",
+        displayTime: 3000
+      }));
+    });
     return;
   }
   if (msg.audio && typeof window !== "undefined") {
@@ -3844,7 +3920,16 @@ function handleAudioEvent(payload) {
     const url2 = URL.createObjectURL(blob);
     const audio = new Audio(url2);
     audio.volume = typeof msg.vol === "number" ? Math.max(0, Math.min(1, msg.vol / 100)) : 1;
-    audio.play().finally(() => URL.revokeObjectURL(url2));
+    audio.onplay = () => emitStatus("playing");
+    audio.onended = () => {
+      emitStatus("complete");
+      URL.revokeObjectURL(url2);
+    };
+    audio.onerror = () => {
+      emitStatus("error: playback failed");
+      URL.revokeObjectURL(url2);
+    };
+    audio.play();
   }
 }
 
@@ -4206,6 +4291,9 @@ function ButtonWidget(props) {
   const { t: t4 } = useI18n();
   const label = asButton.label || asButton.name || t4("button_label", "Button {index}", { index: index + 1 });
   const labelHtml = { __html: label };
+  const ariaLabel = T2(() => {
+    return String(label).replace(/<[^>]*>/g, "").trim() || undefined;
+  }, [label]);
   const backgroundColor = resolveButtonColor(asButton);
   const textColor = typeof asButton.color === "string" && asButton.color ? asButton.color : "var(--nr-dashboard-widgetTextColor, #fff)";
   const handleClick = () => {
@@ -4260,6 +4348,7 @@ function ButtonWidget(props) {
   return m2`<button
     type="button"
     title=${asButton.tooltip || undefined}
+    aria-label=${ariaLabel}
     class=${`nr-dashboard-button ${asButton.className || ""}`.trim()}
     disabled=${Boolean(disabled)}
     onClick=${onEmit ? handleClick : undefined}
@@ -4367,6 +4456,7 @@ function SwitchWidget(props) {
   const trackBg = checked ? resolvedColor : resolveSwitchColors(asSwitch, false);
   const thumbBg = checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)";
   const thumbLeft = checked ? "18px" : "-2px";
+  const switchLabel = asSwitch.onicon && asSwitch.officon ? t4("switch_toggle_label", "Toggle {label}", { label }) : t4("switch_state_label", "{label}, currently {state}", { label, state: checked ? "on" : "off" });
   const track = m2`<div
     class="nr-dashboard-switch__track"
     onClick=${onEmit ? toggle : undefined}
@@ -4381,6 +4471,8 @@ function SwitchWidget(props) {
     tabIndex=${disabled ? -1 : 0}
     role="switch"
     aria-checked=${checked}
+    aria-label=${switchLabel}
+    aria-disabled=${disabled}
     style=${{
     "--nr-switch-track-bg": trackBg
   }}
@@ -4396,15 +4488,30 @@ function SwitchWidget(props) {
   const customIconsActive = Boolean(asSwitch.onicon && asSwitch.officon && asSwitch.oncolor && asSwitch.offcolor);
   const customIcons = customIconsActive ? m2`<div
         onClick=${onEmit ? toggle : undefined}
+        onFocus=${() => setFocused(true)}
+        onBlur=${() => setFocused(false)}
+        onKeyDown=${(e3) => {
+    if (e3.key === "Enter" || e3.key === " " || e3.key === "Spacebar") {
+      e3.preventDefault();
+      toggle();
+    }
+  }}
+        tabIndex=${disabled ? -1 : 0}
+        role="switch"
+        aria-checked=${checked}
+        aria-label=${switchLabel}
+        aria-disabled=${disabled}
         class="nr-dashboard-switch__custom-icon-container"
       >
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{ color: checked ? asSwitch.oncolor : "transparent" }}
+          aria-hidden="true"
         >${renderIcon(asSwitch.onicon)}</span>
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{ color: !checked ? asSwitch.offcolor : "transparent" }}
+          aria-hidden="true"
         >${renderIcon(asSwitch.officon)}</span>
       </div>` : track;
   const containerClass = [
@@ -4467,6 +4574,11 @@ function TextInputWidget(props) {
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
   const isColorMode = asInput.mode === "color";
   const hasLabel = Boolean(asInput.label);
+  const ariaLabel = T2(() => {
+    if (!label)
+      return;
+    return String(label).replace(/<[^>]*>/g, "").trim() || undefined;
+  }, [label]);
   const validate = (next) => {
     if (asInput.required && next.trim().length === 0) {
       setError(asInput.error || t4("error_required", "This field is required."));
@@ -4548,6 +4660,7 @@ function TextInputWidget(props) {
           value=${value2}
           title=${asInput.tooltip || undefined}
           disabled=${Boolean(disabled)}
+          aria-label=${ariaLabel}
           aria-invalid=${error ? "true" : "false"}
           aria-errormessage=${error ? `err-${index}` : undefined}
           inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}
@@ -4819,6 +4932,7 @@ function buildDropdownEmit(ctrl, fallbackLabel, value2) {
     type: "dropdown"
   };
 }
+var SEARCH_THRESHOLD = 7;
 function DropdownWidget(props) {
   const { control, index, disabled, onEmit } = props;
   const asDrop = control;
@@ -4829,7 +4943,28 @@ function DropdownWidget(props) {
   const multiple = Boolean(asDrop.multiple);
   const [value2, setValue] = d2(normalizeValue(asDrop.value, opts, multiple));
   const lastReset = A2(false);
-  const [focused, setFocused] = d2(false);
+  const [isOpen, setIsOpen] = d2(false);
+  const [searchTerm, setSearchTerm] = d2("");
+  const [focusedIndex, setFocusedIndex] = d2(-1);
+  const containerRef = A2(null);
+  const searchRef = A2(null);
+  const optionRefs = A2([]);
+  const showSearch = opts.length > SEARCH_THRESHOLD;
+  const filteredOpts = T2(() => {
+    if (!searchTerm.trim())
+      return opts;
+    const term = searchTerm.toLowerCase();
+    return opts.filter((opt) => {
+      const labelText = String(opt.label ?? opt.value).toLowerCase();
+      return labelText.includes(term);
+    });
+  }, [opts, searchTerm]);
+  const enabledOpts = T2(() => opts.filter((o3) => !o3.disabled), [opts]);
+  const allSelected = T2(() => {
+    if (!multiple || !Array.isArray(value2))
+      return false;
+    return enabledOpts.every((opt) => value2.some((v3) => serializeOptionValue(v3) === serializeOptionValue(opt.value)));
+  }, [multiple, value2, enabledOpts]);
   y2(() => {
     const normalized = normalizeValue(asDrop.value, opts, multiple);
     if (multiple) {
@@ -4849,60 +4984,239 @@ function DropdownWidget(props) {
       lastReset.current = false;
     }
   }, [asDrop.resetSelection, multiple]);
-  const handleChange = (e3) => {
-    const target = e3.target;
-    if (multiple) {
-      const selected = [];
-      Array.from(target.selectedOptions).forEach((opt) => {
-        selected.push(parseOptionValue(opt.value, opt.dataset.type));
-      });
-      setValue(selected);
-      if (onEmit)
-        onEmit("ui-control", buildDropdownEmit(asDrop, label, selected));
-    } else {
-      const opt = target.selectedOptions[0];
-      if (!opt)
-        return;
-      const parsed = parseOptionValue(opt.value, opt.dataset.type);
-      setValue(parsed);
-      if (onEmit)
-        onEmit("ui-control", buildDropdownEmit(asDrop, label, parsed));
+  y2(() => {
+    if (!isOpen)
+      return;
+    const handleClickOutside = (e3) => {
+      if (containerRef.current && !containerRef.current.contains(e3.target)) {
+        setIsOpen(false);
+        setSearchTerm("");
+        if (multiple && onEmit) {
+          onEmit("ui-control", buildDropdownEmit(asDrop, label, value2));
+        }
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, multiple, onEmit, asDrop, label, value2]);
+  y2(() => {
+    if (isOpen) {
+      setFocusedIndex(-1);
+      if (showSearch && searchRef.current) {
+        searchRef.current.focus();
+      }
+    }
+  }, [isOpen, showSearch]);
+  const handleToggle = () => {
+    if (disabled)
+      return;
+    setIsOpen(!isOpen);
+    if (isOpen) {
+      setSearchTerm("");
+      if (multiple && onEmit) {
+        onEmit("ui-control", buildDropdownEmit(asDrop, label, value2));
+      }
     }
   };
+  const handleOptionClick = q2((opt) => {
+    if (opt.disabled)
+      return;
+    const optValue = parseOptionValue(serializeOptionValue(opt.value), inferType(opt));
+    if (multiple) {
+      const arr = Array.isArray(value2) ? value2 : [];
+      const exists = arr.some((v3) => serializeOptionValue(v3) === serializeOptionValue(optValue));
+      const newValue = exists ? arr.filter((v3) => serializeOptionValue(v3) !== serializeOptionValue(optValue)) : [...arr, optValue];
+      setValue(newValue);
+    } else {
+      setValue(optValue);
+      setIsOpen(false);
+      setSearchTerm("");
+      if (onEmit)
+        onEmit("ui-control", buildDropdownEmit(asDrop, label, optValue));
+    }
+  }, [multiple, value2, onEmit, asDrop, label]);
+  const handleSelectAll = q2(() => {
+    if (!multiple)
+      return;
+    if (allSelected) {
+      setValue([]);
+    } else {
+      const allValues = enabledOpts.map((opt) => parseOptionValue(serializeOptionValue(opt.value), inferType(opt)));
+      setValue(allValues);
+    }
+  }, [multiple, allSelected, enabledOpts]);
+  y2(() => {
+    if (focusedIndex >= 0 && optionRefs.current[focusedIndex]) {
+      optionRefs.current[focusedIndex]?.scrollIntoView({ block: "nearest" });
+    }
+  }, [focusedIndex]);
+  const handleKeyDown = (e3) => {
+    if (e3.key === "Escape") {
+      setIsOpen(false);
+      setSearchTerm("");
+      setFocusedIndex(-1);
+    } else if (e3.key === "Enter") {
+      if (!isOpen) {
+        setIsOpen(true);
+      } else if (focusedIndex >= 0 && focusedIndex < filteredOpts.length) {
+        const opt = filteredOpts[focusedIndex];
+        if (!opt.disabled) {
+          handleOptionClick(opt);
+        }
+      }
+    } else if (e3.key === " " && !showSearch) {
+      if (!isOpen) {
+        e3.preventDefault();
+        setIsOpen(true);
+      } else if (focusedIndex >= 0 && focusedIndex < filteredOpts.length) {
+        e3.preventDefault();
+        const opt = filteredOpts[focusedIndex];
+        if (!opt.disabled) {
+          handleOptionClick(opt);
+        }
+      }
+    } else if (e3.key === "ArrowDown") {
+      e3.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+      } else {
+        let next = focusedIndex + 1;
+        while (next < filteredOpts.length && filteredOpts[next].disabled) {
+          next++;
+        }
+        if (next < filteredOpts.length) {
+          setFocusedIndex(next);
+        }
+      }
+    } else if (e3.key === "ArrowUp") {
+      e3.preventDefault();
+      if (isOpen) {
+        let prev = focusedIndex - 1;
+        while (prev >= 0 && filteredOpts[prev].disabled) {
+          prev--;
+        }
+        if (prev >= 0) {
+          setFocusedIndex(prev);
+        }
+      }
+    } else if (e3.key === "Home" && isOpen) {
+      e3.preventDefault();
+      const first = filteredOpts.findIndex((o3) => !o3.disabled);
+      if (first >= 0)
+        setFocusedIndex(first);
+    } else if (e3.key === "End" && isOpen) {
+      e3.preventDefault();
+      for (let i3 = filteredOpts.length - 1;i3 >= 0; i3--) {
+        if (!filteredOpts[i3].disabled) {
+          setFocusedIndex(i3);
+          break;
+        }
+      }
+    }
+  };
+  const displayText = T2(() => {
+    if (multiple) {
+      const arr = Array.isArray(value2) ? value2 : [];
+      if (arr.length === 0)
+        return asDrop.place || t4("dropdown_select", "Select...");
+      if (arr.length === 1) {
+        const match2 = opts.find((o3) => serializeOptionValue(o3.value) === serializeOptionValue(arr[0]));
+        return match2 ? String(match2.label ?? match2.value) : String(arr[0]);
+      }
+      return t4("dropdown_selected_count", "{count} selected", { count: arr.length });
+    }
+    if (value2 === null || value2 === undefined || value2 === "") {
+      return asDrop.place || t4("dropdown_select", "Select...");
+    }
+    const match = opts.find((o3) => serializeOptionValue(o3.value) === serializeOptionValue(value2));
+    return match ? String(match.label ?? match.value) : String(value2);
+  }, [value2, multiple, opts, asDrop.place, t4]);
+  const isOptionSelected = q2((opt) => {
+    if (multiple) {
+      const arr = Array.isArray(value2) ? value2 : [];
+      return arr.some((v3) => serializeOptionValue(v3) === serializeOptionValue(opt.value));
+    }
+    return serializeOptionValue(value2) === serializeOptionValue(opt.value);
+  }, [value2, multiple]);
   const showLabel = !(Number(asDrop.width) === 1) && label.length > 0;
-  return m2`<div class=${`nr-dashboard-dropdown ${asDrop.className || ""}`.trim()} title=${asDrop.tooltip || undefined}>
+  return m2`<div
+    ref=${containerRef}
+    class=${`nr-dashboard-dropdown ${asDrop.className || ""} ${isOpen ? "is-open" : ""}`.trim()}
+    title=${asDrop.tooltip || undefined}
+    onKeyDown=${handleKeyDown}
+  >
     ${showLabel ? m2`<p class="nr-dashboard-dropdown__label" dangerouslySetInnerHTML=${labelHtml}></p>` : null}
     <div class="nr-dashboard-dropdown__field">
-      <select
-        multiple=${multiple}
-        class="nr-dashboard-dropdown__select"
-        title=${asDrop.tooltip || undefined}
+      <button
+        type="button"
+        class=${`nr-dashboard-dropdown__trigger ${isOpen ? "is-open" : ""}`.trim()}
         disabled=${Boolean(disabled)}
-        value=${!multiple ? serializeOptionValue(value2) : undefined}
-        onChange=${handleChange}
-        onFocus=${() => setFocused(true)}
-        onBlur=${() => setFocused(false)}
-        style=${{
-    borderBottomColor: focused ? "var(--nr-dashboard-widgetBackgroundColor, #1f8af2)" : undefined,
-    cursor: Boolean(disabled) ? "not-allowed" : "pointer"
-  }}
+        onClick=${handleToggle}
+        aria-haspopup="listbox"
+        aria-expanded=${isOpen}
+        aria-label=${label}
       >
-        ${asDrop.place && !multiple ? m2`<option value="" disabled selected=${value2 == null || value2 === ""}>${asDrop.place}</option>` : null}
-        ${opts.map((opt) => {
-    const serialized = typeof opt.value === "string" ? opt.value : JSON.stringify(opt.value);
-    const inferredType = opt.type ? opt.type : typeof opt.value === "number" ? "number" : typeof opt.value === "string" ? "string" : "json";
-    const selected = multiple ? Array.isArray(value2) && value2.some((v3) => JSON.stringify(v3) === JSON.stringify(opt.value)) : JSON.stringify(value2) === JSON.stringify(opt.value);
-    return m2`<option
-            value=${serialized}
-            data-type=${inferredType}
-            disabled=${opt.disabled || false}
-            selected=${selected}
-          >
-            ${opt.label ?? opt.value}
-          </option>`;
+        <span class="nr-dashboard-dropdown__value">${displayText}</span>
+        <span class="nr-dashboard-dropdown__chevron" aria-hidden="true">▼</span>
+      </button>
+      ${isOpen ? m2`<div 
+        class="nr-dashboard-dropdown__menu" 
+        role="listbox" 
+        aria-multiselectable=${multiple}
+        aria-activedescendant=${focusedIndex >= 0 ? `dropdown-opt-${control.id}-${focusedIndex}` : undefined}
+      >
+        ${showSearch ? m2`<div class="nr-dashboard-dropdown__search">
+          <input
+            ref=${searchRef}
+            type="text"
+            class="nr-dashboard-dropdown__search-input"
+            placeholder=${t4("dropdown_search", "Search...")}
+            value=${searchTerm}
+            onInput=${(e3) => setSearchTerm(e3.target.value)}
+            onClick=${(e3) => e3.stopPropagation()}
+            aria-label=${t4("dropdown_search", "Search...")}
+          />
+        </div>` : null}
+        ${multiple && enabledOpts.length > 1 ? m2`<div class="nr-dashboard-dropdown__select-all">
+          <label class="nr-dashboard-dropdown__option nr-dashboard-dropdown__option--all">
+            <input
+              type="checkbox"
+              checked=${allSelected}
+              onChange=${handleSelectAll}
+              class="nr-dashboard-dropdown__checkbox"
+            />
+            <span>${allSelected ? t4("dropdown_deselect_all", "Deselect all") : t4("dropdown_select_all", "Select all")}</span>
+          </label>
+        </div>` : null}
+        <ul class="nr-dashboard-dropdown__options">
+          ${filteredOpts.length === 0 ? m2`<li class="nr-dashboard-dropdown__empty">${t4("dropdown_no_results", "No results")}</li>` : filteredOpts.map((opt, idx) => {
+    const selected = isOptionSelected(opt);
+    const focused = idx === focusedIndex;
+    return m2`<li
+                  ref=${(el) => {
+      optionRefs.current[idx] = el;
+    }}
+                  id=${`dropdown-opt-${control.id}-${idx}`}
+                  key=${serializeOptionValue(opt.value)}
+                  class=${`nr-dashboard-dropdown__option ${selected ? "is-selected" : ""} ${focused ? "is-focused" : ""} ${opt.disabled ? "is-disabled" : ""}`.trim()}
+                  role="option"
+                  aria-selected=${selected}
+                  aria-disabled=${opt.disabled}
+                  onClick=${() => handleOptionClick(opt)}
+                >
+                  ${multiple ? m2`<input
+                    type="checkbox"
+                    checked=${selected}
+                    disabled=${opt.disabled}
+                    class="nr-dashboard-dropdown__checkbox"
+                    tabIndex=${-1}
+                    aria-hidden="true"
+                  />` : null}
+                  <span>${opt.label ?? opt.value}</span>
+                </li>`;
   })}
-      </select>
-      <span class="nr-dashboard-dropdown__chevron" aria-hidden="true">▼</span>
+        </ul>
+      </div>` : null}
     </div>
   </div>`;
 }
@@ -5029,7 +5343,12 @@ function SliderWidget(props) {
     value=${sliderValue}
     title=${asSlider.tooltip || undefined}
     disabled=${isDisabled}
+    aria-label=${label}
+    aria-valuemin=${min}
+    aria-valuemax=${max}
+    aria-valuenow=${value2}
     aria-valuetext=${t4("slider_value_label", "{label}: {value}", { label, value: formatNumber(value2, lang) })}
+    aria-disabled=${isDisabled}
     onInput=${handleInput}
     onChange=${handleChange}
     onWheel=${handleWheel}
@@ -16259,8 +16578,8 @@ function lineLineIntersect(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y) {
   }
   var b1a1x = a1x - b1x;
   var b1a1y = a1y - b1y;
-  var q2 = crossProduct2d(b1a1x, b1a1y, mx, my) / nmCrossProduct;
-  if (q2 < 0 || q2 > 1) {
+  var q3 = crossProduct2d(b1a1x, b1a1y, mx, my) / nmCrossProduct;
+  if (q3 < 0 || q3 > 1) {
     return false;
   }
   var p3 = crossProduct2d(b1a1x, b1a1y, nx, ny) / nmCrossProduct;
@@ -20658,7 +20977,7 @@ function format(time, template, isUTC, lang) {
   var date = parseDate(time);
   var y3 = date[fullYearGetterName(isUTC)]();
   var M2 = date[monthGetterName(isUTC)]() + 1;
-  var q2 = Math.floor((M2 - 1) / 3) + 1;
+  var q3 = Math.floor((M2 - 1) / 3) + 1;
   var d3 = date[dateGetterName(isUTC)]();
   var e4 = date["get" + (isUTC ? "UTC" : "") + "Day"]();
   var H = date[hoursGetterName(isUTC)]();
@@ -20674,7 +20993,7 @@ function format(time, template, isUTC, lang) {
   var monthAbbr = timeModel.get("monthAbbr");
   var dayOfWeek = timeModel.get("dayOfWeek");
   var dayOfWeekAbbr = timeModel.get("dayOfWeekAbbr");
-  return (template || "").replace(/{a}/g, a3 + "").replace(/{A}/g, A3 + "").replace(/{yyyy}/g, y3 + "").replace(/{yy}/g, pad(y3 % 100 + "", 2)).replace(/{Q}/g, q2 + "").replace(/{MMMM}/g, month[M2 - 1]).replace(/{MMM}/g, monthAbbr[M2 - 1]).replace(/{MM}/g, pad(M2, 2)).replace(/{M}/g, M2 + "").replace(/{dd}/g, pad(d3, 2)).replace(/{d}/g, d3 + "").replace(/{eeee}/g, dayOfWeek[e4]).replace(/{ee}/g, dayOfWeekAbbr[e4]).replace(/{e}/g, e4 + "").replace(/{HH}/g, pad(H, 2)).replace(/{H}/g, H + "").replace(/{hh}/g, pad(h3 + "", 2)).replace(/{h}/g, h3 + "").replace(/{mm}/g, pad(m5, 2)).replace(/{m}/g, m5 + "").replace(/{ss}/g, pad(s3, 2)).replace(/{s}/g, s3 + "").replace(/{SSS}/g, pad(S2, 3)).replace(/{S}/g, S2 + "");
+  return (template || "").replace(/{a}/g, a3 + "").replace(/{A}/g, A3 + "").replace(/{yyyy}/g, y3 + "").replace(/{yy}/g, pad(y3 % 100 + "", 2)).replace(/{Q}/g, q3 + "").replace(/{MMMM}/g, month[M2 - 1]).replace(/{MMM}/g, monthAbbr[M2 - 1]).replace(/{MM}/g, pad(M2, 2)).replace(/{M}/g, M2 + "").replace(/{dd}/g, pad(d3, 2)).replace(/{d}/g, d3 + "").replace(/{eeee}/g, dayOfWeek[e4]).replace(/{ee}/g, dayOfWeekAbbr[e4]).replace(/{e}/g, e4 + "").replace(/{HH}/g, pad(H, 2)).replace(/{H}/g, H + "").replace(/{hh}/g, pad(h3 + "", 2)).replace(/{h}/g, h3 + "").replace(/{mm}/g, pad(m5, 2)).replace(/{m}/g, m5 + "").replace(/{ss}/g, pad(s3, 2)).replace(/{s}/g, s3 + "").replace(/{SSS}/g, pad(S2, 3)).replace(/{S}/g, S2 + "");
 }
 function leveledFormat(tick, idx, formatter, lang, isUTC) {
   var template = null;
@@ -30697,15 +31016,15 @@ echarts.use([` + seriesImportName + "]);");
       return !!cmpt;
     });
     return doFilter(filterBySubType(result, condition));
-    function getQueryCond(q2) {
+    function getQueryCond(q3) {
       var indexAttr = mainType + "Index";
       var idAttr = mainType + "Id";
       var nameAttr = mainType + "Name";
-      return q2 && (q2[indexAttr] != null || q2[idAttr] != null || q2[nameAttr] != null) ? {
+      return q3 && (q3[indexAttr] != null || q3[idAttr] != null || q3[nameAttr] != null) ? {
         mainType,
-        index: q2[indexAttr],
-        id: q2[idAttr],
-        name: q2[nameAttr]
+        index: q3[indexAttr],
+        id: q3[idAttr],
+        name: q3[nameAttr]
       } : null;
     }
     function doFilter(res) {
@@ -41403,6 +41722,124 @@ function buildSegments(ctrl, min3, max3) {
     [1, colors[2]]
   ];
 }
+function WaveGauge({ value: value2, min: min3, max: max3, label, units, formatter, circleColor, waveColor, textColor, waveTextColor }) {
+  const svgRef = A2(null);
+  const animationRef = A2(0);
+  const [waveOffset, setWaveOffset] = d2(0);
+  const size = 200;
+  const radius = size / 2 - 10;
+  const strokeWidth = 4;
+  const fillPercent = clamp2((value2 - min3) / (max3 - min3 || 1), 0, 1);
+  const fillHeight = radius * 2 * fillPercent;
+  const centerY = size / 2;
+  const centerX = size / 2;
+  const circleStroke = circleColor || "var(--nr-dashboard-widgetColor, #178BCA)";
+  const waveFill = waveColor || "var(--nr-dashboard-widgetColor, #178BCA)";
+  const textFill = textColor || "var(--nr-dashboard-widgetTextColor, #045681)";
+  const waveTextFill = waveTextColor || "var(--nr-dashboard-widgetBackgroundColor, #A4DBf8)";
+  y2(() => {
+    let startTime = null;
+    const duration = 3000;
+    const animate = (timestamp) => {
+      if (!startTime)
+        startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = elapsed % duration / duration;
+      setWaveOffset(progress * Math.PI * 4);
+      animationRef.current = requestAnimationFrame(animate);
+    };
+    animationRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationRef.current);
+  }, []);
+  const generateWavePath = () => {
+    const waveHeight = 8;
+    const waveCount = 2;
+    const fillY = centerY + radius - fillHeight;
+    const points2 = [];
+    points2.push(`M ${centerX - radius} ${fillY}`);
+    const steps = 100;
+    for (let i3 = 0;i3 <= steps; i3++) {
+      const x3 = centerX - radius + i3 / steps * radius * 2;
+      const normalizedX = i3 / steps * Math.PI * 2 * waveCount + waveOffset;
+      const waveY = Math.sin(normalizedX) * waveHeight;
+      points2.push(`L ${x3} ${fillY + waveY}`);
+    }
+    points2.push(`L ${centerX + radius} ${centerY + radius + 10}`);
+    points2.push(`L ${centerX - radius} ${centerY + radius + 10}`);
+    points2.push("Z");
+    return points2.join(" ");
+  };
+  const formattedValue = formatter.format(value2);
+  const displayText = units ? `${formattedValue}${units}` : formattedValue;
+  const clipId = `wave-clip-${label.replace(/\s/g, "-")}`;
+  return m2`
+    <svg
+      ref=${svgRef}
+      viewBox="0 0 ${size} ${size}"
+      width=${size}
+      height=${size}
+      class="nr-dashboard-gauge__wave"
+      role="img"
+      aria-label=${`${label}: ${displayText}`}
+    >
+      <defs>
+        <clipPath id=${clipId}>
+          <circle cx=${centerX} cy=${centerY} r=${radius - strokeWidth / 2} />
+        </clipPath>
+      </defs>
+      
+      <!-- Outer circle -->
+      <circle
+        cx=${centerX}
+        cy=${centerY}
+        r=${radius}
+        fill="none"
+        stroke=${circleStroke}
+        stroke-width=${strokeWidth}
+      />
+      
+      <!-- Wave fill clipped to circle -->
+      <g clip-path=${`url(#${clipId})`}>
+        <!-- Background circle -->
+        <circle
+          cx=${centerX}
+          cy=${centerY}
+          r=${radius}
+          fill="var(--nr-dashboard-widgetBackgroundColor, #1a1f2a)"
+        />
+        <!-- Wave path -->
+        <path
+          d=${generateWavePath()}
+          fill=${waveFill}
+          opacity="0.8"
+        />
+        <!-- Text above wave (different color) -->
+        <text
+          x=${centerX}
+          y=${centerY}
+          text-anchor="middle"
+          dominant-baseline="middle"
+          fill=${waveTextFill}
+          font-size="28"
+          font-weight="500"
+        >${displayText}</text>
+      </g>
+      
+      <!-- Text outside wave (clipped inverse) - shows when wave is below text -->
+      <text
+        x=${centerX}
+        y=${centerY}
+        text-anchor="middle"
+        dominant-baseline="middle"
+        fill=${textFill}
+        font-size="28"
+        font-weight="500"
+        clip-path=${`url(#${clipId})`}
+        style="pointer-events: none"
+      >${displayText}</text>
+    </svg>
+  `;
+}
 function GaugeWidget(props) {
   const { control, index } = props;
   const asGauge = control;
@@ -41437,6 +41874,36 @@ function GaugeWidget(props) {
   y2(() => {
     prevValue.current = value2;
   }, [value2]);
+  if (isWave) {
+    const waveOpts = asGauge.waveoptions ?? {};
+    return m2`<div
+      class=${`${asGauge.className || ""}`.trim()}
+      style=${{
+      width: "100%",
+      minHeight: `${chartHeight}px`,
+      display: "flex",
+      flexDirection: "column",
+      gap: "8px",
+      alignItems: "center",
+      justifyContent: "center"
+    }}
+      aria-label=${ariaLabel}
+    >
+      <div class="nr-dashboard-gauge__title">${label}</div>
+      <${WaveGauge}
+        value=${value2}
+        min=${min3}
+        max=${max3}
+        label=${label}
+        units=${asGauge.units}
+        formatter=${formatter}
+        circleColor=${waveOpts.circleColor}
+        waveColor=${waveOpts.waveColor}
+        textColor=${waveOpts.textColor}
+        waveTextColor=${waveOpts.waveTextColor}
+      />
+    </div>`;
+  }
   useECharts(chartRef, [value2, min3, max3, segments, showTicks, showMinMax, isDonut, isWave, isCompass, formatted, label, reverse, formatter, chartHeight], () => ({
     backgroundColor: "transparent",
     series: [
@@ -41449,7 +41916,7 @@ function GaugeWidget(props) {
         splitNumber: isCompass ? 8 : showTicks ? 6 : 0,
         progress: {
           show: true,
-          width: isDonut || isWave ? 14 : 10,
+          width: isDonut ? 14 : 10,
           roundCap: true,
           itemStyle: {
             color: segments[segments.length - 1][1]
@@ -41475,14 +41942,14 @@ function GaugeWidget(props) {
             return dirs[idx];
           }
         },
-        pointer: { show: !isDonut && !isWave, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
-        anchor: { show: !isDonut && !isWave, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        pointer: { show: !isDonut, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        anchor: { show: !isDonut, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
         detail: {
           valueAnimation: true,
           formatter: () => formatted,
           color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
           fontSize: 16,
-          offsetCenter: isWave ? [0, "34%"] : [0, "54%"]
+          offsetCenter: [0, "54%"]
         },
         data: [
           {
@@ -41542,6 +42009,290 @@ function resolveDateInputType(mode) {
     return "datetime-local";
   return "date";
 }
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+function getFirstDayOfMonth(year, month) {
+  return new Date(year, month, 1).getDay();
+}
+function formatYYYYMMDD(date) {
+  const y3 = date.getFullYear();
+  const m5 = String(date.getMonth() + 1).padStart(2, "0");
+  const d3 = String(date.getDate()).padStart(2, "0");
+  return `${y3}-${m5}-${d3}`;
+}
+function parseYYYYMMDD(str) {
+  if (!str)
+    return null;
+  const parts2 = str.split("-");
+  if (parts2.length < 3)
+    return null;
+  const y3 = parseInt(parts2[0], 10);
+  const m5 = parseInt(parts2[1], 10) - 1;
+  const d3 = parseInt(parts2[2], 10);
+  if (isNaN(y3) || isNaN(m5) || isNaN(d3))
+    return null;
+  return new Date(y3, m5, d3);
+}
+var MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December"
+];
+var DAY_NAMES = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+function Calendar({ value: value2, min: min3, max: max3, onSelect, onClose, t: t4, lang }) {
+  const today = new Date;
+  const initialDate = parseYYYYMMDD(value2) || today;
+  const [viewYear, setViewYear] = d2(initialDate.getFullYear());
+  const [viewMonth, setViewMonth] = d2(initialDate.getMonth());
+  const [focusedDay, setFocusedDay] = d2(initialDate.getDate());
+  const gridRef = A2(null);
+  const minDate = min3 ? parseYYYYMMDD(min3) : null;
+  const maxDate = max3 ? parseYYYYMMDD(max3) : null;
+  const daysInMonth = getDaysInMonth(viewYear, viewMonth);
+  const firstDay = getFirstDayOfMonth(viewYear, viewMonth);
+  const isDateDisabled = q2((year, month, day) => {
+    const date = new Date(year, month, day);
+    if (minDate && date < minDate)
+      return true;
+    if (maxDate && date > maxDate)
+      return true;
+    return false;
+  }, [minDate, maxDate]);
+  const isDateSelected = q2((year, month, day) => {
+    const selected = parseYYYYMMDD(value2);
+    if (!selected)
+      return false;
+    return selected.getFullYear() === year && selected.getMonth() === month && selected.getDate() === day;
+  }, [value2]);
+  const isToday = q2((year, month, day) => {
+    return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+  }, []);
+  const handleGridKeyDown = q2((e4) => {
+    let newDay = focusedDay;
+    let newMonth = viewMonth;
+    let newYear = viewYear;
+    let handled = false;
+    switch (e4.key) {
+      case "ArrowLeft":
+        newDay = focusedDay - 1;
+        handled = true;
+        break;
+      case "ArrowRight":
+        newDay = focusedDay + 1;
+        handled = true;
+        break;
+      case "ArrowUp":
+        newDay = focusedDay - 7;
+        handled = true;
+        break;
+      case "ArrowDown":
+        newDay = focusedDay + 7;
+        handled = true;
+        break;
+      case "Home":
+        newDay = 1;
+        handled = true;
+        break;
+      case "End":
+        newDay = daysInMonth;
+        handled = true;
+        break;
+      case "PageUp":
+        if (e4.shiftKey) {
+          newYear = viewYear - 1;
+        } else {
+          newMonth = viewMonth - 1;
+          if (newMonth < 0) {
+            newMonth = 11;
+            newYear = viewYear - 1;
+          }
+        }
+        handled = true;
+        break;
+      case "PageDown":
+        if (e4.shiftKey) {
+          newYear = viewYear + 1;
+        } else {
+          newMonth = viewMonth + 1;
+          if (newMonth > 11) {
+            newMonth = 0;
+            newYear = viewYear + 1;
+          }
+        }
+        handled = true;
+        break;
+      case "Enter":
+      case " ":
+        if (!isDateDisabled(viewYear, viewMonth, focusedDay)) {
+          const dateStr = formatYYYYMMDD(new Date(viewYear, viewMonth, focusedDay));
+          onSelect(dateStr);
+          onClose();
+        }
+        handled = true;
+        break;
+      case "Escape":
+        onClose();
+        handled = true;
+        break;
+    }
+    if (handled) {
+      e4.preventDefault();
+      if (newDay < 1) {
+        newMonth--;
+        if (newMonth < 0) {
+          newMonth = 11;
+          newYear--;
+        }
+        newDay = getDaysInMonth(newYear, newMonth) + newDay;
+      } else if (newDay > getDaysInMonth(newYear, newMonth)) {
+        newDay = newDay - getDaysInMonth(newYear, newMonth);
+        newMonth++;
+        if (newMonth > 11) {
+          newMonth = 0;
+          newYear++;
+        }
+      }
+      if (newYear !== viewYear)
+        setViewYear(newYear);
+      if (newMonth !== viewMonth)
+        setViewMonth(newMonth);
+      setFocusedDay(Math.max(1, Math.min(newDay, getDaysInMonth(newYear, newMonth))));
+    }
+  }, [focusedDay, viewMonth, viewYear, daysInMonth, isDateDisabled, onSelect, onClose]);
+  const handlePrevMonth = () => {
+    if (viewMonth === 0) {
+      setViewMonth(11);
+      setViewYear(viewYear - 1);
+    } else {
+      setViewMonth(viewMonth - 1);
+    }
+  };
+  const handleNextMonth = () => {
+    if (viewMonth === 11) {
+      setViewMonth(0);
+      setViewYear(viewYear + 1);
+    } else {
+      setViewMonth(viewMonth + 1);
+    }
+  };
+  const handleDayClick = (day) => {
+    if (isDateDisabled(viewYear, viewMonth, day))
+      return;
+    const dateStr = formatYYYYMMDD(new Date(viewYear, viewMonth, day));
+    onSelect(dateStr);
+    onClose();
+  };
+  const handleToday = () => {
+    const dateStr = formatYYYYMMDD(today);
+    if (!isDateDisabled(today.getFullYear(), today.getMonth(), today.getDate())) {
+      onSelect(dateStr);
+      onClose();
+    }
+  };
+  const handleClear = () => {
+    onSelect("");
+    onClose();
+  };
+  const weeks = [];
+  let currentWeek = [];
+  for (let i3 = 0;i3 < firstDay; i3++) {
+    currentWeek.push(null);
+  }
+  for (let day = 1;day <= daysInMonth; day++) {
+    currentWeek.push(day);
+    if (currentWeek.length === 7) {
+      weeks.push(currentWeek);
+      currentWeek = [];
+    }
+  }
+  if (currentWeek.length > 0) {
+    while (currentWeek.length < 7) {
+      currentWeek.push(null);
+    }
+    weeks.push(currentWeek);
+  }
+  const monthName = (() => {
+    try {
+      return new Intl.DateTimeFormat(lang, { month: "long" }).format(new Date(viewYear, viewMonth, 1));
+    } catch {
+      return MONTH_NAMES[viewMonth];
+    }
+  })();
+  return m2`<div class="nr-dashboard-calendar" onClick=${(e4) => e4.stopPropagation()}>
+    <div class="nr-dashboard-calendar__header">
+      <button
+        type="button"
+        class="nr-dashboard-calendar__nav"
+        onClick=${handlePrevMonth}
+        aria-label=${t4("calendar_prev_month", "Previous month")}
+      >
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+      </button>
+      <span class="nr-dashboard-calendar__title">${monthName} ${viewYear}</span>
+      <button
+        type="button"
+        class="nr-dashboard-calendar__nav"
+        onClick=${handleNextMonth}
+        aria-label=${t4("calendar_next_month", "Next month")}
+      >
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </button>
+    </div>
+    <table 
+      ref=${gridRef}
+      class="nr-dashboard-calendar__grid" 
+      role="grid"
+      tabIndex=${0}
+      onKeyDown=${handleGridKeyDown}
+      aria-label=${t4("calendar_grid", "Calendar")}
+    >
+      <thead>
+        <tr>
+          ${DAY_NAMES.map((d3) => m2`<th class="nr-dashboard-calendar__day-header" scope="col">${d3}</th>`)}
+        </tr>
+      </thead>
+      <tbody>
+        ${weeks.map((week) => m2`<tr>
+          ${week.map((day) => day === null ? m2`<td class="nr-dashboard-calendar__cell nr-dashboard-calendar__cell--empty" role="gridcell"></td>` : m2`<td
+                class=${`nr-dashboard-calendar__cell ${isDateSelected(viewYear, viewMonth, day) ? "is-selected" : ""} ${isToday(viewYear, viewMonth, day) ? "is-today" : ""} ${day === focusedDay ? "is-focused" : ""} ${isDateDisabled(viewYear, viewMonth, day) ? "is-disabled" : ""}`.trim()}
+                onClick=${() => handleDayClick(day)}
+                role="gridcell"
+                aria-selected=${isDateSelected(viewYear, viewMonth, day)}
+                aria-disabled=${isDateDisabled(viewYear, viewMonth, day)}
+              >
+                <span>${day}</span>
+              </td>`)}
+        </tr>`)}
+      </tbody>
+    </table>
+    <div class="nr-dashboard-calendar__footer">
+      <button
+        type="button"
+        class="nr-dashboard-calendar__btn"
+        onClick=${handleToday}
+      >
+        ${t4("calendar_today", "Today")}
+      </button>
+      <button
+        type="button"
+        class="nr-dashboard-calendar__btn nr-dashboard-calendar__btn--clear"
+        onClick=${handleClear}
+      >
+        ${t4("calendar_clear", "Clear")}
+      </button>
+    </div>
+  </div>`;
+}
 function DatePickerWidget(props) {
   const { control, index, disabled, onEmit } = props;
   const c3 = control;
@@ -41550,9 +42301,28 @@ function DatePickerWidget(props) {
   const [value2, setValue] = d2(c3.value || "");
   const [error2, setError] = d2("");
   const [focused, setFocused] = d2(false);
+  const [isCalendarOpen, setIsCalendarOpen] = d2(false);
+  const containerRef = A2(null);
   const inputId = T2(() => `nr-dashboard-date-${index}`, [index]);
   const isDisabled = Boolean(disabled);
   const inputType2 = resolveDateInputType(c3.mode);
+  const showCalendar = c3.mode !== "time";
+  y2(() => {
+    if (c3.value !== undefined) {
+      setValue(c3.value);
+    }
+  }, [c3.value]);
+  y2(() => {
+    if (!isCalendarOpen)
+      return;
+    const handleClickOutside = (e4) => {
+      if (containerRef.current && !containerRef.current.contains(e4.target)) {
+        setIsCalendarOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isCalendarOpen]);
   const validate = (next) => {
     if (c3.required && next.trim().length === 0) {
       setError(c3.error || t4("error_required", "A value is required."));
@@ -41569,22 +42339,7 @@ function DatePickerWidget(props) {
     setError("");
     return true;
   };
-  const fieldStyles = buildFieldStyles({ error: Boolean(error2), focused, disabled: isDisabled, hasAdornment: true });
-  return m2`<div class="nr-dashboard-date-picker__container">
-    <div class="nr-dashboard-date-picker__row">
-      <label for=${inputId} class="nr-dashboard-date-picker__label">${label}</label>
-      <div class="nr-dashboard-date-picker__input-container">
-        <input
-          id=${inputId}
-          class=${c3.className || ""}
-          type=${inputType2}
-          value=${value2}
-          disabled=${isDisabled}
-          lang=${lang}
-          aria-invalid=${error2 ? "true" : "false"}
-          aria-errormessage=${error2 ? `err-date-${index}` : undefined}
-          aria-valuetext=${formatDateInput(value2, c3.mode, lang) || undefined}
-          onInput=${(e4) => {
+  const handleInputChange = (e4) => {
     if (isDisabled)
       return;
     const v3 = e4.target.value;
@@ -41592,18 +42347,66 @@ function DatePickerWidget(props) {
     if (!validate(v3))
       return;
     onEmit?.("ui-change", { payload: v3 });
+  };
+  const handleCalendarSelect = (dateStr) => {
+    setValue(dateStr);
+    if (!validate(dateStr))
+      return;
+    onEmit?.("ui-change", { payload: dateStr });
+  };
+  const toggleCalendar = () => {
+    if (isDisabled)
+      return;
+    setIsCalendarOpen(!isCalendarOpen);
+  };
+  const fieldStyles = buildFieldStyles({ error: Boolean(error2), focused, disabled: isDisabled, hasAdornment: true });
+  return m2`<div ref=${containerRef} class="nr-dashboard-date-picker__container">
+    <div class="nr-dashboard-date-picker__row">
+      <label for=${inputId} class="nr-dashboard-date-picker__label">${label}</label>
+      <div class="nr-dashboard-date-picker__input-container">
+        <input
+          id=${inputId}
+          class=${`nr-dashboard-date-picker__input ${c3.className || ""}`.trim()}
+          type=${inputType2}
+          value=${value2}
+          disabled=${isDisabled}
+          lang=${lang}
+          aria-invalid=${error2 ? "true" : "false"}
+          aria-errormessage=${error2 ? `err-date-${index}` : undefined}
+          aria-valuetext=${formatDateInput(value2, c3.mode, lang) || undefined}
+          onInput=${handleInputChange}
+          onFocus=${() => {
+    setFocused(true);
+    if (showCalendar)
+      setIsCalendarOpen(true);
   }}
-          onFocus=${() => setFocused(true)}
           onBlur=${() => setFocused(false)}
-          style=${{ ...fieldStyles, paddingRight: "55px", width: "100%", fontSize: "14px", lineHeight: "20px" }}
+          style=${fieldStyles}
           min=${c3.min || undefined}
           max=${c3.max || undefined}
         />
-        <span class="nr-dashboard-date-picker__icon" aria-hidden="true">
+        ${showCalendar ? m2`<button
+          type="button"
+          class="nr-dashboard-date-picker__icon"
+          onClick=${toggleCalendar}
+          aria-label=${t4("calendar_toggle", "Open calendar")}
+          disabled=${isDisabled}
+        >
           <i class="fa fa-calendar" aria-hidden="true"></i>
-        </span>
+        </button>` : m2`<span class="nr-dashboard-date-picker__icon" aria-hidden="true">
+          <i class="fa fa-clock-o" aria-hidden="true"></i>
+        </span>`}
       </div>
     </div>
+    ${isCalendarOpen && showCalendar ? m2`<${Calendar}
+      value=${value2}
+      min=${c3.min}
+      max=${c3.max}
+      onSelect=${handleCalendarSelect}
+      onClose=${() => setIsCalendarOpen(false)}
+      t=${t4}
+      lang=${lang}
+    />` : null}
     ${error2 ? m2`<span
           id=${`err-date-${index}`}
           role="alert"
@@ -41613,6 +42416,104 @@ function DatePickerWidget(props) {
 }
 
 // src/preact/components/widgets/colour-picker.ts
+function hslToRgb(h3, s3, l3) {
+  h3 = h3 / 360;
+  s3 = s3 / 100;
+  l3 = l3 / 100;
+  let r3, g2, b;
+  if (s3 === 0) {
+    r3 = g2 = b = l3;
+  } else {
+    const hue2rgb = (p4, q4, t4) => {
+      if (t4 < 0)
+        t4 += 1;
+      if (t4 > 1)
+        t4 -= 1;
+      if (t4 < 1 / 6)
+        return p4 + (q4 - p4) * 6 * t4;
+      if (t4 < 1 / 2)
+        return q4;
+      if (t4 < 2 / 3)
+        return p4 + (q4 - p4) * (2 / 3 - t4) * 6;
+      return p4;
+    };
+    const q3 = l3 < 0.5 ? l3 * (1 + s3) : l3 + s3 - l3 * s3;
+    const p3 = 2 * l3 - q3;
+    r3 = hue2rgb(p3, q3, h3 + 1 / 3);
+    g2 = hue2rgb(p3, q3, h3);
+    b = hue2rgb(p3, q3, h3 - 1 / 3);
+  }
+  return [Math.round(r3 * 255), Math.round(g2 * 255), Math.round(b * 255)];
+}
+function rgbToHsl(r3, g2, b) {
+  r3 /= 255;
+  g2 /= 255;
+  b /= 255;
+  const max3 = Math.max(r3, g2, b);
+  const min3 = Math.min(r3, g2, b);
+  let h3 = 0;
+  let s3 = 0;
+  const l3 = (max3 + min3) / 2;
+  if (max3 !== min3) {
+    const d3 = max3 - min3;
+    s3 = l3 > 0.5 ? d3 / (2 - max3 - min3) : d3 / (max3 + min3);
+    switch (max3) {
+      case r3:
+        h3 = ((g2 - b) / d3 + (g2 < b ? 6 : 0)) / 6;
+        break;
+      case g2:
+        h3 = ((b - r3) / d3 + 2) / 6;
+        break;
+      case b:
+        h3 = ((r3 - g2) / d3 + 4) / 6;
+        break;
+    }
+  }
+  return [Math.round(h3 * 360), Math.round(s3 * 100), Math.round(l3 * 100)];
+}
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result)
+    return [255, 0, 0];
+  return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
+}
+function rgbToHex(r3, g2, b) {
+  return `#${((1 << 24) + (r3 << 16) + (g2 << 8) + b).toString(16).slice(1)}`;
+}
+function parseColor(value2) {
+  let h3 = 0, s3 = 100, l3 = 50, a3 = 1;
+  if (value2.startsWith("#")) {
+    const [r3, g2, b] = hexToRgb(value2);
+    [h3, s3, l3] = rgbToHsl(r3, g2, b);
+  } else if (value2.startsWith("rgb")) {
+    const match = value2.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+    if (match) {
+      [h3, s3, l3] = rgbToHsl(parseInt(match[1]), parseInt(match[2]), parseInt(match[3]));
+      a3 = match[4] ? parseFloat(match[4]) : 1;
+    }
+  } else if (value2.startsWith("hsl")) {
+    const match = value2.match(/hsla?\((\d+),\s*(\d+)%?,\s*(\d+)%?(?:,\s*([\d.]+))?\)/);
+    if (match) {
+      h3 = parseInt(match[1]);
+      s3 = parseInt(match[2]);
+      l3 = parseInt(match[3]);
+      a3 = match[4] ? parseFloat(match[4]) : 1;
+    }
+  }
+  return { h: h3, s: s3, l: l3, a: a3 };
+}
+function formatColor(h3, s3, l3, a3, format2) {
+  const [r3, g2, b] = hslToRgb(h3, s3, l3);
+  switch (format2) {
+    case "rgb":
+      return a3 < 1 ? `rgba(${r3}, ${g2}, ${b}, ${a3})` : `rgb(${r3}, ${g2}, ${b})`;
+    case "hsl":
+      return a3 < 1 ? `hsla(${h3}, ${s3}%, ${l3}%, ${a3})` : `hsl(${h3}, ${s3}%, ${l3}%)`;
+    case "hex":
+    default:
+      return rgbToHex(r3, g2, b);
+  }
+}
 function resolveColourValue(value2, fallback = "#ff0000") {
   if (typeof value2 === "string" && value2.trim().length > 0)
     return value2;
@@ -41623,36 +42524,268 @@ function ColourPickerWidget(props) {
   const c3 = control;
   const { t: t4 } = useI18n();
   const label = c3.label || c3.name || t4("colour_label", "Colour {index}", { index: index + 1 });
-  const [value2, setValue] = d2(resolveColourValue(c3.value));
+  const format2 = c3.format || "hex";
+  const showAlpha = c3.showAlpha !== false;
+  const showLightness = c3.showLightness !== false;
+  const showHue = c3.showHue !== false;
+  const showSwatch = c3.showSwatch !== false;
+  const inline = Boolean(c3.inline);
+  const dynamicOutput = Boolean(c3.dynamicOutput);
   const isDisabled = Boolean(disabled);
-  const [focused, setFocused] = d2(false);
-  const inputId = T2(() => `nr-dashboard-colour-${index}`, [index]);
-  const fieldStyles = buildFieldStyles({ focused, disabled: isDisabled, hasAdornment: true });
-  return m2`<div class=${`nr-dashboard-colour-picker ${c3.className || ""}`.trim()}>
-    <span class="nr-dashboard-colour-picker__label">${label}</span>
-    <div
-      class="nr-dashboard-colour-picker__field"
-      style=${fieldStyles}
-    >
-      <input
-        class="nr-dashboard-colour-picker__input"
-        type="color"
-        value=${value2}
-        disabled=${isDisabled}
-        id=${inputId}
-        aria-label=${label}
-        onInput=${(e4) => {
+  const initialColor = T2(() => parseColor(resolveColourValue(c3.value)), [c3.value]);
+  const [hue, setHue] = d2(initialColor.h);
+  const [saturation, setSaturation] = d2(initialColor.s);
+  const [lightness, setLightness] = d2(initialColor.l);
+  const [alpha, setAlpha] = d2(initialColor.a);
+  const [isOpen, setIsOpen] = d2(inline);
+  const containerRef = A2(null);
+  const satLightRef = A2(null);
+  y2(() => {
+    const parsed = parseColor(resolveColourValue(c3.value));
+    setHue(parsed.h);
+    setSaturation(parsed.s);
+    setLightness(parsed.l);
+    setAlpha(parsed.a);
+  }, [c3.value]);
+  const currentColor = T2(() => formatColor(hue, saturation, lightness, alpha, format2), [hue, saturation, lightness, alpha, format2]);
+  const previewColor = T2(() => formatColor(hue, saturation, lightness, alpha, "rgb"), [hue, saturation, lightness, alpha]);
+  const emitChange = q2((h3, s3, l3, a3) => {
+    const color = formatColor(h3, s3, l3, a3, format2);
+    if (dynamicOutput || !isOpen) {
+      onEmit?.("ui-change", { payload: color });
+    }
+  }, [format2, dynamicOutput, isOpen, onEmit]);
+  y2(() => {
+    if (!isOpen || inline)
+      return;
+    const handleClickOutside = (e4) => {
+      if (containerRef.current && !containerRef.current.contains(e4.target)) {
+        setIsOpen(false);
+        onEmit?.("ui-change", { payload: currentColor });
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, inline, currentColor, onEmit]);
+  const handleSatLightDrag = q2((e4) => {
+    if (isDisabled || !satLightRef.current)
+      return;
+    const rect = satLightRef.current.getBoundingClientRect();
+    const clientX = "touches" in e4 ? e4.touches[0].clientX : e4.clientX;
+    const clientY = "touches" in e4 ? e4.touches[0].clientY : e4.clientY;
+    const x3 = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const y3 = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    const newSat = Math.round(x3 * 100);
+    const newLight = Math.round((1 - y3) * 100);
+    setSaturation(newSat);
+    setLightness(newLight);
+    if (dynamicOutput)
+      emitChange(hue, newSat, newLight, alpha);
+  }, [isDisabled, hue, alpha, dynamicOutput, emitChange]);
+  const handleSatLightMouseDown = q2((e4) => {
+    handleSatLightDrag(e4);
+    const handleMove = (ev) => handleSatLightDrag(ev);
+    const handleUp = () => {
+      document.removeEventListener("mousemove", handleMove);
+      document.removeEventListener("mouseup", handleUp);
+      if (!dynamicOutput)
+        emitChange(hue, saturation, lightness, alpha);
+    };
+    document.addEventListener("mousemove", handleMove);
+    document.addEventListener("mouseup", handleUp);
+  }, [handleSatLightDrag, dynamicOutput, emitChange, hue, saturation, lightness, alpha]);
+  const handleSatLightKeyDown = q2((e4) => {
     if (isDisabled)
       return;
+    const step = e4.shiftKey ? 10 : 1;
+    let newSat = saturation;
+    let newLight = lightness;
+    let handled = false;
+    switch (e4.key) {
+      case "ArrowRight":
+        newSat = Math.min(100, saturation + step);
+        handled = true;
+        break;
+      case "ArrowLeft":
+        newSat = Math.max(0, saturation - step);
+        handled = true;
+        break;
+      case "ArrowUp":
+        newLight = Math.min(100, lightness + step);
+        handled = true;
+        break;
+      case "ArrowDown":
+        newLight = Math.max(0, lightness - step);
+        handled = true;
+        break;
+      case "Home":
+        newSat = 0;
+        handled = true;
+        break;
+      case "End":
+        newSat = 100;
+        handled = true;
+        break;
+      case "PageUp":
+        newLight = Math.min(100, lightness + 10);
+        handled = true;
+        break;
+      case "PageDown":
+        newLight = Math.max(0, lightness - 10);
+        handled = true;
+        break;
+    }
+    if (handled) {
+      e4.preventDefault();
+      setSaturation(newSat);
+      setLightness(newLight);
+      emitChange(hue, newSat, newLight, alpha);
+    }
+  }, [isDisabled, saturation, lightness, hue, alpha, emitChange]);
+  const handleHueChange = (e4) => {
+    const newHue = parseInt(e4.target.value, 10);
+    setHue(newHue);
+    emitChange(newHue, saturation, lightness, alpha);
+  };
+  const handleLightnessChange = (e4) => {
+    const newLight = parseInt(e4.target.value, 10);
+    setLightness(newLight);
+    emitChange(hue, saturation, newLight, alpha);
+  };
+  const handleAlphaChange = (e4) => {
+    const newAlpha = parseFloat(e4.target.value);
+    setAlpha(newAlpha);
+    emitChange(hue, saturation, lightness, newAlpha);
+  };
+  const handleHexInput = (e4) => {
     const v3 = e4.target.value;
-    setValue(v3);
-    onEmit?.("ui-change", { payload: v3 });
+    if (/^#[0-9a-fA-F]{6}$/.test(v3)) {
+      const parsed = parseColor(v3);
+      setHue(parsed.h);
+      setSaturation(parsed.s);
+      setLightness(parsed.l);
+      emitChange(parsed.h, parsed.s, parsed.l, alpha);
+    }
+  };
+  const togglePicker = () => {
+    if (isDisabled || inline)
+      return;
+    if (isOpen) {
+      onEmit?.("ui-change", { payload: currentColor });
+    }
+    setIsOpen(!isOpen);
+  };
+  const renderPicker = () => m2`<div class="nr-dashboard-colour-picker__panel">
+    <div
+      ref=${satLightRef}
+      class="nr-dashboard-colour-picker__satlight"
+      style=${{ background: `linear-gradient(to right, #fff, hsl(${hue}, 100%, 50%))` }}
+      tabIndex=${isDisabled ? -1 : 0}
+      role="slider"
+      aria-label=${t4("colour_satlight", "Saturation and lightness")}
+      aria-valuetext=${t4("colour_satlight_value", "Saturation {sat}%, Lightness {light}%", { sat: saturation, light: lightness })}
+      aria-disabled=${isDisabled}
+      onMouseDown=${handleSatLightMouseDown}
+      onKeyDown=${handleSatLightKeyDown}
+    >
+      <div class="nr-dashboard-colour-picker__satlight-overlay"></div>
+      <div
+        class="nr-dashboard-colour-picker__cursor"
+        style=${{
+    left: `${saturation}%`,
+    top: `${100 - lightness}%`,
+    background: previewColor
   }}
-        onFocus=${() => setFocused(true)}
-        onBlur=${() => setFocused(false)}
-      />
-      <span class="nr-dashboard-colour-picker__value" aria-live="polite">${value2}</span>
+        aria-hidden="true"
+      ></div>
     </div>
+    ${showHue ? m2`<div class="nr-dashboard-colour-picker__slider-row">
+      <label class="nr-dashboard-colour-picker__slider-label" id="hue-label-${control.id}">${t4("colour_hue", "H")}</label>
+      <input
+        type="range"
+        min="0"
+        max="360"
+        value=${hue}
+        class="nr-dashboard-colour-picker__hue-slider"
+        onInput=${handleHueChange}
+        disabled=${isDisabled}
+        aria-labelledby="hue-label-${control.id}"
+        aria-valuemin=${0}
+        aria-valuemax=${360}
+        aria-valuenow=${hue}
+      />
+      <span class="nr-dashboard-colour-picker__slider-value" aria-hidden="true">${hue}°</span>
+    </div>` : null}
+    ${showLightness ? m2`<div class="nr-dashboard-colour-picker__slider-row">
+      <label class="nr-dashboard-colour-picker__slider-label" id="lightness-label-${control.id}">${t4("colour_lightness", "L")}</label>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        value=${lightness}
+        class="nr-dashboard-colour-picker__lightness-slider"
+        style=${{ background: `linear-gradient(to right, #000, hsl(${hue}, ${saturation}%, 50%), #fff)` }}
+        onInput=${handleLightnessChange}
+        disabled=${isDisabled}
+        aria-labelledby="lightness-label-${control.id}"
+        aria-valuemin=${0}
+        aria-valuemax=${100}
+        aria-valuenow=${lightness}
+      />
+      <span class="nr-dashboard-colour-picker__slider-value" aria-hidden="true">${lightness}%</span>
+    </div>` : null}
+    ${showAlpha ? m2`<div class="nr-dashboard-colour-picker__slider-row">
+      <label class="nr-dashboard-colour-picker__slider-label" id="alpha-label-${control.id}">${t4("colour_alpha", "A")}</label>
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value=${alpha}
+        class="nr-dashboard-colour-picker__alpha-slider"
+        style=${{ background: `linear-gradient(to right, transparent, hsl(${hue}, ${saturation}%, ${lightness}%))` }}
+        onInput=${handleAlphaChange}
+        disabled=${isDisabled}
+        aria-labelledby="alpha-label-${control.id}"
+        aria-valuemin=${0}
+        aria-valuemax=${1}
+        aria-valuenow=${alpha}
+      />
+      <span class="nr-dashboard-colour-picker__slider-value">${Math.round(alpha * 100)}%</span>
+    </div>` : null}
+    <div class="nr-dashboard-colour-picker__hex-row">
+      <input
+        type="text"
+        class="nr-dashboard-colour-picker__hex-input"
+        value=${currentColor}
+        onInput=${handleHexInput}
+        disabled=${isDisabled}
+        aria-label=${t4("colour_value", "Color value")}
+      />
+    </div>
+  </div>`;
+  return m2`<div
+    ref=${containerRef}
+    class=${`nr-dashboard-colour-picker ${c3.className || ""} ${inline ? "is-inline" : ""} ${isOpen ? "is-open" : ""}`.trim()}
+  >
+    ${!inline ? m2`<button
+      type="button"
+      class="nr-dashboard-colour-picker__trigger"
+      onClick=${togglePicker}
+      disabled=${isDisabled}
+      aria-expanded=${isOpen}
+      aria-haspopup="dialog"
+      aria-label=${t4("colour_trigger", "{label}: {color}", { label, color: currentColor })}
+    >
+      <span class="nr-dashboard-colour-picker__label">${label}</span>
+      ${showSwatch ? m2`<div
+        class="nr-dashboard-colour-picker__swatch"
+        style=${{ background: previewColor }}
+        aria-hidden="true"
+      ></div>` : null}
+      <span class="nr-dashboard-colour-picker__value">${currentColor}</span>
+    </button>` : null}
+    ${isOpen || inline ? renderPicker() : null}
   </div>`;
 }
 
@@ -41806,7 +42939,8 @@ function LinkWidget(props) {
 
 // src/preact/components/widgets/template.ts
 function resolveTemplateHtml(ctrl) {
-  return ctrl.template || ctrl.format || "";
+  const msgTemplate = ctrl.msg?.template;
+  return msgTemplate ?? ctrl.template ?? ctrl.format ?? "";
 }
 function TemplateWidget(props) {
   const { control, index } = props;
@@ -41814,6 +42948,14 @@ function TemplateWidget(props) {
   const { t: t4 } = useI18n();
   const title = c3.name || t4("template_label", "Template {index}", { index: index + 1 });
   const htmlContent = resolveTemplateHtml(c3);
+  const isGlobal = c3.templateScope === "global";
+  if (isGlobal) {
+    return m2`<div
+      class="nr-dashboard-template--global"
+      style=${{ display: "none" }}
+      dangerouslySetInnerHTML=${{ __html: htmlContent }}
+    ></div>`;
+  }
   return m2`<div class=${`nr-dashboard-template__outer ${c3.className || ""}`.trim()}>
     <div class="nr-dashboard-template__inner">
       <div class="nr-dashboard-template__title">${title}</div>
@@ -45902,6 +47044,20 @@ function ChartWidget(props) {
   </div>`;
 }
 
+// src/preact/components/widgets/spacer.ts
+function SpacerWidget(props) {
+  const { control } = props;
+  const c3 = control;
+  const width = typeof c3.width === "number" ? `${c3.width}px` : c3.width ?? "100%";
+  const height = typeof c3.height === "number" ? `${c3.height}px` : c3.height ?? "1em";
+  return m2`<div
+    class=${`nr-dashboard-spacer ${c3.className ?? ""}`.trim()}
+    style=${{ width, height, minHeight: height }}
+    role="presentation"
+    aria-hidden="true"
+  ></div>`;
+}
+
 // src/preact/components/widget-preview.ts
 function widgetLabel(control, idx) {
   const asAny = control;
@@ -46114,6 +47270,9 @@ function WidgetRenderer(props) {
   if (type === "form" || type === "ui_form") {
     return m2`<${WidgetFrame} control=${control} disabled=${disabled}><${FormWidget} control=${control} index=${index} onEmit=${onEmit} disabled=${disabled} /></${WidgetFrame}>`;
   }
+  if (type === "spacer" || type === "ui_spacer") {
+    return m2`<${SpacerWidget} control=${control} index=${index} />`;
+  }
   return m2`<${WidgetFrame} control=${control} disabled=${disabled}><${WidgetPreview} control=${control} index=${index} /></${WidgetFrame}>`;
 }
 
@@ -46134,10 +47293,11 @@ function GroupCard(props) {
     return flag;
   }, [header?.config]);
   const [collapsed, setCollapsed] = d2(initialCollapsed);
-  const toggleCollapse = () => {
+  const toggleCollapse = q2(() => {
     const next = !collapsed;
     setCollapsed(next);
-  };
+    onEmit?.("ui-collapse", { group: groupKey, state: !next });
+  }, [collapsed, groupKey, onEmit]);
   const sectionStyle = {
     "--nr-group-row-gap": `${sizes.cy}px`,
     "--nr-group-col-gap": `${sizes.cx}px`,
@@ -46378,30 +47538,144 @@ function GroupGrid(props) {
 }
 
 // src/preact/components/ToastOverlay.ts
+function DialogToast(props) {
+  const { toast, onResult, t: t4 } = props;
+  const [inputValue, setInputValue] = d2(toast.promptDefault || "");
+  const toneColor = resolveToastToneColor(toast.level ?? "info");
+  const borderColor = toast.highlight || toneColor;
+  const isPrompt = toast.dialogType === "prompt";
+  const handleOk = q2(() => {
+    onResult({ ok: true, value: isPrompt ? inputValue : undefined });
+  }, [onResult, isPrompt, inputValue]);
+  const handleCancel = q2(() => {
+    onResult({ ok: false });
+  }, [onResult]);
+  const handleKeyDown = q2((e4) => {
+    if (e4.key === "Enter" && !e4.shiftKey) {
+      e4.preventDefault();
+      handleOk();
+    } else if (e4.key === "Escape") {
+      handleCancel();
+    }
+  }, [handleOk, handleCancel]);
+  const messageNode = toast.raw ? m2`<div class="nr-dashboard-toast-message" dangerouslySetInnerHTML=${{ __html: String(toast.message ?? "") }}></div>` : m2`<div class="nr-dashboard-toast-message">${String(toast.message ?? "")}</div>`;
+  return m2`<div class="nr-dashboard-dialog-backdrop" onClick=${handleCancel}>
+    <div
+      class=${`nr-dashboard-dialog ${toast.className || ""}`.trim()}
+      style=${{ borderTop: `4px solid ${borderColor}` }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby=${`dialog-title-${toast.id}`}
+      onClick=${(e4) => e4.stopPropagation()}
+      onKeyDown=${handleKeyDown}
+    >
+      <div id=${`dialog-title-${toast.id}`} class="nr-dashboard-dialog__title" style=${{ color: toneColor }}>
+        ${toast.title || t4("toast_overlay_title", "Notification")}
+      </div>
+      ${messageNode}
+      ${isPrompt ? m2`<div class="nr-dashboard-dialog__input-row">
+        <input
+          type="text"
+          class="nr-dashboard-dialog__input"
+          value=${inputValue}
+          onInput=${(e4) => setInputValue(e4.target.value)}
+          placeholder=${toast.promptPlaceholder || ""}
+          autofocus
+        />
+      </div>` : null}
+      <div class="nr-dashboard-dialog__buttons">
+        ${toast.showCancel !== false ? m2`<button
+          type="button"
+          class="nr-dashboard-dialog__btn nr-dashboard-dialog__btn--cancel"
+          onClick=${handleCancel}
+        >
+          ${toast.cancelLabel || t4("dialog_cancel", "Cancel")}
+        </button>` : null}
+        <button
+          type="button"
+          class="nr-dashboard-dialog__btn nr-dashboard-dialog__btn--ok"
+          style=${{ background: toneColor }}
+          onClick=${handleOk}
+        >
+          ${toast.okLabel || t4("dialog_ok", "OK")}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+function NotificationToast(props) {
+  const { toast, onDismiss, t: t4 } = props;
+  const toneColor = resolveToastToneColor(toast.level ?? "info");
+  const borderColor = toast.highlight || toneColor;
+  const liveMode = toast.level === "error" ? "assertive" : "polite";
+  const messageNode = toast.raw ? m2`<div class="nr-dashboard-toast-message" dangerouslySetInnerHTML=${{ __html: String(toast.message ?? "") }}></div>` : m2`<div class="nr-dashboard-toast-message">${String(toast.message ?? "")}</div>`;
+  return m2`<div
+    key=${toast.id}
+    class=${`nr-dashboard-toast-card ${toast.className || ""}`.trim()}
+    style=${{ borderLeft: `4px solid ${borderColor}` }}
+    role="status"
+    aria-live=${liveMode}
+    aria-atomic="true"
+  >
+    <div class="nr-dashboard-toast-title" style=${{ color: toneColor }}>
+      ${toast.title || t4("toast_overlay_title", "Notification")}
+    </div>
+    ${messageNode}
+    ${toast.dismissible !== false ? m2`<button
+      type="button"
+      class="nr-dashboard-toast-close"
+      onClick=${() => onDismiss(toast.id)}
+      aria-label=${t4("toast_close", "Close notification")}
+    >×</button>` : null}
+  </div>`;
+}
 function ToastOverlay(props) {
-  const { toasts } = props;
+  const { toasts, onDismiss, onDialogResult } = props;
   if (!toasts.length)
     return null;
   const { t: t4 } = useI18n();
-  return m2`<div class="nr-dashboard-toast-overlay">
-    ${toasts.map((toast) => {
-    const toneColor = resolveToastToneColor(toast.level ?? "info");
-    const borderColor = toast.highlight || toneColor;
-    const liveMode = toast.level === "error" ? "assertive" : "polite";
-    const messageNode = typeof toast.message === "string" ? m2`<div class="nr-dashboard-toast-message" dangerouslySetInnerHTML=${{ __html: toast.message }}></div>` : m2`<div class="nr-dashboard-toast-message">${String(toast.message ?? "")}</div>`;
-    return m2`<div
-        key=${toast.id}
-        class=${`nr-dashboard-toast-card ${toast.className || ""}`.trim()}
-        style=${{ border: `4px solid ${borderColor}` }}
-        role="status"
-        aria-live=${liveMode}
-        aria-atomic="true"
-      >
-        <div class="nr-dashboard-toast-title">${toast.title || t4("toast_overlay_title", "Notification")}</div>
-        ${messageNode}
+  const dialogs = toasts.filter((toast) => toast.dialogType === "dialog" || toast.dialogType === "prompt");
+  const notifications = toasts.filter((toast) => !toast.dialogType || toast.dialogType === "notification");
+  const positions = {
+    "top-right": [],
+    "top-left": [],
+    "bottom-right": [],
+    "bottom-left": [],
+    "top-center": [],
+    "bottom-center": []
+  };
+  notifications.forEach((toast) => {
+    const pos = toast.position || "top-right";
+    if (positions[pos]) {
+      positions[pos].push(toast);
+    } else {
+      positions["top-right"].push(toast);
+    }
+  });
+  const handleDialogResult = (toast, result) => {
+    onDismiss(toast.id);
+    onDialogResult?.(toast.id, result);
+  };
+  return m2`<>
+    ${dialogs.map((toast) => m2`<${DialogToast}
+      key=${toast.id}
+      toast=${toast}
+      onResult=${(result) => handleDialogResult(toast, result)}
+      t=${t4}
+    />`)}
+    ${Object.entries(positions).map(([pos, posToasts]) => {
+    if (!posToasts.length)
+      return null;
+    return m2`<div key=${pos} class=${`nr-dashboard-toast-overlay nr-dashboard-toast-overlay--${pos}`}>
+        ${posToasts.map((toast) => m2`<${NotificationToast}
+          key=${toast.id}
+          toast=${toast}
+          onDismiss=${onDismiss}
+          t=${t4}
+        />`)}
       </div>`;
   })}
-  </div>`;
+  </>`;
 }
 
 // src/preact/index.ts
@@ -46458,7 +47732,7 @@ function getEffectiveTheme(tab, globalTheme) {
     return tab.theme;
   return globalTheme ?? null;
 }
-function parseColor(value2) {
+function parseColor2(value2) {
   if (!value2)
     return null;
   const trimmed = value2.trim();
@@ -46527,7 +47801,7 @@ function applyThemeToRoot(theme2, root) {
     }
   });
   if (!textValue && typeof backgroundValue === "string" && backgroundValue.length > 0) {
-    const rgb = parseColor(backgroundValue);
+    const rgb = parseColor2(backgroundValue);
     if (rgb) {
       const lum2 = relativeLuminance(rgb);
       const derivedText = lum2 > 0.6 ? "#0b0d11" : "#f4f6fb";
@@ -46578,7 +47852,11 @@ function App() {
         tabId=${tabId}
         actions=${actions2}
       />
-      <${ToastOverlay} toasts=${state.toasts} onDismiss=${actions2.dismissToast} />
+      <${ToastOverlay}
+        toasts=${state.toasts}
+        onDismiss=${actions2.dismissToast}
+        onDialogResult=${(id, result) => actions2.handleDialogResult(id, result)}
+      />
     </${SizesProvider}>
   </${I18nProvider}>`;
 }

@@ -157,7 +157,12 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
     value=${sliderValue}
     title=${asSlider.tooltip || undefined}
     disabled=${isDisabled}
+    aria-label=${label}
+    aria-valuemin=${min}
+    aria-valuemax=${max}
+    aria-valuenow=${value}
     aria-valuetext=${t("slider_value_label", "{label}: {value}", { label, value: formatNumber(value, lang) })}
+    aria-disabled=${isDisabled}
     onInput=${handleInput}
     onChange=${handleChange}
     onWheel=${handleWheel}

@@ -72,6 +72,8 @@ function Calendar({ value, min, max, onSelect, onClose, t, lang }: CalendarProps
   const initialDate = parseYYYYMMDD(value) || today;
   const [viewYear, setViewYear] = useState<number>(initialDate.getFullYear());
   const [viewMonth, setViewMonth] = useState<number>(initialDate.getMonth());
+  const [focusedDay, setFocusedDay] = useState<number>(initialDate.getDate());
+  const gridRef = useRef<HTMLTableElement>(null);
 
   const minDate = min ? parseYYYYMMDD(min) : null;
   const maxDate = max ? parseYYYYMMDD(max) : null;
@@ -95,6 +97,105 @@ function Calendar({ value, min, max, onSelect, onClose, t, lang }: CalendarProps
   const isToday = useCallback((year: number, month: number, day: number): boolean => {
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
   }, []);
+
+  // Keyboard navigation for calendar grid
+  const handleGridKeyDown = useCallback((e: KeyboardEvent) => {
+    let newDay = focusedDay;
+    let newMonth = viewMonth;
+    let newYear = viewYear;
+    let handled = false;
+
+    switch (e.key) {
+      case "ArrowLeft":
+        newDay = focusedDay - 1;
+        handled = true;
+        break;
+      case "ArrowRight":
+        newDay = focusedDay + 1;
+        handled = true;
+        break;
+      case "ArrowUp":
+        newDay = focusedDay - 7;
+        handled = true;
+        break;
+      case "ArrowDown":
+        newDay = focusedDay + 7;
+        handled = true;
+        break;
+      case "Home":
+        newDay = 1;
+        handled = true;
+        break;
+      case "End":
+        newDay = daysInMonth;
+        handled = true;
+        break;
+      case "PageUp":
+        // Previous month
+        if (e.shiftKey) {
+          newYear = viewYear - 1;
+        } else {
+          newMonth = viewMonth - 1;
+          if (newMonth < 0) {
+            newMonth = 11;
+            newYear = viewYear - 1;
+          }
+        }
+        handled = true;
+        break;
+      case "PageDown":
+        // Next month
+        if (e.shiftKey) {
+          newYear = viewYear + 1;
+        } else {
+          newMonth = viewMonth + 1;
+          if (newMonth > 11) {
+            newMonth = 0;
+            newYear = viewYear + 1;
+          }
+        }
+        handled = true;
+        break;
+      case "Enter":
+      case " ":
+        if (!isDateDisabled(viewYear, viewMonth, focusedDay)) {
+          const dateStr = formatYYYYMMDD(new Date(viewYear, viewMonth, focusedDay));
+          onSelect(dateStr);
+          onClose();
+        }
+        handled = true;
+        break;
+      case "Escape":
+        onClose();
+        handled = true;
+        break;
+    }
+
+    if (handled) {
+      e.preventDefault();
+
+      // Handle month boundary crossing
+      if (newDay < 1) {
+        newMonth--;
+        if (newMonth < 0) {
+          newMonth = 11;
+          newYear--;
+        }
+        newDay = getDaysInMonth(newYear, newMonth) + newDay;
+      } else if (newDay > getDaysInMonth(newYear, newMonth)) {
+        newDay = newDay - getDaysInMonth(newYear, newMonth);
+        newMonth++;
+        if (newMonth > 11) {
+          newMonth = 0;
+          newYear++;
+        }
+      }
+
+      if (newYear !== viewYear) setViewYear(newYear);
+      if (newMonth !== viewMonth) setViewMonth(newMonth);
+      setFocusedDay(Math.max(1, Math.min(newDay, getDaysInMonth(newYear, newMonth))));
+    }
+  }, [focusedDay, viewMonth, viewYear, daysInMonth, isDateDisabled, onSelect, onClose]);
 
   const handlePrevMonth = () => {
     if (viewMonth === 0) {
@@ -189,18 +290,25 @@ function Calendar({ value, min, max, onSelect, onClose, t, lang }: CalendarProps
         <i class="fa fa-chevron-right" aria-hidden="true"></i>
       </button>
     </div>
-    <table class="nr-dashboard-calendar__grid" role="grid">
+    <table 
+      ref=${gridRef}
+      class="nr-dashboard-calendar__grid" 
+      role="grid"
+      tabIndex=${0}
+      onKeyDown=${handleGridKeyDown}
+      aria-label=${t("calendar_grid", "Calendar")}
+    >
       <thead>
         <tr>
-          ${DAY_NAMES.map((d) => html`<th class="nr-dashboard-calendar__day-header">${d}</th>`)}
+          ${DAY_NAMES.map((d) => html`<th class="nr-dashboard-calendar__day-header" scope="col">${d}</th>`)}
         </tr>
       </thead>
       <tbody>
         ${weeks.map((week) => html`<tr>
           ${week.map((day) => day === null
-            ? html`<td class="nr-dashboard-calendar__cell nr-dashboard-calendar__cell--empty"></td>`
+            ? html`<td class="nr-dashboard-calendar__cell nr-dashboard-calendar__cell--empty" role="gridcell"></td>`
             : html`<td
-                class=${`nr-dashboard-calendar__cell ${isDateSelected(viewYear, viewMonth, day) ? "is-selected" : ""} ${isToday(viewYear, viewMonth, day) ? "is-today" : ""} ${isDateDisabled(viewYear, viewMonth, day) ? "is-disabled" : ""}`.trim()}
+                class=${`nr-dashboard-calendar__cell ${isDateSelected(viewYear, viewMonth, day) ? "is-selected" : ""} ${isToday(viewYear, viewMonth, day) ? "is-today" : ""} ${day === focusedDay ? "is-focused" : ""} ${isDateDisabled(viewYear, viewMonth, day) ? "is-disabled" : ""}`.trim()}
                 onClick=${() => handleDayClick(day)}
                 role="gridcell"
                 aria-selected=${isDateSelected(viewYear, viewMonth, day)}

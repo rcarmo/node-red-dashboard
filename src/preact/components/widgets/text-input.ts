@@ -54,6 +54,12 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
   const pattern = asInput.pattern ? new RegExp(asInput.pattern) : null;
   const isColorMode = asInput.mode === "color";
   const hasLabel = Boolean(asInput.label);
+  // Extract plain text from HTML label for aria-label
+  const ariaLabel = useMemo(() => {
+    if (!label) return undefined;
+    // Strip HTML tags for accessible label
+    return String(label).replace(/<[^>]*>/g, "").trim() || undefined;
+  }, [label]);
 
   const validate = (next: string): boolean => {
     if (asInput.required && next.trim().length === 0) {
@@ -141,6 +147,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
           value=${value}
           title=${asInput.tooltip || undefined}
           disabled=${Boolean(disabled)}
+          aria-label=${ariaLabel}
           aria-invalid=${error ? "true" : "false"}
           aria-errormessage=${error ? `err-${index}` : undefined}
           inputMode=${type === "number" ? "decimal" : type === "email" ? "email" : undefined}

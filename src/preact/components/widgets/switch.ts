@@ -111,6 +111,10 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   const thumbBg = checked ? "var(--nr-dashboard-widgetBackgroundColor, #0094d9)" : "rgb(148,148,148)";
   const thumbLeft = checked ? "18px" : "-2px";
 
+  const switchLabel = asSwitch.onicon && asSwitch.officon 
+    ? t("switch_toggle_label", "Toggle {label}", { label })
+    : t("switch_state_label", "{label}, currently {state}", { label, state: checked ? "on" : "off" });
+
   const track = html`<div
     class="nr-dashboard-switch__track"
     onClick=${onEmit ? toggle : undefined}
@@ -125,6 +129,8 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     tabIndex=${disabled ? -1 : 0}
     role="switch"
     aria-checked=${checked}
+    aria-label=${switchLabel}
+    aria-disabled=${disabled}
     style=${{
       "--nr-switch-track-bg": trackBg,
     }}
@@ -143,15 +149,30 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
   const customIcons = customIconsActive
     ? html`<div
         onClick=${onEmit ? toggle : undefined}
+        onFocus=${() => setFocused(true)}
+        onBlur=${() => setFocused(false)}
+        onKeyDown=${(e: KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+            e.preventDefault();
+            toggle();
+          }
+        }}
+        tabIndex=${disabled ? -1 : 0}
+        role="switch"
+        aria-checked=${checked}
+        aria-label=${switchLabel}
+        aria-disabled=${disabled}
         class="nr-dashboard-switch__custom-icon-container"
       >
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{ color: checked ? asSwitch.oncolor : "transparent" }}
+          aria-hidden="true"
         >${renderIcon(asSwitch.onicon)}</span>
         <span
           class=${`nr-dashboard-switch__custom-icon ${asSwitch.animate || ""}`.trim()}
           style=${{ color: !checked ? asSwitch.offcolor : "transparent" }}
+          aria-hidden="true"
         >${renderIcon(asSwitch.officon)}</span>
       </div>`
     : track;

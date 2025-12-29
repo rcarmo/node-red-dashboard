@@ -206,6 +206,57 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
     document.addEventListener("mouseup", handleUp);
   }, [handleSatLightDrag, dynamicOutput, emitChange, hue, saturation, lightness, alpha]);
 
+  // Keyboard handling for saturation/lightness area
+  const handleSatLightKeyDown = useCallback((e: KeyboardEvent) => {
+    if (isDisabled) return;
+    const step = e.shiftKey ? 10 : 1;
+    let newSat = saturation;
+    let newLight = lightness;
+    let handled = false;
+
+    switch (e.key) {
+      case "ArrowRight":
+        newSat = Math.min(100, saturation + step);
+        handled = true;
+        break;
+      case "ArrowLeft":
+        newSat = Math.max(0, saturation - step);
+        handled = true;
+        break;
+      case "ArrowUp":
+        newLight = Math.min(100, lightness + step);
+        handled = true;
+        break;
+      case "ArrowDown":
+        newLight = Math.max(0, lightness - step);
+        handled = true;
+        break;
+      case "Home":
+        newSat = 0;
+        handled = true;
+        break;
+      case "End":
+        newSat = 100;
+        handled = true;
+        break;
+      case "PageUp":
+        newLight = Math.min(100, lightness + 10);
+        handled = true;
+        break;
+      case "PageDown":
+        newLight = Math.max(0, lightness - 10);
+        handled = true;
+        break;
+    }
+
+    if (handled) {
+      e.preventDefault();
+      setSaturation(newSat);
+      setLightness(newLight);
+      emitChange(hue, newSat, newLight, alpha);
+    }
+  }, [isDisabled, saturation, lightness, hue, alpha, emitChange]);
+
   const handleHueChange = (e: Event) => {
     const newHue = parseInt((e.target as HTMLInputElement).value, 10);
     setHue(newHue);
@@ -248,7 +299,13 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
       ref=${satLightRef}
       class="nr-dashboard-colour-picker__satlight"
       style=${{ background: `linear-gradient(to right, #fff, hsl(${hue}, 100%, 50%))` }}
+      tabIndex=${isDisabled ? -1 : 0}
+      role="slider"
+      aria-label=${t("colour_satlight", "Saturation and lightness")}
+      aria-valuetext=${t("colour_satlight_value", "Saturation {sat}%, Lightness {light}%", { sat: saturation, light: lightness })}
+      aria-disabled=${isDisabled}
       onMouseDown=${handleSatLightMouseDown}
+      onKeyDown=${handleSatLightKeyDown}
     >
       <div class="nr-dashboard-colour-picker__satlight-overlay"></div>
       <div
@@ -258,10 +315,11 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
           top: `${100 - lightness}%`,
           background: previewColor,
         }}
+        aria-hidden="true"
       ></div>
     </div>
     ${showHue ? html`<div class="nr-dashboard-colour-picker__slider-row">
-      <label class="nr-dashboard-colour-picker__slider-label">${t("colour_hue", "H")}</label>
+      <label class="nr-dashboard-colour-picker__slider-label" id="hue-label-${control.id}">${t("colour_hue", "H")}</label>
       <input
         type="range"
         min="0"
@@ -270,11 +328,15 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
         class="nr-dashboard-colour-picker__hue-slider"
         onInput=${handleHueChange}
         disabled=${isDisabled}
+        aria-labelledby="hue-label-${control.id}"
+        aria-valuemin=${0}
+        aria-valuemax=${360}
+        aria-valuenow=${hue}
       />
-      <span class="nr-dashboard-colour-picker__slider-value">${hue}°</span>
+      <span class="nr-dashboard-colour-picker__slider-value" aria-hidden="true">${hue}°</span>
     </div>` : null}
     ${showLightness ? html`<div class="nr-dashboard-colour-picker__slider-row">
-      <label class="nr-dashboard-colour-picker__slider-label">${t("colour_lightness", "L")}</label>
+      <label class="nr-dashboard-colour-picker__slider-label" id="lightness-label-${control.id}">${t("colour_lightness", "L")}</label>
       <input
         type="range"
         min="0"
@@ -284,11 +346,15 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
         style=${{ background: `linear-gradient(to right, #000, hsl(${hue}, ${saturation}%, 50%), #fff)` }}
         onInput=${handleLightnessChange}
         disabled=${isDisabled}
+        aria-labelledby="lightness-label-${control.id}"
+        aria-valuemin=${0}
+        aria-valuemax=${100}
+        aria-valuenow=${lightness}
       />
-      <span class="nr-dashboard-colour-picker__slider-value">${lightness}%</span>
+      <span class="nr-dashboard-colour-picker__slider-value" aria-hidden="true">${lightness}%</span>
     </div>` : null}
     ${showAlpha ? html`<div class="nr-dashboard-colour-picker__slider-row">
-      <label class="nr-dashboard-colour-picker__slider-label">${t("colour_alpha", "A")}</label>
+      <label class="nr-dashboard-colour-picker__slider-label" id="alpha-label-${control.id}">${t("colour_alpha", "A")}</label>
       <input
         type="range"
         min="0"
@@ -299,6 +365,10 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
         style=${{ background: `linear-gradient(to right, transparent, hsl(${hue}, ${saturation}%, ${lightness}%))` }}
         onInput=${handleAlphaChange}
         disabled=${isDisabled}
+        aria-labelledby="alpha-label-${control.id}"
+        aria-valuemin=${0}
+        aria-valuemax=${1}
+        aria-valuenow=${alpha}
       />
       <span class="nr-dashboard-colour-picker__slider-value">${Math.round(alpha * 100)}%</span>
     </div>` : null}
@@ -318,15 +388,23 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
     ref=${containerRef}
     class=${`nr-dashboard-colour-picker ${c.className || ""} ${inline ? "is-inline" : ""} ${isOpen ? "is-open" : ""}`.trim()}
   >
-    ${!inline ? html`<div class="nr-dashboard-colour-picker__trigger" onClick=${togglePicker}>
+    ${!inline ? html`<button
+      type="button"
+      class="nr-dashboard-colour-picker__trigger"
+      onClick=${togglePicker}
+      disabled=${isDisabled}
+      aria-expanded=${isOpen}
+      aria-haspopup="dialog"
+      aria-label=${t("colour_trigger", "{label}: {color}", { label, color: currentColor })}
+    >
       <span class="nr-dashboard-colour-picker__label">${label}</span>
       ${showSwatch ? html`<div
         class="nr-dashboard-colour-picker__swatch"
         style=${{ background: previewColor }}
-        aria-label=${t("colour_current", "Current color: {color}", { color: currentColor })}
+        aria-hidden="true"
       ></div>` : null}
       <span class="nr-dashboard-colour-picker__value">${currentColor}</span>
-    </div>` : null}
+    </button>` : null}
     ${(isOpen || inline) ? renderPicker() : null}
   </div>`;
 }

@@ -105,8 +105,10 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
   const lastReset = useRef<boolean>(false);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const optionRefs = useRef<(HTMLLIElement | null)[]>([]);
 
   // Show search when more than threshold options
   const showSearch = opts.length > SEARCH_THRESHOLD;
@@ -170,10 +172,13 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, multiple, onEmit, asDrop, label, value]);
 
-  // Focus search input when opening
+  // Focus search input when opening; reset focusedIndex
   useEffect(() => {
-    if (isOpen && showSearch && searchRef.current) {
-      searchRef.current.focus();
+    if (isOpen) {
+      setFocusedIndex(-1);
+      if (showSearch && searchRef.current) {
+        searchRef.current.focus();
+      }
     }
   }, [isOpen, showSearch]);
 
@@ -221,12 +226,79 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
     }
   }, [multiple, allSelected, enabledOpts]);
 
+  // Scroll focused option into view
+  useEffect(() => {
+    if (focusedIndex >= 0 && optionRefs.current[focusedIndex]) {
+      optionRefs.current[focusedIndex]?.scrollIntoView({ block: "nearest" });
+    }
+  }, [focusedIndex]);
+
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsOpen(false);
       setSearchTerm("");
-    } else if (e.key === "Enter" && !isOpen) {
-      setIsOpen(true);
+      setFocusedIndex(-1);
+    } else if (e.key === "Enter") {
+      if (!isOpen) {
+        setIsOpen(true);
+      } else if (focusedIndex >= 0 && focusedIndex < filteredOpts.length) {
+        const opt = filteredOpts[focusedIndex];
+        if (!opt.disabled) {
+          handleOptionClick(opt);
+        }
+      }
+    } else if (e.key === " " && !showSearch) {
+      // Space toggles when not in search mode
+      if (!isOpen) {
+        e.preventDefault();
+        setIsOpen(true);
+      } else if (focusedIndex >= 0 && focusedIndex < filteredOpts.length) {
+        e.preventDefault();
+        const opt = filteredOpts[focusedIndex];
+        if (!opt.disabled) {
+          handleOptionClick(opt);
+        }
+      }
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+      } else {
+        // Find next non-disabled option
+        let next = focusedIndex + 1;
+        while (next < filteredOpts.length && filteredOpts[next].disabled) {
+          next++;
+        }
+        if (next < filteredOpts.length) {
+          setFocusedIndex(next);
+        }
+      }
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (isOpen) {
+        // Find previous non-disabled option
+        let prev = focusedIndex - 1;
+        while (prev >= 0 && filteredOpts[prev].disabled) {
+          prev--;
+        }
+        if (prev >= 0) {
+          setFocusedIndex(prev);
+        }
+      }
+    } else if (e.key === "Home" && isOpen) {
+      e.preventDefault();
+      // Find first non-disabled option
+      const first = filteredOpts.findIndex((o) => !o.disabled);
+      if (first >= 0) setFocusedIndex(first);
+    } else if (e.key === "End" && isOpen) {
+      e.preventDefault();
+      // Find last non-disabled option
+      for (let i = filteredOpts.length - 1; i >= 0; i--) {
+        if (!filteredOpts[i].disabled) {
+          setFocusedIndex(i);
+          break;
+        }
+      }
     }
   };
 
@@ -278,7 +350,12 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
         <span class="nr-dashboard-dropdown__value">${displayText}</span>
         <span class="nr-dashboard-dropdown__chevron" aria-hidden="true">▼</span>
       </button>
-      ${isOpen ? html`<div class="nr-dashboard-dropdown__menu" role="listbox" aria-multiselectable=${multiple}>
+      ${isOpen ? html`<div 
+        class="nr-dashboard-dropdown__menu" 
+        role="listbox" 
+        aria-multiselectable=${multiple}
+        aria-activedescendant=${focusedIndex >= 0 ? `dropdown-opt-${control.id}-${focusedIndex}` : undefined}
+      >
         ${showSearch ? html`<div class="nr-dashboard-dropdown__search">
           <input
             ref=${searchRef}
@@ -288,6 +365,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
             value=${searchTerm}
             onInput=${(e: Event) => setSearchTerm((e.target as HTMLInputElement).value)}
             onClick=${(e: Event) => e.stopPropagation()}
+            aria-label=${t("dropdown_search", "Search...")}
           />
         </div>` : null}
         ${multiple && enabledOpts.length > 1 ? html`<div class="nr-dashboard-dropdown__select-all">
@@ -304,11 +382,14 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
         <ul class="nr-dashboard-dropdown__options">
           ${filteredOpts.length === 0
             ? html`<li class="nr-dashboard-dropdown__empty">${t("dropdown_no_results", "No results")}</li>`
-            : filteredOpts.map((opt) => {
+            : filteredOpts.map((opt, idx) => {
                 const selected = isOptionSelected(opt);
+                const focused = idx === focusedIndex;
                 return html`<li
+                  ref=${(el: HTMLLIElement | null) => { optionRefs.current[idx] = el; }}
+                  id=${`dropdown-opt-${control.id}-${idx}`}
                   key=${serializeOptionValue(opt.value)}
-                  class=${`nr-dashboard-dropdown__option ${selected ? "is-selected" : ""} ${opt.disabled ? "is-disabled" : ""}`.trim()}
+                  class=${`nr-dashboard-dropdown__option ${selected ? "is-selected" : ""} ${focused ? "is-focused" : ""} ${opt.disabled ? "is-disabled" : ""}`.trim()}
                   role="option"
                   aria-selected=${selected}
                   aria-disabled=${opt.disabled}
@@ -320,6 +401,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
                     disabled=${opt.disabled}
                     class="nr-dashboard-dropdown__checkbox"
                     tabIndex=${-1}
+                    aria-hidden="true"
                   />` : null}
                   <span>${opt.label ?? opt.value}</span>
                 </li>`;

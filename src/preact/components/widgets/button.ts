@@ -1,5 +1,6 @@
 import { html } from "htm/preact";
 import type { VNode } from "preact";
+import { useMemo } from "preact/hooks";
 import type { UiControl } from "../../state";
 import { useI18n } from "../../lib/i18n";
 import { resolveTypedPayload } from "../../lib/payload";
@@ -37,6 +38,10 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   const { t } = useI18n();
   const label = (asButton.label || asButton.name || t("button_label", "Button {index}", { index: index + 1 })) as string;
   const labelHtml = { __html: label };
+  // Extract plain text from HTML label for aria-label
+  const ariaLabel = useMemo(() => {
+    return String(label).replace(/<[^>]*>/g, "").trim() || undefined;
+  }, [label]);
   const backgroundColor = resolveButtonColor(asButton);
   const textColor = typeof asButton.color === "string" && asButton.color ? asButton.color : "var(--nr-dashboard-widgetTextColor, #fff)";
 
@@ -100,6 +105,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
   return html`<button
     type="button"
     title=${asButton.tooltip || undefined}
+    aria-label=${ariaLabel}
     class=${`nr-dashboard-button ${asButton.className || ""}`.trim()}
     disabled=${Boolean(disabled)}
     onClick=${onEmit ? handleClick : undefined}
