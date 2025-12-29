@@ -26,25 +26,27 @@ describe("WidgetFrame disabled handling", () => {
 
     const frame = container.firstElementChild as HTMLElement;
     expect(frame.getAttribute("aria-disabled")).toBe("true");
-    expect(frame.style.pointerEvents).toBe("none");
+    expect(frame.classList.contains("is-disabled")).toBe(true);
   });
 
   test("disables when control.disabled is true", () => {
     const { container } = render(h(WidgetFrame, { control: { disabled: true } }, h("div", null)));
     const frame = container.firstElementChild as HTMLElement;
     expect(frame.getAttribute("aria-disabled")).toBe("true");
+    expect(frame.classList.contains("is-disabled")).toBe(true);
   });
 
   test("disables when control.enabled is false", () => {
     const { container } = render(h(WidgetFrame, { control: { enabled: false } }, h("div", null)));
     const frame = container.firstElementChild as HTMLElement;
     expect(frame.getAttribute("aria-disabled")).toBe("true");
+    expect(frame.classList.contains("is-disabled")).toBe(true);
   });
 
   test("stays enabled by default", () => {
     const { container } = render(h(WidgetFrame, { control: {} }, h("div", null)));
     const frame = container.firstElementChild as HTMLElement;
     expect(frame.getAttribute("aria-disabled")).toBe("false");
-    expect(frame.style.pointerEvents).toBe("auto");
+    expect(frame.classList.contains("is-disabled")).toBe(false);
   });
 });
