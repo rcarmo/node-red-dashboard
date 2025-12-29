@@ -7,11 +7,48 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 
 ## Status
 
-- Work in progress: replacing the Angular v1 client with a Preact runtime while keeping the existing Node-RED editor nodes and saved flows.
-- Current runtime pieces: tab/nav shell, CSS Grid layout for groups, theme application via CSS variables, Socket.IO bridge, text/button/switch/text-input/numeric/dropdown/slider/form/date/colour/audio/toast/link/template widgets, and an Apache ECharts gauge/donut implementation with ui-control handlers for tabs/groups/controls.
-- Internationalization: locale bundles loaded through an I18n provider with language precedence `ui-control lang` → `site lang/locale` → browser language → `en`; aria/value strings are localized.
-- Tooling: Bun scripts for dev/build/test/lint/format; strict TypeScript; HTM (no JSX); Apache ECharts vendored via bundler.
-- Compatibility: editor-side configuration is unchanged; the refactor targets drop-in consumption of existing saved metadata but remains experimental until full widget/chart coverage lands. Track progress in `REFACTORING.md`.
+- **Active development**: replacing the Angular v1 client with a Preact runtime while keeping the existing Node-RED editor nodes and saved flows.
+- **131 tests passing** across 33 test files covering widgets, layout, state, socket, and i18n.
+
+### Current Runtime Features
+
+| Category | Status |
+|----------|--------|
+| **App Shell** | Tab navigation, sidebar menu, toolbar, connection status, hash-based routing (`#/0`, `#/TabName`) |
+| **Layout** | CSS Grid for groups with dense mode, masonry layout support, group collapse/expand, theme-aware cards |
+| **Socket.IO** | Full bridge with `ui-controls`, `ui-replay-state`, `ui-replay-done`, `ui-change`, `ui-collapse`, `update-value` |
+| **Tab/Group Control** | Show/hide/enable/disable tabs, show/hide/collapse/expand groups, tab navigation (+1/-1/by name), link tabs (newtab/thistab/iframe), `disp` property |
+| **Theming** | CSS variables from theme object, per-tab themes, derived text colors, no runtime Less |
+| **i18n** | Locale bundles with fallback (`ui-control` lang → site → browser → `en`), localized aria labels |
+| **Accessibility** | ARIA roles, keyboard navigation, focus management, screen reader announcements |
+
+### Widgets Implemented
+
+| Widget | Status | Notes |
+|--------|--------|-------|
+| **Text** | ✅ Complete | Format tokens, layout styles, tooltip |
+| **Button** | ✅ Complete | Colors, icons, payloads, disabled state, keyboard support |
+| **Switch** | ✅ Complete | On/off values, colors, icons, passthrough, ARIA switch role |
+| **Text Input** | ✅ Complete | Enter/delay/blur modes, validation, password toggle |
+| **Numeric** | ✅ Complete | Wrap/clamp, format, locale, spinner controls |
+| **Dropdown** | ✅ Complete | Custom dropdown (not native select), multi-select, search, keyboard navigation |
+| **Slider** | ✅ Complete | Vertical, invert, ticks, step, discrete mode, ARIA slider |
+| **Gauge** | ✅ Complete | Standard/donut/compass on ECharts (wave pending) |
+| **Form** | ✅ Complete | All field types, validation, reset, dynamic fields |
+| **Date Picker** | ✅ Complete | Custom calendar, keyboard navigation, locale formatting |
+| **Colour Picker** | ✅ Complete | Swatch, hue/saturation picker, keyboard accessible |
+| **Audio** | ✅ Complete | Playback, TTS synthesis, reset |
+| **Toast** | ✅ Complete | Notifications, dialogs, response callbacks, auto-dismiss |
+| **Link** | ✅ Complete | Internal/external links, disabled state |
+| **Template** | ✅ Complete | HTML injection, dynamic updates |
+| **Spacer** | ✅ Complete | Empty placeholder widget |
+
+### Pending Work
+
+- **Chart Panel**: ECharts implementation for line/bar/pie/polar/radar with streaming adapter
+- **Wave Gauge**: Animated wave fill gauge variant
+- **E2E Tests**: Playwright integration tests
+- **Legacy Cleanup**: Remove gulp/Angular after full parity
 
 ## Quick start (dev)
 
@@ -28,30 +65,11 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 - Theming via CSS variables (no runtime Less); accessible defaults; respects reduced motion.
 - Lean dependencies and Bun-only scripts for development, build, and tests.
 
-## What works today
-
-- Shell: tab list, connection status, hash-based routing per tab index/name.
-- Layout: CSS Grid for groups/cards with theme-aware surfaces; layout announcements for screen readers.
-- Widgets: text, button, switch, text-input (enter/delay/blur), numeric (wrap/format), dropdown, slider (invert/vertical/ticks/signals), form, date picker, colour picker, audio, toast, link, template, and gauge (standard/donut) on ECharts.
-- Tests: Vitest + @testing-library/preact for widgets/layout; Bun scripts wired.
-
-### Internationalization details
+## Internationalization
 
 - Locale selection uses `resolveLanguage` (precedence: runtime `ui-control` lang → site lang/locale → `navigator.language` → `en`).
-- Strings come from the existing Node-RED locale bundles; widget aria/value labels use translated strings when available.
-
-## Roadmap highlights
-
-- Chart panel on ECharts with streaming adapter matching `ui-chart` options.
-- Full `ui-control` parity (ui-collapse/backlog edge cases) and socket contract tests.
-- Shared ECharts loader + resize hooks; sizing context to replace legacy `sizes.js`.
-- Full theme variable application and removal of runtime Less usage.
-  See `REFACTORING.md` for the detailed checklist.
-
-## Working with existing flows
-
-- Editor nodes and saved flow metadata remain the source of truth. The Preact runtime aims to consume the same tab/group/widget definitions emitted by the existing nodes.
-- Until feature parity is reached, expect gaps compared to the Angular client (especially charts/forms/media widgets). Avoid using this branch in production dashboards.
+- Strings come from the existing Node-RED locale bundles (`nodes/locales/`).
+- Widget aria labels and value displays use translated strings when available.
 
 ## Running inside Node-RED with Bun
 
@@ -64,12 +82,32 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 
 ## Repository layout (new runtime)
 
-- `src/preact/` — Preact entrypoint, Socket.IO bridge, layout, and widgets.
-- `src/preact/components/` — widget and layout components (HTM templates).
-- `src/preact/hooks/` — shared hooks for socket events, theme, and layout.
-- `REFACTORING.md` — migration plan and status.
+```
+src/preact/
+├── index.ts          # App shell, routing, theme application
+├── state.ts          # Dashboard state, ui-control handlers
+├── socket.ts         # Socket.IO bridge
+├── types.ts          # TypeScript definitions
+├── components/
+│   ├── layout/       # TabNav, GroupGrid, GroupCard
+│   ├── widgets/      # All widget implementations
+│   ├── styles/       # Shared style objects
+│   ├── ToastOverlay.ts
+│   ├── WidgetFrame.ts
+│   └── widget-renderer.ts
+├── hooks/            # useSizes, useElementSize
+└── lib/              # i18n, echarts, format, tts, payload helpers
+```
 
 Legacy Angular sources remain under `src/` for reference during migration.
+
+## Test Coverage
+
+- **131 tests** across **33 test files**
+- Unit tests for all widgets, layout components, state handlers, socket bridge, and i18n
+- Contract tests for dropdown, slider, form, toast, audio behaviors
+- Disabled behavior tests across all interactive widgets
+- Locale formatting tests for international number/date display
 
 ## Contributing
 
