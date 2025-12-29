@@ -42,7 +42,7 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 | **Link** | ✅ Complete | Internal/external links, disabled state |
 | **Template** | ✅ Complete | HTML injection, dynamic updates |
 | **Spacer** | ✅ Complete | Empty placeholder widget |
-| **Chart** | ✅ Complete | Line/bar/horizontalBar/pie/polar/radar via ECharts, streaming updates, time windowing, stacking, legend interaction |
+| **Chart** | ✅ Complete | Line/bar/horizontalBar/pie/polar/radar/scatter/funnel/heatmap via ECharts |
 
 ### Pending Work
 

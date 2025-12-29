@@ -297,4 +297,99 @@ describe("Chart adapter", () => {
     expect((option as { backgroundColor: string }).backgroundColor).toBe("#123456");
     expect((option as { customField: boolean }).customField).toBe(true);
   });
+
+  test("normalizes scatter look", () => {
+    expect(normalizeLook("scatter")).toBe("scatter");
+  });
+
+  test("normalizes funnel look", () => {
+    expect(normalizeLook("funnel")).toBe("funnel");
+  });
+
+  test("normalizes heatmap look", () => {
+    expect(normalizeLook("heatmap")).toBe("heatmap");
+    expect(normalizeLook("heat-map")).toBe("heatmap");
+  });
+
+  test("builds scatter series with symbolSize", () => {
+    const data: ChartData = {
+      labels: [],
+      series: [{ name: "S", data: [[1, 2], [3, 4], [5, 6]] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "scatter", symbolSize: 15 }, data, "en", t);
+    const series = option.series as Array<{ type: string; symbolSize: number }>;
+    expect(series[0].type).toBe("scatter");
+    expect(series[0].symbolSize).toBe(15);
+    expect(option.xAxis).toBeDefined();
+    expect(option.yAxis).toBeDefined();
+  });
+
+  test("builds funnel series with sort and align", () => {
+    const data: ChartData = {
+      labels: ["Step 1", "Step 2", "Step 3"],
+      series: [{ name: "Pipeline", data: [100, 60, 20] }],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "funnel", funnelSort: "ascending", funnelAlign: "left" }, data, "en", t);
+    const series = option.series as Array<{ type: string; sort: string; funnelAlign: string; data: Array<{ name: string; value: number }> }>;
+    expect(series[0].type).toBe("funnel");
+    expect(series[0].sort).toBe("ascending");
+    expect(series[0].funnelAlign).toBe("left");
+    expect(series[0].data[0].name).toBe("Step 1");
+    expect(series[0].data[0].value).toBe(100);
+  });
+
+  test("builds heatmap with visualMap and axes", () => {
+    const data: ChartData = {
+      labels: ["Mon", "Tue", "Wed"],
+      series: [
+        { name: "Morning", data: [1, 2, 3] },
+        { name: "Afternoon", data: [4, 5, 6] },
+      ],
+      isTimeSeries: false,
+    };
+    const option = buildChartOption({ look: "heatmap", heatmapMin: 0, heatmapMax: 10 }, data, "en", t);
+    expect(option.visualMap).toBeDefined();
+    const visualMap = option.visualMap as { min: number; max: number };
+    expect(visualMap.min).toBe(0);
+    expect(visualMap.max).toBe(10);
+    const xAxis = option.xAxis as { type: string; data: string[] };
+    expect(xAxis.type).toBe("category");
+    expect(xAxis.data).toEqual(["Mon", "Tue", "Wed"]);
+    const yAxis = option.yAxis as { type: string; data: string[] };
+    expect(yAxis.type).toBe("category");
+    expect(yAxis.data).toEqual(["Morning", "Afternoon"]);
+    const series = option.series as Array<{ type: string }>;
+    expect(series[0].type).toBe("heatmap");
+  });
+
+  test("heatmap uses provided heatmapData directly", () => {
+    const data: ChartData = {
+      labels: ["A", "B"],
+      series: [],
+      isTimeSeries: false,
+      heatmapData: [[0, 0, 5], [1, 0, 10], [0, 1, 15], [1, 1, 20]],
+      heatmapXLabels: ["X1", "X2"],
+      heatmapYLabels: ["Y1", "Y2"],
+    };
+    const option = buildChartOption({ look: "heatmap" }, data, "en", t);
+    const xAxis = option.xAxis as { data: string[] };
+    expect(xAxis.data).toEqual(["X1", "X2"]);
+    const yAxis = option.yAxis as { data: string[] };
+    expect(yAxis.data).toEqual(["Y1", "Y2"]);
+    const series = option.series as Array<{ data: Array<[number, number, number]> }>;
+    expect(series[0].data).toEqual([[0, 0, 5], [1, 0, 10], [0, 1, 15], [1, 1, 20]]);
+  });
+
+  test("scatter with time series uses time axis", () => {
+    const data: ChartData = {
+      labels: [],
+      series: [{ name: "S", data: [[1704067200000, 5], [1704153600000, 10]] }],
+      isTimeSeries: true,
+    };
+    const option = buildChartOption({ look: "scatter" }, data, "en", t);
+    const xAxis = option.xAxis as { type: string };
+    expect(xAxis.type).toBe("time");
+  });
 });

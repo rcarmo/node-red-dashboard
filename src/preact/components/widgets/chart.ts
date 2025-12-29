@@ -7,12 +7,16 @@ import {
   LineChart,
   PieChart,
   RadarChart,
+  ScatterChart,
+  FunnelChart,
+  HeatmapChart,
 } from "echarts/charts";
 import {
   GridComponent,
   LegendComponent,
   TooltipComponent,
   TitleComponent,
+  VisualMapComponent,
 } from "echarts/components";
 import type { EChartsOption } from "echarts";
 import dayjs from "dayjs";
@@ -26,15 +30,19 @@ registerEChartsModules([
   BarChart,
   PieChart,
   RadarChart,
+  ScatterChart,
+  FunnelChart,
+  HeatmapChart,
   GridComponent,
   LegendComponent,
   TooltipComponent,
   TitleComponent,
+  VisualMapComponent,
 ]);
 
 dayjs.extend(utc);
 
-export type ChartLook = "line" | "bar" | "horizontalBar" | "pie" | "polar-area" | "radar";
+export type ChartLook = "line" | "bar" | "horizontalBar" | "pie" | "polar-area" | "radar" | "scatter" | "funnel" | "heatmap";
 
 export type ChartControl = UiControl & {
   label?: string;
@@ -71,17 +79,32 @@ export type ChartControl = UiControl & {
   className?: string;
   value?: unknown;
   options?: Record<string, unknown>;
+  // Scatter options
+  symbolSize?: number | string;
+  // Funnel options
+  funnelSort?: "ascending" | "descending" | "none" | string;
+  funnelAlign?: "left" | "center" | "right" | string;
+  funnelGap?: number | string;
+  // Heatmap options
+  heatmapMin?: number | string;
+  heatmapMax?: number | string;
+  heatmapXLabels?: string[];
+  heatmapYLabels?: string[];
 };
 
 export type ChartSeries = {
   name: string;
-  data: Array<number | [number, number]>;
+  data: Array<number | [number, number] | [number, number, number]>;
 };
 
 export type ChartData = {
   labels: string[];
   series: ChartSeries[];
   isTimeSeries: boolean;
+  // Heatmap-specific: matrix data as [xIndex, yIndex, value]
+  heatmapData?: Array<[number, number, number]>;
+  heatmapXLabels?: string[];
+  heatmapYLabels?: string[];
 };
 
 type Windowing = {
@@ -114,6 +137,9 @@ export function normalizeLook(look?: string): ChartLook {
   if (l === "pie") return "pie";
   if (l === "polar-area" || l === "polar") return "polar-area";
   if (l === "radar") return "radar";
+  if (l === "scatter") return "scatter";
+  if (l === "funnel") return "funnel";
+  if (l === "heatmap" || l === "heat-map") return "heatmap";
   return "line";
 }
 
@@ -341,6 +367,93 @@ function buildRadarSeries(data: ChartData): EChartsOption["series"] {
   }));
 }
 
+function buildScatterSeries(data: ChartData, control: ChartControl): EChartsOption["series"] {
+  const symbolSize = toOptionalNumber(control.symbolSize) ?? 10;
+  return data.series.map((s) => ({
+    type: "scatter",
+    name: s.name,
+    data: s.data,
+    symbolSize,
+  }));
+}
+
+function buildFunnelSeries(data: ChartData, control: ChartControl, colors: string[]): EChartsOption["series"] {
+  const sort = control.funnelSort === "ascending" ? "ascending" : control.funnelSort === "none" ? "none" : "descending";
+  const align = control.funnelAlign === "left" ? "left" : control.funnelAlign === "right" ? "right" : "center";
+  const gap = toOptionalNumber(control.funnelGap) ?? 2;
+
+  // Funnel expects data as [{name, value}, ...]
+  // Use labels as names and first series data as values
+  const funnelData = data.labels.map((label, i) => {
+    const val = data.series[0]?.data[i];
+    const value = typeof val === "number" ? val : Array.isArray(val) ? val[1] ?? val[0] : 0;
+    return { name: label, value, itemStyle: { color: colors[i % colors.length] } };
+  });
+
+  return [
+    {
+      type: "funnel",
+      data: funnelData,
+      sort,
+      funnelAlign: align,
+      gap,
+      left: "10%",
+      right: "10%",
+      top: 40,
+      bottom: 20,
+      label: {
+        show: true,
+        position: "inside",
+        formatter: "{b}: {c}",
+        color: "var(--nr-dashboard-widgetTextColor, #fff)",
+      },
+      labelLine: { show: false },
+      itemStyle: {
+        borderColor: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2))",
+        borderWidth: 1,
+      },
+    },
+  ];
+}
+
+function buildHeatmapSeries(data: ChartData): EChartsOption["series"] {
+  // Heatmap expects data as [[xIdx, yIdx, value], ...]
+  // If heatmapData is provided, use it directly
+  // Otherwise, try to convert from series data
+  const heatmapData = data.heatmapData ?? [];
+
+  if (heatmapData.length === 0 && data.series.length > 0) {
+    // Try to build from series: assume each series is a row (yIdx) and data points are columns (xIdx)
+    data.series.forEach((s, yIdx) => {
+      s.data.forEach((val, xIdx) => {
+        const v = typeof val === "number" ? val : Array.isArray(val) && val.length >= 3 ? val[2] : Array.isArray(val) ? val[1] ?? val[0] : 0;
+        heatmapData.push([xIdx, yIdx, v as number]);
+      });
+    });
+  }
+
+  return [
+    {
+      type: "heatmap",
+      data: heatmapData,
+      label: {
+        show: true,
+        color: "var(--nr-dashboard-widgetTextColor, #000)",
+        formatter: ({ value }: { value: unknown }) => {
+          const arr = value as [number, number, number];
+          return arr && arr[2] != null ? String(arr[2]) : "";
+        },
+      },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: "rgba(0, 0, 0, 0.5)",
+        },
+      },
+    },
+  ];
+}
+
 export function buildChartOption(
   control: ChartControl,
   data: ChartData,
@@ -476,6 +589,70 @@ export function buildChartOption(
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
     };
     option.series = buildRadarSeries(data);
+  } else if (look === "scatter") {
+    // Scatter chart with value axes
+    const xAxis = {
+      type: data.isTimeSeries ? "time" : "value",
+      axisLabel: {
+        formatter: data.isTimeSeries ? (val: number) => timeFormatter(val) : (val: number) => valueFormatter(val),
+        color: "var(--nr-dashboard-widgetTextColor, #000)",
+      },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
+      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" } },
+    };
+    const yAxis = {
+      type: "value",
+      min: toNumber(control.ymin) ?? undefined,
+      max: toNumber(control.ymax) ?? undefined,
+      axisLabel: {
+        formatter: (val: number) => valueFormatter(val),
+        color: "var(--nr-dashboard-widgetTextColor, #000)",
+      },
+      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" } },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } },
+    };
+    option.xAxis = xAxis;
+    option.yAxis = yAxis;
+    option.grid = { left: 10, right: 10, top: 24, bottom: 20, containLabel: true };
+    option.series = buildScatterSeries(data, control);
+  } else if (look === "funnel") {
+    option.series = buildFunnelSeries(data, control, colors);
+  } else if (look === "heatmap") {
+    // Heatmap requires category axes for x and y
+    const xLabels = data.heatmapXLabels ?? data.labels;
+    const yLabels = data.heatmapYLabels ?? data.series.map((s) => s.name);
+    option.xAxis = {
+      type: "category",
+      data: xLabels,
+      splitArea: { show: true },
+      axisLabel: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
+    };
+    option.yAxis = {
+      type: "category",
+      data: yLabels,
+      splitArea: { show: true },
+      axisLabel: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
+    };
+    option.grid = { left: 10, right: 60, top: 24, bottom: 20, containLabel: true };
+
+    // VisualMap for color range
+    const heatMin = toNumber(control.heatmapMin) ?? 0;
+    const heatMax = toNumber(control.heatmapMax) ?? 10;
+    option.visualMap = {
+      min: heatMin,
+      max: heatMax,
+      calculable: true,
+      orient: "vertical",
+      right: 0,
+      top: "center",
+      inRange: {
+        color: colors.length >= 2 ? colors.slice(0, 5) : ["#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"],
+      },
+      textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+    };
+    option.series = buildHeatmapSeries(data);
   }
 
   option.title = {

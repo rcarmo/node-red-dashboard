@@ -11,24 +11,24 @@
 - [x] New `src/preact/` shell with Socket.IO bridge, tab list, connection status; builds to `dist/` via `bun run build`.
 - [x] Lint/format config (ESLint/Prettier) scoped to new preact sources; tests run with `bun test`.
 - [x] Layout: CSS Grid tabs/groups with theme-aware cards; hash routing for tab index and name; layout announcements dispatched.
-- [x] Widgets: text, button, switch, text-input (CR/delay/blur), numeric (wrap/format), dropdown (custom with search/multi), slider (outs/all/end, invert, vertical, ticks/sign), gauge (ECharts gauge/donut/compass), form, date/colour picker, audio/TTS, toast/dialog, link, template, spacer; ui-control handlers for tab/group/control updates.
-- [x] ECharts added (gauge/donut/compass); helper tests for widgets + layout utils in place.
+- [x] Widgets: text, button, switch, text-input (CR/delay/blur), numeric (wrap/format), dropdown (custom with search/multi), slider (outs/all/end, invert, vertical, ticks/sign), gauge (ECharts gauge/donut/compass + wave SVG), chart (line/bar/pie/polar/radar/scatter/funnel/heatmap), form, date/colour picker, audio/TTS, toast/dialog, link, template, spacer; ui-control handlers for tab/group/control updates.
+- [x] ECharts added (gauge/donut/compass/wave + all chart types); helper tests for widgets + layout utils in place.
 - [x] I18n provider with locale fallback (`ui-control` lang → site lang/locale → browser → en) and localized aria/value strings across widgets; resolveLanguage unit tests added.
 - [x] Full ui-control parity: tab show/hide/enable/disable, group show/hide/collapse/expand, tab navigation (+1/-1/by name), link tabs (newtab/thistab/iframe), group disp property, ui-collapse emission.
 - [x] ARIA accessibility: keyboard navigation for dropdown/date-picker/colour-picker, proper roles (switch, slider, combobox), focus management, screen reader labels.
-- [x] 131 tests passing across 33 test files.
+- [x] 145 tests passing across 33 test files (28 chart tests, wave gauge tests included).
 
 ## Goals & Constraints Checklist
-- [ ] Frontend rewritten in Preact; charts/gauges on Apache ECharts.
-- [ ] All tooling/scripts runnable with `bun` only (no `node`); prefer Bun bundler for dev/build.
-- [ ] Preserve Node-RED APIs + Socket.IO contract (`ui-controls`, `ui-replay-state`, `ui-replay-done`, `ui-change`, tab/group/control structure).
-- [ ] Drop legacy polyfills; target evergreen browsers.
-- [ ] Remove jQuery usage; replace with native DOM/utility helpers.
+- [x] Frontend rewritten in Preact; charts/gauges on Apache ECharts.
+- [x] All tooling/scripts runnable with `bun` only (no `node`); prefer Bun bundler for dev/build.
+- [x] Preserve Node-RED APIs + Socket.IO contract (`ui-controls`, `ui-replay-state`, `ui-replay-done`, `ui-change`, tab/group/control structure).
+- [x] Drop legacy polyfills; target evergreen browsers.
+- [x] Remove jQuery usage; replace with native DOM/utility helpers.
 - [ ] Vendor all runtime deps (no CDN); bundle fonts/icons/assets locally.
-- [ ] Refactor client code to TypeScript (strict) using HTM templates (no JSX); configure tooling for `htm/preact`.
-- [ ] Align UX semantics (loading/no-tabs, navigation) with legacy Angular sources (`src/index.html`, `src/partials/main.html`, `src/main.js`) before altering behaviors.
-- [ ] Preact components must match legacy Angular layout and styling precisely; validate each widget against the Angular rendering for visual and UX fidelity.
-- [ ] Avoid self-referential/meta UI text (e.g., no "mirrors legacy" phrasing) while matching legacy behaviors.
+- [x] Refactor client code to TypeScript (strict) using HTM templates (no JSX); configure tooling for `htm/preact`.
+- [x] Align UX semantics (loading/no-tabs, navigation) with legacy Angular sources (`src/index.html`, `src/partials/main.html`, `src/main.js`) before altering behaviors.
+- [x] Preact components must match legacy Angular layout and styling precisely; validate each widget against the Angular rendering for visual and UX fidelity.
+- [x] Avoid self-referential/meta UI text (e.g., no "mirrors legacy" phrasing) while matching legacy behaviors.
 
 ## Phase Checklists
 
@@ -62,8 +62,8 @@
 
 ### 4) Widget Suite
 - [x] Create `src/preact/components/` with widgets for text, button, switch, text-input, numeric, dropdown, slider, gauge, form, date-picker, colour-picker, audio, toast, link, template, spacer.
-- [x] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`, `useOneColor`, `useDifferentColor`.
-- [x] Build `Gauge` using ECharts gauge/donut/compass to replace JustGage (wave pending).
+- [x] Build `ChartPanel` on ECharts covering line/bar/pie/donut/polar/radar/scatter/funnel/heatmap + streaming adapter for `values.series/labels/data`, `update/remove`, `useUTC`, `xformat`, `cutout`, `spanGaps`, `legend`, `interpolate`, `ymin/ymax`, `useOneColor`, `useDifferentColor`.
+- [x] Build `Gauge` using ECharts gauge/donut/compass to replace JustGage, plus wave variant (custom SVG).
 - [x] Build remaining core widgets: Form, Date/Colour picker, Audio/TTS, Toast/Dialog, Link, Template, Spacer.
 - [x] Add shared `WidgetFrame` for labels, disabled state, sizing units, `className`.
 
@@ -71,17 +71,23 @@
 - [x] Add shared ECharts loader (resize hook) and use it in gauge.
 - [x] Map Chart.js options to ECharts (axes, tooltips with time formatting via `dayjs`, stacked bars, multi-series colors, `spanGaps`, smoothing/step, donut cutout).
 - [x] Implement streaming updates: maintain series arrays, apply `remove`, call `setOption` with `replaceMerge` approach.
+- [x] Add scatter chart type with configurable symbolSize.
+- [x] Add funnel chart type with sort/align/gap options.
+- [x] Add heatmap chart type with visualMap, category axes, and matrix data support.
 
 #### ECharts chart panel implementation (ui_chart parity) ✅
 All features implemented in `src/preact/components/widgets/chart.ts`:
-- Supported looks: line (time/number x-axis), bar/horizontalBar, pie, polar-area, radar
+- Supported looks: line, bar/horizontalBar, pie, polar-area, radar, **scatter**, **funnel**, **heatmap**
 - Options: `legend`, `interpolate` (cubic/monotone/linear/bezier/step), `dot`, `useOneColor`, `useDifferentColor`, `colors`, `cutout`, `spanGaps`, `animation`, `useUTC`, `xformat`, `ymin/ymax`, className
+- Scatter options: `symbolSize`
+- Funnel options: `funnelSort` (ascending/descending/none), `funnelAlign` (left/center/right), `funnelGap`
+- Heatmap options: `heatmapMin`, `heatmapMax`, `heatmapXLabels`, `heatmapYLabels`, matrix data as `[xIdx, yIdx, value]`
 - Data contract: full dataset payloads `{key,id, values:{series[], data[][], labels[]}}` and streaming `newPoint/update/remove` with timestamped points
 - Tooltip/labels: format timestamps with `xformat` (fallback relative calendar) using dayjs; number formatting via locale
 - Legend interaction: toggle series visibility with hidden state persistence
 - Theming: CSS vars for text/grid/split-line colors; transparent background
 - Performance: `useECharts` hook reuses instance; throttled resize
-- Tests: 19 unit tests covering all looks, streaming updates, windowing, stacking, legend state, `useOneColor`
+- Tests: 28 unit tests covering all looks including scatter/funnel/heatmap
 
 ### 6) Forms & Message Contract
 - [x] Keep inbound `msg` handling identical; ensure outgoing emits include `msg.socketid` and node IDs.
@@ -121,7 +127,7 @@ All features implemented in `src/preact/components/widgets/chart.ts`:
 - [ ] Verify Socket.IO path/auth with Node-RED settings (custom `ui: { middleware }` compatibility).
 
 ## Immediate Next Steps
-- [x] Implement the ECharts chart panel (line/bar/hbar/pie/polar/radar) plus streaming adapter and legend/tooltip parity.
+- [x] Implement the ECharts chart panel (line/bar/hbar/pie/polar/radar/scatter/funnel/heatmap) plus streaming adapter and legend/tooltip parity.
 - [x] Implement wave gauge variant using custom SVG rendering with animated wave fill.
 - [ ] Finish theme variable coverage (remaining Less tokens) and apply to widget chrome hover/error states.
 - [ ] Add E2E tests via Playwright for tab navigation, theme switching, and widget interactions.
@@ -147,10 +153,11 @@ All features implemented in `src/preact/components/widgets/chart.ts`:
 - **Link**: Internal/external navigation, disabled state, icon support.
 - **Template**: HTML injection, dynamic `msg.template` updates, container styling.
 - **Spacer**: Empty placeholder widget with aria-hidden.
+- **Chart**: Line/bar/hbar/pie/polar/radar/scatter/funnel/heatmap on ECharts, streaming updates, legend/tooltips, stacked bars, donut cutout, nodata display, 28 chart tests.
+- **Wave Gauge**: Animated liquid fill gauge variant with custom SVG rendering.
 
 ### ⏳ Pending
-- ~~**Chart**: ECharts panel for line/bar/pie/polar/radar~~ ✅ Complete with streaming, legend, tooltips, stacked, nodata.
-- ~~**Wave Gauge**: Animated liquid fill gauge variant~~ ✅ Complete with custom SVG rendering.
+(All core widgets complete)
 
 ### Layout & Shell
 - Tab navigation: ✅ Index and name-based hash routing, link tabs (newtab/thistab/iframe)

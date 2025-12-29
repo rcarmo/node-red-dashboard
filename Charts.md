@@ -32,6 +32,68 @@ If you want all the bars to be the same colour, then use the `label` property in
 
 You can have both a label and series property if you want.
 
+### Scatter charts (ECharts)
+
+Scatter charts display X/Y data points. Each point is an array of `[x, y]` values:
+
+    [{
+        "series": ["Measurements"],
+        "data": [[[1, 5], [2, 8], [3, 4], [4, 9], [5, 6]]],
+        "labels": []
+    }]
+
+For time-based scatter plots, use epoch timestamps for the x-axis:
+
+    [{
+        "series": ["Sensor A"],
+        "data": [[[1704067200000, 22], [1704153600000, 25], [1704240000000, 21]]],
+        "labels": []
+    }]
+
+Options:
+- `symbolSize`: Size of scatter points (default: 10)
+
+### Funnel charts (ECharts)
+
+Funnel charts visualize pipeline/conversion stages. Data flows from labels to values:
+
+    [{
+        "series": ["Pipeline"],
+        "data": [[1000, 800, 500, 200, 50]],
+        "labels": ["Visits", "Leads", "Qualified", "Proposals", "Sales"]
+    }]
+
+Options:
+- `funnelSort`: "descending" (default), "ascending", or "none"
+- `funnelAlign`: "center" (default), "left", or "right"  
+- `funnelGap`: Gap between funnel layers (default: 2)
+
+### Heatmap charts (ECharts)
+
+Heatmaps display matrix data with color intensity. Data can be provided in two formats:
+
+**Format 1: Series-based (rows are series, columns are labels)**
+
+    [{
+        "series": ["Morning", "Afternoon", "Evening"],
+        "data": [[5, 8, 3, 6], [9, 4, 7, 2], [3, 6, 8, 5]],
+        "labels": ["Mon", "Tue", "Wed", "Thu"]
+    }]
+
+**Format 2: Explicit matrix with `[xIndex, yIndex, value]` triplets**
+
+    [{
+        "heatmapData": [[0, 0, 5], [1, 0, 10], [0, 1, 15], [1, 1, 20]],
+        "heatmapXLabels": ["Column A", "Column B"],
+        "heatmapYLabels": ["Row 1", "Row 2"]
+    }]
+
+Options:
+- `heatmapMin`: Minimum value for color scale (default: 0)
+- `heatmapMax`: Maximum value for color scale (default: 10)
+- `heatmapXLabels`: Custom X-axis labels (overrides `labels`)
+- `heatmapYLabels`: Custom Y-axis labels (overrides series names)
+
 ## Stored data
 
 To display a complete chart in one go - for example from a set of points retrieved from a database,
