@@ -1,4 +1,83 @@
 <script type="text/html" data-help-name="ui_group">
-    <p>Group</p>
-    <p>If a <b>Class</b> is specified, it will be added to the parent card. This way you can style the card and the elements inside it with custom CSS. The Class can be set at runtime by setting a <code>msg.className</code> string property.</p>
+    <p>A <b>Group</b> is a container for organizing widgets within a dashboard tab. Groups define
+    the layout structure and visual boundaries for collections of related widgets.</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Name <span class="property-type">string</span></dt>
+        <dd>The display name shown in the group header. This name is also used to form the
+        group ID (combined with tab name) for programmatic control.</dd>
+
+        <dt>Tab <span class="property-type">ui_tab</span></dt>
+        <dd>The dashboard tab where this group will appear. Each group must belong to exactly one tab.</dd>
+
+        <dt>Width <span class="property-type">number</span></dt>
+        <dd>The width of the group in grid units. This determines how many columns of widgets
+        can fit side-by-side within the group. Common values:
+        <ul>
+            <li><code>6</code> - Default, fits well on most screens</li>
+            <li><code>12</code> - Full width on standard layouts</li>
+            <li><code>3</code> or <code>4</code> - Narrow groups for compact widgets</li>
+        </ul>
+        Widget widths within a group cannot exceed the group width.</dd>
+
+        <dt>Display group name <span class="property-type">boolean</span></dt>
+        <dd>When enabled (default), shows the group name as a header above the widgets.
+        Disable to create a borderless, headerless container.</dd>
+
+        <dt>Allow group to be collapsed <span class="property-type">boolean</span></dt>
+        <dd>When enabled, users can click the group header to collapse/expand the group,
+        hiding or showing its widgets. Only available when "Display group name" is enabled.
+        The collapse state can also be controlled programmatically via <code>ui_control</code>.</dd>
+    </dl>
+
+    <h3>Layout Behavior</h3>
+    <p>Groups flow left-to-right and top-to-bottom within a tab. The dashboard uses a responsive
+    grid system:</p>
+    <ul>
+        <li>On wide screens, multiple groups appear side-by-side</li>
+        <li>On narrow screens (mobile), groups stack vertically</li>
+        <li>Widgets within a group flow left-to-right, wrapping to new rows as needed</li>
+    </ul>
+    <p>The order of groups can be changed by dragging in the Dashboard sidebar layout editor,
+    or by setting the <b>order</b> property programmatically.</p>
+
+    <h3>Group IDs</h3>
+    <p>Each group has an ID formed from the tab name and group name, with spaces replaced by
+    underscores. For example, a group named "Sensor Data" on a tab named "Home" has the ID:</p>
+    <pre>Home_Sensor_Data</pre>
+    <p>This ID is used when controlling groups via <code>ui_control</code> node.</p>
+
+    <h3>Dynamic Control</h3>
+    <p>Groups can be shown, hidden, opened, or closed at runtime using the <code>ui_control</code> node:</p>
+    <pre>// Hide a group
+msg.payload = {"group": {"hide": ["Home_Sensor_Data"]}};
+
+// Show a group and scroll to it
+msg.payload = {"group": {"show": ["Home_Sensor_Data"], "focus": true}};
+
+// Collapse a group (if collapsible)
+msg.payload = {"group": {"close": ["Home_Sensor_Data"]}};
+
+// Expand a group
+msg.payload = {"group": {"open": ["Home_Sensor_Data"]}};</pre>
+    <p>When a user manually expands or collapses a group, the <code>ui_control</code> node
+    emits a message with <code>payload: "group"</code> containing the group name and open state.</p>
+
+    <h3>CSS Styling</h3>
+    <p>If a <b>Class</b> is specified, it will be added to the group's container element.
+    This allows custom CSS styling of the group and all widgets inside it.</p>
+    <p>The class can be set at runtime by any widget in the group via <code>msg.className</code>.</p>
+    <p>Groups also have auto-generated CSS classes based on their ID:</p>
+    <pre>.nr-dashboard-cardpanel
+.nr-dashboard-group-Home_Sensor_Data</pre>
+
+    <h3>Best Practices</h3>
+    <ul>
+        <li>Use descriptive group names that indicate the purpose of contained widgets</li>
+        <li>Keep group widths consistent across a tab for a cleaner layout</li>
+        <li>Use collapsible groups for advanced options or less frequently used controls</li>
+        <li>Consider hiding the group name for decorative or full-width content</li>
+        <li>Test layouts on different screen sizes to ensure responsive behavior</li>
+    </ul>
 </script>
