@@ -429,9 +429,11 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
           onInput=${handleInputChange}
           onFocus=${() => {
             setFocused(true);
-            if (showCalendar) setIsCalendarOpen(true);
           }}
           onBlur=${() => setFocused(false)}
+          onClick=${() => {
+            if (showCalendar && !isDisabled) setIsCalendarOpen(true);
+          }}
           style=${fieldStyles}
           min=${c.min || undefined}
           max=${c.max || undefined}

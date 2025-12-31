@@ -21,7 +21,11 @@ export function createSocketBridge(handlers: UiSocketHandlers = {}): UiSocketBri
   const basePath = window.location.pathname.endsWith("/") ? window.location.pathname : `${window.location.pathname}/`;
   const path = `${basePath}socket.io`;
   const secure = window.location.protocol === "https:";
-  const socket = io({ path, secure });
+  // Match legacy Angular config - minimal options for maximum compatibility
+  const socket = io({
+    path,
+    secure,
+  });
 
   socket.on("ui-controls", (data) => {
     handlers.onControls?.(data);

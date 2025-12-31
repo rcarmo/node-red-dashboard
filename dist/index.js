@@ -3513,7 +3513,10 @@ function createSocketBridge(handlers = {}) {
   const basePath = window.location.pathname.endsWith("/") ? window.location.pathname : `${window.location.pathname}/`;
   const path = `${basePath}socket.io`;
   const secure = window.location.protocol === "https:";
-  const socket = lookup2({ path, secure });
+  const socket = lookup2({
+    path,
+    secure
+  });
   socket.on("ui-controls", (data) => {
     handlers.onControls?.(data);
     socket.emit("ui-replay-state");
@@ -45059,10 +45062,12 @@ function DatePickerWidget(props) {
           onInput=${handleInputChange}
           onFocus=${() => {
     setFocused(true);
-    if (showCalendar)
-      setIsCalendarOpen(true);
   }}
           onBlur=${() => setFocused(false)}
+          onClick=${() => {
+    if (showCalendar && !isDisabled)
+      setIsCalendarOpen(true);
+  }}
           style=${fieldStyles}
           min=${c3.min || undefined}
           max=${c3.max || undefined}
