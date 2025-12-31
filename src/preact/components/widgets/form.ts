@@ -37,9 +37,12 @@ export type FormControl = UiControl & {
 
 export function buildFormEmit(ctrl: FormControl, fallbackLabel: string, values: Record<string, string>): Record<string, unknown> {
   return {
-    payload: values,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "form",
+    id: ctrl.id,
+    value: {
+      payload: values,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "form",
+    },
   };
 }
 
@@ -125,7 +128,7 @@ export function FormWidget(props: { control: UiControl; index: number; disabled?
       });
       setErrors(nextErrors);
       if (Object.keys(nextErrors).length > 0) return;
-      onEmit?.("ui-control", buildFormEmit(c, title, values));
+      onEmit?.("update-value", buildFormEmit(c, title, values));
     }}
   >
     ${title ? html`<p class="formlabel" dangerouslySetInnerHTML=${{ __html: title as string }}></p>` : null}

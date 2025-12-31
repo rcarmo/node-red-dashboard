@@ -3719,7 +3719,7 @@ function useDashboardState() {
       } else {
         responseMsg.payload = toast.cancelLabel ?? "Cancel";
       }
-      bridge?.emit("ui-control", { id: toast.nodeId, value: { msg: responseMsg } });
+      bridge?.emit("update-value", { id: toast.nodeId, value: { msg: responseMsg } });
     }
     setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t4) => t4.id !== toastId) }));
   };
@@ -4034,6 +4034,19 @@ function hydrateLocales() {
 }
 
 // src/preact/components/layout/TabNav.ts
+function handleLinkTab(tab) {
+  if (!tab.link)
+    return false;
+  if (tab.target === "newtab") {
+    window.open(tab.link, tab.header ?? tab.name ?? "_blank");
+    return true;
+  }
+  if (tab.target === "thistab") {
+    window.open(tab.link, "_self");
+    return true;
+  }
+  return false;
+}
 function TabNav(props) {
   const { menu, selectedIndex, onSelect, variant = "full" } = props;
   const { t: t4 } = useI18n();
@@ -4084,6 +4097,12 @@ function TabNav(props) {
     const active = originalIndex === selectedIndex;
     const label = tab.header || tab.name || t4("tab_label", "Tab {index}", { index: idx + 1 });
     const icon = tab.icon ? renderIcon(tab, idx) : null;
+    const handleClick = () => {
+      if (handleLinkTab(tab)) {
+        return;
+      }
+      onSelect(originalIndex);
+    };
     return m2`<li key=${tab.id ?? tab.header ?? originalIndex}>
             <button
               class=${`nr-dashboard-tabs__btn ${iconOnly ? "is-icon" : ""} ${active ? "is-active nr-menu-item-active" : ""}`.trim()}
@@ -4092,7 +4111,7 @@ function TabNav(props) {
               aria-label=${label}
               title=${label}
               aria-current=${active ? "page" : undefined}
-              onClick=${() => onSelect(originalIndex)}
+              onClick=${handleClick}
             >
               ${icon}
               <span class="nr-dashboard-tabs__label">${label}</span>
@@ -4206,7 +4225,7 @@ function TextWidget(props) {
     width: "100%",
     padding: "0 12px"
   }, asText.style);
-  const isColumn = container.flexDirection === "column";
+  const _isColumn = container.flexDirection === "column";
   return m2`<div ref=${ref} class=${`nr-dashboard-text ${asText.className || ""}`.trim()} style=${container}>
     <p
       class=${`nr-dashboard-text__label ${label ? "" : "is-hidden"}`.trim()}
@@ -4280,9 +4299,12 @@ function resolveButtonColor(ctrl) {
 function buildButtonEmit(ctrl, fallbackLabel) {
   const val = resolveTypedPayload(ctrl.payload ?? true, ctrl.payloadType);
   return {
-    payload: val,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "button"
+    id: ctrl.id,
+    value: {
+      payload: val,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "button"
+    }
   };
 }
 function ButtonWidget(props) {
@@ -4298,7 +4320,7 @@ function ButtonWidget(props) {
   const textColor = typeof asButton.color === "string" && asButton.color ? asButton.color : "var(--nr-dashboard-widgetTextColor, #fff)";
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
-    onEmit?.("ui-control", payload);
+    onEmit?.("update-value", payload);
   };
   const renderIcon = (icon) => {
     if (!icon)
@@ -4373,9 +4395,12 @@ function resolveSwitchColors(ctrl, checked) {
 }
 function buildSwitchEmit(ctrl, fallbackLabel, next) {
   return {
-    payload: next ? ctrl.onvalue ?? true : ctrl.offvalue ?? false,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "switch"
+    id: ctrl.id,
+    value: {
+      payload: next ? ctrl.onvalue ?? true : ctrl.offvalue ?? false,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "switch"
+    }
   };
 }
 function matchesValue(candidate, target) {
@@ -4403,7 +4428,7 @@ function SwitchWidget(props) {
     return Boolean(val);
   };
   const [checked, setChecked] = d2(toChecked(asSwitch.value ?? asSwitch.state));
-  const [focused, setFocused] = d2(false);
+  const [_focused, setFocused] = d2(false);
   y2(() => {
     setChecked(toChecked(asSwitch.value ?? asSwitch.state));
   }, [asSwitch.value, asSwitch.state, asSwitch.onvalue, asSwitch.offvalue]);
@@ -4416,11 +4441,11 @@ function SwitchWidget(props) {
       return;
     if (asSwitch.passthru === false && asSwitch.decouple) {
       const payload2 = buildSwitchEmit(asSwitch, label, next);
-      onEmit("ui-control", payload2);
+      onEmit("update-value", payload2);
       return;
     }
     const payload = buildSwitchEmit(asSwitch, label, next);
-    onEmit("ui-control", payload);
+    onEmit("update-value", payload);
   };
   const isCenter = (asSwitch.className || "").split(" ").includes("center");
   const showLabel = !(Number(asSwitch.width) === 1);
@@ -4552,9 +4577,12 @@ function inputType(mode) {
 }
 function buildTextEmit(ctrl, fallbackLabel, value2) {
   return {
-    payload: value2,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "text-input"
+    id: ctrl.id,
+    value: {
+      payload: value2,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "text-input"
+    }
   };
 }
 function TextInputWidget(props) {
@@ -4602,7 +4630,7 @@ function TextInputWidget(props) {
     if (!validate(next))
       return;
     const payload = buildTextEmit(asInput, label, next);
-    onEmit("ui-control", payload);
+    onEmit("update-value", payload);
   };
   const scheduleEmit = (next) => {
     if (!onEmit)
@@ -4737,9 +4765,12 @@ function clampValue(value2, min, max, wrap) {
 }
 function buildNumericEmit(ctrl, fallbackLabel, value2) {
   return {
-    payload: value2,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "numeric"
+    id: ctrl.id,
+    value: {
+      payload: value2,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "numeric"
+    }
   };
 }
 function NumericWidget(props) {
@@ -4767,7 +4798,7 @@ function NumericWidget(props) {
     setValue(clamped);
     if (onEmit) {
       const payload = buildNumericEmit(asNum, label, clamped);
-      onEmit("ui-control", payload);
+      onEmit("update-value", payload);
     }
   };
   const handleChange = (e3) => {
@@ -4927,9 +4958,12 @@ function normalizeValue(value2, opts, multiple) {
 }
 function buildDropdownEmit(ctrl, fallbackLabel, value2) {
   return {
-    payload: value2,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "dropdown"
+    id: ctrl.id,
+    value: {
+      payload: value2,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "dropdown"
+    }
   };
 }
 var SEARCH_THRESHOLD = 7;
@@ -4992,7 +5026,7 @@ function DropdownWidget(props) {
         setIsOpen(false);
         setSearchTerm("");
         if (multiple && onEmit) {
-          onEmit("ui-control", buildDropdownEmit(asDrop, label, value2));
+          onEmit("update-value", buildDropdownEmit(asDrop, label, value2));
         }
       }
     };
@@ -5014,7 +5048,7 @@ function DropdownWidget(props) {
     if (isOpen) {
       setSearchTerm("");
       if (multiple && onEmit) {
-        onEmit("ui-control", buildDropdownEmit(asDrop, label, value2));
+        onEmit("update-value", buildDropdownEmit(asDrop, label, value2));
       }
     }
   };
@@ -5032,7 +5066,7 @@ function DropdownWidget(props) {
       setIsOpen(false);
       setSearchTerm("");
       if (onEmit)
-        onEmit("ui-control", buildDropdownEmit(asDrop, label, optValue));
+        onEmit("update-value", buildDropdownEmit(asDrop, label, optValue));
     }
   }, [multiple, value2, onEmit, asDrop, label]);
   const handleSelectAll = q2(() => {
@@ -5240,9 +5274,12 @@ function clampSliderValue(value2, min, max) {
 }
 function buildSliderEmit(ctrl, fallbackLabel, value2) {
   return {
-    payload: value2,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "slider"
+    id: ctrl.id,
+    value: {
+      payload: value2,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "slider"
+    }
   };
 }
 function SliderWidget(props) {
@@ -5259,7 +5296,7 @@ function SliderWidget(props) {
   const formatter = new Intl.NumberFormat(lang || undefined);
   const initial = clampSliderValue(toNumber2(asSlider.value ?? min, min), min, max);
   const [value2, setValue] = d2(initial);
-  const [dragging, setDragging] = d2(false);
+  const [_dragging, setDragging] = d2(false);
   y2(() => {
     setValue(clampSliderValue(toNumber2(asSlider.value ?? min, min), min, max));
   }, [asSlider.value, min, max]);
@@ -5274,7 +5311,7 @@ function SliderWidget(props) {
   const emit = (next) => {
     if (!onEmit || isDisabled)
       return;
-    onEmit("ui-control", buildSliderEmit(asSlider, label, next));
+    onEmit("update-value", buildSliderEmit(asSlider, label, next));
   };
   const scheduleEmit = (next) => {
     if (!onEmit || isDisabled)
@@ -8558,6 +8595,10 @@ function clampCssByte(i3) {
   i3 = Math.round(i3);
   return i3 < 0 ? 0 : i3 > 255 ? 255 : i3;
 }
+function clampCssAngle(i3) {
+  i3 = Math.round(i3);
+  return i3 < 0 ? 0 : i3 > 360 ? 360 : i3;
+}
 function clampCssFloat(f3) {
   return f3 < 0 ? 0 : f3 > 1 ? 1 : f3;
 }
@@ -8714,6 +8755,51 @@ function hsla2rgba(hsla, rgba) {
   }
   return rgba;
 }
+function rgba2hsla(rgba) {
+  if (!rgba) {
+    return;
+  }
+  var R = rgba[0] / 255;
+  var G2 = rgba[1] / 255;
+  var B3 = rgba[2] / 255;
+  var vMin = Math.min(R, G2, B3);
+  var vMax = Math.max(R, G2, B3);
+  var delta = vMax - vMin;
+  var L2 = (vMax + vMin) / 2;
+  var H;
+  var S2;
+  if (delta === 0) {
+    H = 0;
+    S2 = 0;
+  } else {
+    if (L2 < 0.5) {
+      S2 = delta / (vMax + vMin);
+    } else {
+      S2 = delta / (2 - vMax - vMin);
+    }
+    var deltaR = ((vMax - R) / 6 + delta / 2) / delta;
+    var deltaG = ((vMax - G2) / 6 + delta / 2) / delta;
+    var deltaB = ((vMax - B3) / 6 + delta / 2) / delta;
+    if (R === vMax) {
+      H = deltaB - deltaG;
+    } else if (G2 === vMax) {
+      H = 1 / 3 + deltaR - deltaB;
+    } else if (B3 === vMax) {
+      H = 2 / 3 + deltaG - deltaR;
+    }
+    if (H < 0) {
+      H += 1;
+    }
+    if (H > 1) {
+      H -= 1;
+    }
+  }
+  var hsla = [H * 360, S2, L2];
+  if (rgba[3] != null) {
+    hsla.push(rgba[3]);
+  }
+  return hsla;
+}
 function lift(color, level) {
   var colorArr = parse2(color);
   if (colorArr) {
@@ -8731,6 +8817,23 @@ function lift(color, level) {
     }
     return stringify(colorArr, colorArr.length === 4 ? "rgba" : "rgb");
   }
+}
+function fastLerp(normalizedValue, colors, out) {
+  if (!(colors && colors.length) || !(normalizedValue >= 0 && normalizedValue <= 1)) {
+    return;
+  }
+  out = out || [];
+  var value2 = normalizedValue * (colors.length - 1);
+  var leftIndex = Math.floor(value2);
+  var rightIndex = Math.ceil(value2);
+  var leftColor = colors[leftIndex];
+  var rightColor = colors[rightIndex];
+  var dv = value2 - leftIndex;
+  out[0] = clampCssByte(lerpNumber(leftColor[0], rightColor[0], dv));
+  out[1] = clampCssByte(lerpNumber(leftColor[1], rightColor[1], dv));
+  out[2] = clampCssByte(lerpNumber(leftColor[2], rightColor[2], dv));
+  out[3] = clampCssFloat(lerpNumber(leftColor[3], rightColor[3], dv));
+  return out;
 }
 function lerp2(normalizedValue, colors, fullOutput) {
   if (!(colors && colors.length) || !(normalizedValue >= 0 && normalizedValue <= 1)) {
@@ -8754,6 +8857,23 @@ function lerp2(normalizedValue, colors, fullOutput) {
     rightIndex,
     value: value2
   } : color;
+}
+function modifyHSL(color, h3, s3, l3) {
+  var colorArr = parse2(color);
+  if (color) {
+    colorArr = rgba2hsla(colorArr);
+    h3 != null && (colorArr[0] = clampCssAngle(h3));
+    s3 != null && (colorArr[1] = parseCssFloat(s3));
+    l3 != null && (colorArr[2] = parseCssFloat(l3));
+    return stringify(hsla2rgba(colorArr), "rgba");
+  }
+}
+function modifyAlpha(color, alpha) {
+  var colorArr = parse2(color);
+  if (colorArr && alpha != null) {
+    colorArr[3] = clampCssFloat(alpha);
+    return stringify(colorArr, "rgba");
+  }
 }
 function stringify(arrColor, type) {
   if (!arrColor || !arrColor.length) {
@@ -13403,6 +13523,12 @@ function round2(x3, precision, returnStr) {
   x3 = (+x3).toFixed(precision);
   return returnStr ? x3 : +x3;
 }
+function asc(arr) {
+  arr.sort(function(a3, b) {
+    return a3 - b;
+  });
+  return arr;
+}
 function getPrecision(val) {
   val = +val;
   if (isNaN(val)) {
@@ -13553,6 +13679,34 @@ function nice(val, round3) {
   }
   val = nf * exp10;
   return exponent >= -20 ? +val.toFixed(exponent < 0 ? -exponent : 0) : val;
+}
+function reformIntervals(list) {
+  list.sort(function(a3, b) {
+    return littleThan(a3, b, 0) ? -1 : 1;
+  });
+  var curr = -Infinity;
+  var currClose = 1;
+  for (var i3 = 0;i3 < list.length; ) {
+    var interval = list[i3].interval;
+    var close_1 = list[i3].close;
+    for (var lg = 0;lg < 2; lg++) {
+      if (interval[lg] <= curr) {
+        interval[lg] = curr;
+        close_1[lg] = !lg ? 1 - currClose : 1;
+      }
+      curr = interval[lg];
+      currClose = close_1[lg];
+    }
+    if (interval[0] === interval[1] && close_1[0] * close_1[1] !== 1) {
+      list.splice(i3, 1);
+    } else {
+      i3++;
+    }
+  }
+  return list;
+  function littleThan(a3, b, lg2) {
+    return a3.interval[lg2] < b.interval[lg2] || a3.interval[lg2] === b.interval[lg2] && (a3.close[lg2] - b.close[lg2] === (!lg2 ? 1 : -1) || !lg2 && littleThan(a3, b, 1));
+  }
 }
 function numericToNumber(val) {
   var valFloat = parseFloat(val);
@@ -13881,6 +14035,48 @@ function determineSubType(mainType, newCmptOption, existComponent, componentMode
   var subType = newCmptOption.type ? newCmptOption.type : existComponent ? existComponent.subType : componentModelCtor.determineSubType(mainType, newCmptOption);
   return subType;
 }
+function compressBatches(batchA, batchB) {
+  var mapA = {};
+  var mapB = {};
+  makeMap(batchA || [], mapA);
+  makeMap(batchB || [], mapB, mapA);
+  return [mapToArray(mapA), mapToArray(mapB)];
+  function makeMap(sourceBatch, map2, otherMap) {
+    for (var i3 = 0, len2 = sourceBatch.length;i3 < len2; i3++) {
+      var seriesId = convertOptionIdName(sourceBatch[i3].seriesId, null);
+      if (seriesId == null) {
+        return;
+      }
+      var dataIndices = normalizeToArray(sourceBatch[i3].dataIndex);
+      var otherDataIndices = otherMap && otherMap[seriesId];
+      for (var j3 = 0, lenj = dataIndices.length;j3 < lenj; j3++) {
+        var dataIndex = dataIndices[j3];
+        if (otherDataIndices && otherDataIndices[dataIndex]) {
+          otherDataIndices[dataIndex] = null;
+        } else {
+          (map2[seriesId] || (map2[seriesId] = {}))[dataIndex] = 1;
+        }
+      }
+    }
+  }
+  function mapToArray(map2, isData) {
+    var result = [];
+    for (var i3 in map2) {
+      if (map2.hasOwnProperty(i3) && map2[i3] != null) {
+        if (isData) {
+          result.push(+i3);
+        } else {
+          var dataIndices = mapToArray(map2[i3], true);
+          dataIndices.length && result.push({
+            seriesId: i3,
+            dataIndex: dataIndices
+          });
+        }
+      }
+    }
+    return result;
+  }
+}
 function queryDataIndex(data, payload) {
   if (payload.dataIndexInside != null) {
     return payload.dataIndexInside;
@@ -13956,6 +14152,11 @@ var SINGLE_REFERRING = {
   useDefault: true,
   enableAll: false,
   enableNone: false
+};
+var MULTIPLE_REFERRING = {
+  useDefault: false,
+  enableAll: true,
+  enableNone: true
 };
 function queryReferringComponents(ecModel, mainType, userOption, opt) {
   opt = opt || SINGLE_REFERRING;
@@ -21368,6 +21569,45 @@ function getLayoutRect(positionInfo, containerRect, margin) {
   var rect = new BoundingRect_default(left + margin[3], top + margin[0], width, height);
   rect.margin = margin;
   return rect;
+}
+function positionElement(el, positionInfo, containerRect, margin, opt, out2) {
+  var h3 = !opt || !opt.hv || opt.hv[0];
+  var v3 = !opt || !opt.hv || opt.hv[1];
+  var boundingMode = opt && opt.boundingMode || "all";
+  out2 = out2 || el;
+  out2.x = el.x;
+  out2.y = el.y;
+  if (!h3 && !v3) {
+    return false;
+  }
+  var rect;
+  if (boundingMode === "raw") {
+    rect = el.type === "group" ? new BoundingRect_default(0, 0, +positionInfo.width || 0, +positionInfo.height || 0) : el.getBoundingRect();
+  } else {
+    rect = el.getBoundingRect();
+    if (el.needLocalTransform()) {
+      var transform = el.getLocalTransform();
+      rect = rect.clone();
+      rect.applyTransform(transform);
+    }
+  }
+  var layoutRect = getLayoutRect(defaults({
+    width: rect.width,
+    height: rect.height
+  }, positionInfo), containerRect, margin);
+  var dx = h3 ? layoutRect.x - rect.x : 0;
+  var dy = v3 ? layoutRect.y - rect.y : 0;
+  if (boundingMode === "raw") {
+    out2.x = dx;
+    out2.y = dy;
+  } else {
+    out2.x += dx;
+    out2.y += dy;
+  }
+  if (out2 === el) {
+    el.markRedraw();
+  }
+  return true;
 }
 function fetchLayoutMode(ins) {
   var layoutMode = ins.layoutMode || ins.constructor.layoutMode;
@@ -28827,6 +29067,9 @@ var stop = function(e4) {
   e4.stopPropagation();
   e4.cancelBubble = true;
 };
+function isMiddleOrRightButtonOnMouseUpDown(e4) {
+  return e4.which === 2 || e4.which === 3;
+}
 
 // node_modules/zrender/lib/core/GestureMgr.js
 var GestureMgr = function() {
@@ -32957,6 +33200,27 @@ function getVisualFromData(data, key) {
       }
   }
 }
+function setItemVisualFromData(data, dataIndex, key, value2) {
+  switch (key) {
+    case "color":
+      var style = data.ensureUniqueItemVisual(dataIndex, "style");
+      style[data.getVisual("drawType")] = value2;
+      data.setItemVisual(dataIndex, "colorFromPalette", false);
+      break;
+    case "opacity":
+      data.ensureUniqueItemVisual(dataIndex, "style").opacity = value2;
+      break;
+    case "symbol":
+    case "symbolSize":
+    case "liftZ":
+      data.setItemVisual(dataIndex, key, value2);
+      break;
+    default:
+      if (true) {
+        console.warn("Unknown visual type " + key);
+      }
+  }
+}
 
 // node_modules/echarts/lib/util/event.js
 function findEventDispatcher(target, det, returnFirstMatch) {
@@ -35728,6 +35992,384 @@ function use(ext) {
   ext.install(extensionRegisters);
 }
 
+// node_modules/echarts/lib/chart/scatter/ScatterSeries.js
+var ScatterSeriesModel = function(_super) {
+  __extends(ScatterSeriesModel2, _super);
+  function ScatterSeriesModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = ScatterSeriesModel2.type;
+    _this.hasSymbolVisual = true;
+    return _this;
+  }
+  ScatterSeriesModel2.prototype.getInitialData = function(option, ecModel) {
+    return createSeriesData_default(null, this, {
+      useEncodeDefaulter: true
+    });
+  };
+  ScatterSeriesModel2.prototype.getProgressive = function() {
+    var progressive = this.option.progressive;
+    if (progressive == null) {
+      return this.option.large ? 5000 : this.get("progressive");
+    }
+    return progressive;
+  };
+  ScatterSeriesModel2.prototype.getProgressiveThreshold = function() {
+    var progressiveThreshold = this.option.progressiveThreshold;
+    if (progressiveThreshold == null) {
+      return this.option.large ? 1e4 : this.get("progressiveThreshold");
+    }
+    return progressiveThreshold;
+  };
+  ScatterSeriesModel2.prototype.brushSelector = function(dataIndex, data, selectors) {
+    return selectors.point(data.getItemLayout(dataIndex));
+  };
+  ScatterSeriesModel2.prototype.getZLevelKey = function() {
+    return this.getData().count() > this.getProgressiveThreshold() ? this.id : "";
+  };
+  ScatterSeriesModel2.type = "series.scatter";
+  ScatterSeriesModel2.dependencies = ["grid", "polar", "geo", "singleAxis", "calendar"];
+  ScatterSeriesModel2.defaultOption = {
+    coordinateSystem: "cartesian2d",
+    z: 2,
+    legendHoverLink: true,
+    symbolSize: 10,
+    large: false,
+    largeThreshold: 2000,
+    itemStyle: {
+      opacity: 0.8
+    },
+    emphasis: {
+      scale: true
+    },
+    clip: true,
+    select: {
+      itemStyle: {
+        borderColor: "#212121"
+      }
+    },
+    universalTransition: {
+      divideShape: "clone"
+    }
+  };
+  return ScatterSeriesModel2;
+}(Series_default);
+var ScatterSeries_default = ScatterSeriesModel;
+
+// node_modules/echarts/lib/chart/helper/LargeSymbolDraw.js
+var BOOST_SIZE_THRESHOLD = 4;
+var LargeSymbolPathShape = function() {
+  function LargeSymbolPathShape2() {}
+  return LargeSymbolPathShape2;
+}();
+var LargeSymbolPath = function(_super) {
+  __extends(LargeSymbolPath2, _super);
+  function LargeSymbolPath2(opts) {
+    var _this = _super.call(this, opts) || this;
+    _this._off = 0;
+    _this.hoverDataIdx = -1;
+    return _this;
+  }
+  LargeSymbolPath2.prototype.getDefaultShape = function() {
+    return new LargeSymbolPathShape;
+  };
+  LargeSymbolPath2.prototype.reset = function() {
+    this.notClear = false;
+    this._off = 0;
+  };
+  LargeSymbolPath2.prototype.buildPath = function(path, shape) {
+    var points2 = shape.points;
+    var size = shape.size;
+    var symbolProxy = this.symbolProxy;
+    var symbolProxyShape = symbolProxy.shape;
+    var ctx = path.getContext ? path.getContext() : path;
+    var canBoost = ctx && size[0] < BOOST_SIZE_THRESHOLD;
+    var softClipShape = this.softClipShape;
+    var i3;
+    if (canBoost) {
+      this._ctx = ctx;
+      return;
+    }
+    this._ctx = null;
+    for (i3 = this._off;i3 < points2.length; ) {
+      var x3 = points2[i3++];
+      var y3 = points2[i3++];
+      if (isNaN(x3) || isNaN(y3)) {
+        continue;
+      }
+      if (softClipShape && !softClipShape.contain(x3, y3)) {
+        continue;
+      }
+      symbolProxyShape.x = x3 - size[0] / 2;
+      symbolProxyShape.y = y3 - size[1] / 2;
+      symbolProxyShape.width = size[0];
+      symbolProxyShape.height = size[1];
+      symbolProxy.buildPath(path, symbolProxyShape, true);
+    }
+    if (this.incremental) {
+      this._off = i3;
+      this.notClear = true;
+    }
+  };
+  LargeSymbolPath2.prototype.afterBrush = function() {
+    var shape = this.shape;
+    var points2 = shape.points;
+    var size = shape.size;
+    var ctx = this._ctx;
+    var softClipShape = this.softClipShape;
+    var i3;
+    if (!ctx) {
+      return;
+    }
+    for (i3 = this._off;i3 < points2.length; ) {
+      var x3 = points2[i3++];
+      var y3 = points2[i3++];
+      if (isNaN(x3) || isNaN(y3)) {
+        continue;
+      }
+      if (softClipShape && !softClipShape.contain(x3, y3)) {
+        continue;
+      }
+      ctx.fillRect(x3 - size[0] / 2, y3 - size[1] / 2, size[0], size[1]);
+    }
+    if (this.incremental) {
+      this._off = i3;
+      this.notClear = true;
+    }
+  };
+  LargeSymbolPath2.prototype.findDataIndex = function(x3, y3) {
+    var shape = this.shape;
+    var points2 = shape.points;
+    var size = shape.size;
+    var w3 = Math.max(size[0], 4);
+    var h3 = Math.max(size[1], 4);
+    for (var idx = points2.length / 2 - 1;idx >= 0; idx--) {
+      var i3 = idx * 2;
+      var x0 = points2[i3] - w3 / 2;
+      var y0 = points2[i3 + 1] - h3 / 2;
+      if (x3 >= x0 && y3 >= y0 && x3 <= x0 + w3 && y3 <= y0 + h3) {
+        return idx;
+      }
+    }
+    return -1;
+  };
+  LargeSymbolPath2.prototype.contain = function(x3, y3) {
+    var localPos = this.transformCoordToLocal(x3, y3);
+    var rect = this.getBoundingRect();
+    x3 = localPos[0];
+    y3 = localPos[1];
+    if (rect.contain(x3, y3)) {
+      var dataIdx = this.hoverDataIdx = this.findDataIndex(x3, y3);
+      return dataIdx >= 0;
+    }
+    this.hoverDataIdx = -1;
+    return false;
+  };
+  LargeSymbolPath2.prototype.getBoundingRect = function() {
+    var rect = this._rect;
+    if (!rect) {
+      var shape = this.shape;
+      var points2 = shape.points;
+      var size = shape.size;
+      var w3 = size[0];
+      var h3 = size[1];
+      var minX = Infinity;
+      var minY = Infinity;
+      var maxX = -Infinity;
+      var maxY = -Infinity;
+      for (var i3 = 0;i3 < points2.length; ) {
+        var x3 = points2[i3++];
+        var y3 = points2[i3++];
+        minX = Math.min(x3, minX);
+        maxX = Math.max(x3, maxX);
+        minY = Math.min(y3, minY);
+        maxY = Math.max(y3, maxY);
+      }
+      rect = this._rect = new BoundingRect_default(minX - w3 / 2, minY - h3 / 2, maxX - minX + w3, maxY - minY + h3);
+    }
+    return rect;
+  };
+  return LargeSymbolPath2;
+}(Path_default);
+var LargeSymbolDraw = function() {
+  function LargeSymbolDraw2() {
+    this.group = new Group_default;
+  }
+  LargeSymbolDraw2.prototype.updateData = function(data, opt) {
+    this._clear();
+    var symbolEl = this._create();
+    symbolEl.setShape({
+      points: data.getLayout("points")
+    });
+    this._setCommon(symbolEl, data, opt);
+  };
+  LargeSymbolDraw2.prototype.updateLayout = function(data) {
+    var points2 = data.getLayout("points");
+    this.group.eachChild(function(child) {
+      if (child.startIndex != null) {
+        var len2 = (child.endIndex - child.startIndex) * 2;
+        var byteOffset = child.startIndex * 4 * 2;
+        points2 = new Float32Array(points2.buffer, byteOffset, len2);
+      }
+      child.setShape("points", points2);
+      child.reset();
+    });
+  };
+  LargeSymbolDraw2.prototype.incrementalPrepareUpdate = function(data) {
+    this._clear();
+  };
+  LargeSymbolDraw2.prototype.incrementalUpdate = function(taskParams, data, opt) {
+    var lastAdded = this._newAdded[0];
+    var points2 = data.getLayout("points");
+    var oldPoints = lastAdded && lastAdded.shape.points;
+    if (oldPoints && oldPoints.length < 20000) {
+      var oldLen = oldPoints.length;
+      var newPoints = new Float32Array(oldLen + points2.length);
+      newPoints.set(oldPoints);
+      newPoints.set(points2, oldLen);
+      lastAdded.endIndex = taskParams.end;
+      lastAdded.setShape({
+        points: newPoints
+      });
+    } else {
+      this._newAdded = [];
+      var symbolEl = this._create();
+      symbolEl.startIndex = taskParams.start;
+      symbolEl.endIndex = taskParams.end;
+      symbolEl.incremental = true;
+      symbolEl.setShape({
+        points: points2
+      });
+      this._setCommon(symbolEl, data, opt);
+    }
+  };
+  LargeSymbolDraw2.prototype.eachRendered = function(cb) {
+    this._newAdded[0] && cb(this._newAdded[0]);
+  };
+  LargeSymbolDraw2.prototype._create = function() {
+    var symbolEl = new LargeSymbolPath({
+      cursor: "default"
+    });
+    symbolEl.ignoreCoarsePointer = true;
+    this.group.add(symbolEl);
+    this._newAdded.push(symbolEl);
+    return symbolEl;
+  };
+  LargeSymbolDraw2.prototype._setCommon = function(symbolEl, data, opt) {
+    var hostModel = data.hostModel;
+    opt = opt || {};
+    var size = data.getVisual("symbolSize");
+    symbolEl.setShape("size", size instanceof Array ? size : [size, size]);
+    symbolEl.softClipShape = opt.clipShape || null;
+    symbolEl.symbolProxy = createSymbol(data.getVisual("symbol"), 0, 0, 0, 0);
+    symbolEl.setColor = symbolEl.symbolProxy.setColor;
+    var extrudeShadow = symbolEl.shape.size[0] < BOOST_SIZE_THRESHOLD;
+    symbolEl.useStyle(hostModel.getModel("itemStyle").getItemStyle(extrudeShadow ? ["color", "shadowBlur", "shadowColor"] : ["color"]));
+    var globalStyle = data.getVisual("style");
+    var visualColor = globalStyle && globalStyle.fill;
+    if (visualColor) {
+      symbolEl.setColor(visualColor);
+    }
+    var ecData = getECData(symbolEl);
+    ecData.seriesIndex = hostModel.seriesIndex;
+    symbolEl.on("mousemove", function(e4) {
+      ecData.dataIndex = null;
+      var dataIndex = symbolEl.hoverDataIdx;
+      if (dataIndex >= 0) {
+        ecData.dataIndex = dataIndex + (symbolEl.startIndex || 0);
+      }
+    });
+  };
+  LargeSymbolDraw2.prototype.remove = function() {
+    this._clear();
+  };
+  LargeSymbolDraw2.prototype._clear = function() {
+    this._newAdded = [];
+    this.group.removeAll();
+  };
+  return LargeSymbolDraw2;
+}();
+var LargeSymbolDraw_default = LargeSymbolDraw;
+
+// node_modules/echarts/lib/chart/scatter/ScatterView.js
+var ScatterView = function(_super) {
+  __extends(ScatterView2, _super);
+  function ScatterView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = ScatterView2.type;
+    return _this;
+  }
+  ScatterView2.prototype.render = function(seriesModel, ecModel, api) {
+    var data = seriesModel.getData();
+    var symbolDraw = this._updateSymbolDraw(data, seriesModel);
+    symbolDraw.updateData(data, {
+      clipShape: this._getClipShape(seriesModel)
+    });
+    this._finished = true;
+  };
+  ScatterView2.prototype.incrementalPrepareRender = function(seriesModel, ecModel, api) {
+    var data = seriesModel.getData();
+    var symbolDraw = this._updateSymbolDraw(data, seriesModel);
+    symbolDraw.incrementalPrepareUpdate(data);
+    this._finished = false;
+  };
+  ScatterView2.prototype.incrementalRender = function(taskParams, seriesModel, ecModel) {
+    this._symbolDraw.incrementalUpdate(taskParams, seriesModel.getData(), {
+      clipShape: this._getClipShape(seriesModel)
+    });
+    this._finished = taskParams.end === seriesModel.getData().count();
+  };
+  ScatterView2.prototype.updateTransform = function(seriesModel, ecModel, api) {
+    var data = seriesModel.getData();
+    this.group.dirty();
+    if (!this._finished || data.count() > 1e4) {
+      return {
+        update: true
+      };
+    } else {
+      var res = pointsLayout("").reset(seriesModel, ecModel, api);
+      if (res.progress) {
+        res.progress({
+          start: 0,
+          end: data.count(),
+          count: data.count()
+        }, data);
+      }
+      this._symbolDraw.updateLayout(data);
+    }
+  };
+  ScatterView2.prototype.eachRendered = function(cb) {
+    this._symbolDraw && this._symbolDraw.eachRendered(cb);
+  };
+  ScatterView2.prototype._getClipShape = function(seriesModel) {
+    if (!seriesModel.get("clip", true)) {
+      return;
+    }
+    var coordSys = seriesModel.coordinateSystem;
+    return coordSys && coordSys.getArea && coordSys.getArea(0.1);
+  };
+  ScatterView2.prototype._updateSymbolDraw = function(data, seriesModel) {
+    var symbolDraw = this._symbolDraw;
+    var pipelineContext = seriesModel.pipelineContext;
+    var isLargeDraw = pipelineContext.large;
+    if (!symbolDraw || isLargeDraw !== this._isLargeDraw) {
+      symbolDraw && symbolDraw.remove();
+      symbolDraw = this._symbolDraw = isLargeDraw ? new LargeSymbolDraw_default : new SymbolDraw_default;
+      this._isLargeDraw = isLargeDraw;
+      this.group.removeAll();
+    }
+    this.group.add(symbolDraw.group);
+    return symbolDraw;
+  };
+  ScatterView2.prototype.remove = function(ecModel, api) {
+    this._symbolDraw && this._symbolDraw.remove(true);
+    this._symbolDraw = null;
+  };
+  ScatterView2.prototype.dispose = function() {};
+  ScatterView2.type = "scatter";
+  return ScatterView2;
+}(Chart_default);
+var ScatterView_default = ScatterView;
+
 // node_modules/echarts/lib/coord/cartesian/GridModel.js
 var GridModel = function(_super) {
   __extends(GridModel2, _super);
@@ -37244,6 +37886,15 @@ function getDataDimensionsOnAxis(data, axisDim) {
   });
   return keys(dataDimMap);
 }
+function unionAxisExtentFromData(dataExtent, data, axisDim) {
+  if (data) {
+    each(getDataDimensionsOnAxis(data, axisDim), function(dim) {
+      var seriesExtent = data.getApproximateExtent(dim);
+      seriesExtent[0] < dataExtent[0] && (dataExtent[0] = seriesExtent[0]);
+      seriesExtent[1] > dataExtent[1] && (dataExtent[1] = seriesExtent[1]);
+    });
+  }
+}
 
 // node_modules/echarts/lib/coord/cartesian/Cartesian.js
 var Cartesian = function() {
@@ -37826,11 +38477,11 @@ var Axis2D = function(_super) {
     var position = this.position;
     return position === "top" || position === "bottom";
   };
-  Axis2D2.prototype.getGlobalExtent = function(asc) {
+  Axis2D2.prototype.getGlobalExtent = function(asc2) {
     var ret = this.getExtent();
     ret[0] = this.toGlobalCoord(ret[0]);
     ret[1] = this.toGlobalCoord(ret[1]);
-    asc && ret[0] > ret[1] && ret.reverse();
+    asc2 && ret[0] > ret[1] && ret.reverse();
     return ret;
   };
   Axis2D2.prototype.pointToData = function(point, clamp2) {
@@ -39361,6 +40012,13 @@ function install4(registers) {
   });
 }
 
+// node_modules/echarts/lib/chart/scatter/install.js
+function install5(registers) {
+  use(install4);
+  registers.registerSeriesModel(ScatterSeries_default);
+  registers.registerChartView(ScatterView_default);
+  registers.registerLayout(pointsLayout("scatter"));
+}
 // node_modules/echarts/lib/chart/radar/radarLayout.js
 function radarLayout(ecModel) {
   ecModel.eachSeriesByType("radar", function(seriesModel) {
@@ -40066,7 +40724,7 @@ var Radar = function() {
 var Radar_default = Radar;
 
 // node_modules/echarts/lib/component/radar/install.js
-function install5(registers) {
+function install6(registers) {
   registers.registerCoordinateSystem("radar", Radar_default);
   registers.registerComponentModel(RadarModel_default);
   registers.registerComponentView(RadarView_default2);
@@ -40083,14 +40741,1069 @@ function install5(registers) {
 }
 
 // node_modules/echarts/lib/chart/radar/install.js
-function install6(registers) {
-  use(install5);
+function install7(registers) {
+  use(install6);
   registers.registerChartView(RadarView_default);
   registers.registerSeriesModel(RadarSeries_default);
   registers.registerLayout(radarLayout);
   registers.registerProcessor(dataFilter("radar"));
   registers.registerPreprocessor(radarBackwardCompat);
 }
+// node_modules/echarts/lib/component/helper/interactionMutex.js
+var ATTR = "\x00_ec_interaction_mutex";
+function isTaken(zr, resourceKey) {
+  return !!getStore(zr)[resourceKey];
+}
+function getStore(zr) {
+  return zr[ATTR] || (zr[ATTR] = {});
+}
+registerAction({
+  type: "takeGlobalCursor",
+  event: "globalCursorTaken",
+  update: "update"
+}, noop);
+
+// node_modules/echarts/lib/component/helper/RoamController.js
+var RoamController = function(_super) {
+  __extends(RoamController2, _super);
+  function RoamController2(zr) {
+    var _this = _super.call(this) || this;
+    _this._zr = zr;
+    var mousedownHandler = bind(_this._mousedownHandler, _this);
+    var mousemoveHandler = bind(_this._mousemoveHandler, _this);
+    var mouseupHandler = bind(_this._mouseupHandler, _this);
+    var mousewheelHandler = bind(_this._mousewheelHandler, _this);
+    var pinchHandler = bind(_this._pinchHandler, _this);
+    _this.enable = function(controlType, opt) {
+      this.disable();
+      this._opt = defaults(clone(opt) || {}, {
+        zoomOnMouseWheel: true,
+        moveOnMouseMove: true,
+        moveOnMouseWheel: false,
+        preventDefaultMouseMove: true
+      });
+      if (controlType == null) {
+        controlType = true;
+      }
+      if (controlType === true || controlType === "move" || controlType === "pan") {
+        zr.on("mousedown", mousedownHandler);
+        zr.on("mousemove", mousemoveHandler);
+        zr.on("mouseup", mouseupHandler);
+      }
+      if (controlType === true || controlType === "scale" || controlType === "zoom") {
+        zr.on("mousewheel", mousewheelHandler);
+        zr.on("pinch", pinchHandler);
+      }
+    };
+    _this.disable = function() {
+      zr.off("mousedown", mousedownHandler);
+      zr.off("mousemove", mousemoveHandler);
+      zr.off("mouseup", mouseupHandler);
+      zr.off("mousewheel", mousewheelHandler);
+      zr.off("pinch", pinchHandler);
+    };
+    return _this;
+  }
+  RoamController2.prototype.isDragging = function() {
+    return this._dragging;
+  };
+  RoamController2.prototype.isPinching = function() {
+    return this._pinching;
+  };
+  RoamController2.prototype.setPointerChecker = function(pointerChecker) {
+    this.pointerChecker = pointerChecker;
+  };
+  RoamController2.prototype.dispose = function() {
+    this.disable();
+  };
+  RoamController2.prototype._mousedownHandler = function(e4) {
+    if (isMiddleOrRightButtonOnMouseUpDown(e4)) {
+      return;
+    }
+    var el = e4.target;
+    while (el) {
+      if (el.draggable) {
+        return;
+      }
+      el = el.__hostTarget || el.parent;
+    }
+    var x3 = e4.offsetX;
+    var y3 = e4.offsetY;
+    if (this.pointerChecker && this.pointerChecker(e4, x3, y3)) {
+      this._x = x3;
+      this._y = y3;
+      this._dragging = true;
+    }
+  };
+  RoamController2.prototype._mousemoveHandler = function(e4) {
+    if (!this._dragging || !isAvailableBehavior("moveOnMouseMove", e4, this._opt) || e4.gestureEvent === "pinch" || isTaken(this._zr, "globalPan")) {
+      return;
+    }
+    var x3 = e4.offsetX;
+    var y3 = e4.offsetY;
+    var oldX = this._x;
+    var oldY = this._y;
+    var dx = x3 - oldX;
+    var dy = y3 - oldY;
+    this._x = x3;
+    this._y = y3;
+    this._opt.preventDefaultMouseMove && stop(e4.event);
+    trigger(this, "pan", "moveOnMouseMove", e4, {
+      dx,
+      dy,
+      oldX,
+      oldY,
+      newX: x3,
+      newY: y3,
+      isAvailableBehavior: null
+    });
+  };
+  RoamController2.prototype._mouseupHandler = function(e4) {
+    if (!isMiddleOrRightButtonOnMouseUpDown(e4)) {
+      this._dragging = false;
+    }
+  };
+  RoamController2.prototype._mousewheelHandler = function(e4) {
+    var shouldZoom = isAvailableBehavior("zoomOnMouseWheel", e4, this._opt);
+    var shouldMove = isAvailableBehavior("moveOnMouseWheel", e4, this._opt);
+    var wheelDelta = e4.wheelDelta;
+    var absWheelDeltaDelta = Math.abs(wheelDelta);
+    var originX = e4.offsetX;
+    var originY = e4.offsetY;
+    if (wheelDelta === 0 || !shouldZoom && !shouldMove) {
+      return;
+    }
+    if (shouldZoom) {
+      var factor = absWheelDeltaDelta > 3 ? 1.4 : absWheelDeltaDelta > 1 ? 1.2 : 1.1;
+      var scale4 = wheelDelta > 0 ? factor : 1 / factor;
+      checkPointerAndTrigger(this, "zoom", "zoomOnMouseWheel", e4, {
+        scale: scale4,
+        originX,
+        originY,
+        isAvailableBehavior: null
+      });
+    }
+    if (shouldMove) {
+      var absDelta = Math.abs(wheelDelta);
+      var scrollDelta = (wheelDelta > 0 ? 1 : -1) * (absDelta > 3 ? 0.4 : absDelta > 1 ? 0.15 : 0.05);
+      checkPointerAndTrigger(this, "scrollMove", "moveOnMouseWheel", e4, {
+        scrollDelta,
+        originX,
+        originY,
+        isAvailableBehavior: null
+      });
+    }
+  };
+  RoamController2.prototype._pinchHandler = function(e4) {
+    if (isTaken(this._zr, "globalPan")) {
+      return;
+    }
+    var scale4 = e4.pinchScale > 1 ? 1.1 : 1 / 1.1;
+    checkPointerAndTrigger(this, "zoom", null, e4, {
+      scale: scale4,
+      originX: e4.pinchX,
+      originY: e4.pinchY,
+      isAvailableBehavior: null
+    });
+  };
+  return RoamController2;
+}(Eventful_default);
+function checkPointerAndTrigger(controller, eventName, behaviorToCheck, e4, contollerEvent) {
+  if (controller.pointerChecker && controller.pointerChecker(e4, contollerEvent.originX, contollerEvent.originY)) {
+    stop(e4.event);
+    trigger(controller, eventName, behaviorToCheck, e4, contollerEvent);
+  }
+}
+function trigger(controller, eventName, behaviorToCheck, e4, contollerEvent) {
+  contollerEvent.isAvailableBehavior = bind(isAvailableBehavior, null, behaviorToCheck, e4);
+  controller.trigger(eventName, contollerEvent);
+}
+function isAvailableBehavior(behaviorToCheck, e4, settings) {
+  var setting = settings[behaviorToCheck];
+  return !behaviorToCheck || setting && (!isString(setting) || e4.event[setting + "Key"]);
+}
+var RoamController_default = RoamController;
+
+// node_modules/echarts/lib/visual/VisualMapping.js
+var each4 = each;
+var isObject5 = isObject2;
+var CATEGORY_DEFAULT_VISUAL_INDEX = -1;
+var VisualMapping = function() {
+  function VisualMapping2(option) {
+    var mappingMethod = option.mappingMethod;
+    var visualType = option.type;
+    var thisOption = this.option = clone(option);
+    this.type = visualType;
+    this.mappingMethod = mappingMethod;
+    this._normalizeData = normalizers[mappingMethod];
+    var visualHandler = VisualMapping2.visualHandlers[visualType];
+    this.applyVisual = visualHandler.applyVisual;
+    this.getColorMapper = visualHandler.getColorMapper;
+    this._normalizedToVisual = visualHandler._normalizedToVisual[mappingMethod];
+    if (mappingMethod === "piecewise") {
+      normalizeVisualRange(thisOption);
+      preprocessForPiecewise(thisOption);
+    } else if (mappingMethod === "category") {
+      thisOption.categories ? preprocessForSpecifiedCategory(thisOption) : normalizeVisualRange(thisOption, true);
+    } else {
+      assert(mappingMethod !== "linear" || thisOption.dataExtent);
+      normalizeVisualRange(thisOption);
+    }
+  }
+  VisualMapping2.prototype.mapValueToVisual = function(value2) {
+    var normalized = this._normalizeData(value2);
+    return this._normalizedToVisual(normalized, value2);
+  };
+  VisualMapping2.prototype.getNormalizer = function() {
+    return bind(this._normalizeData, this);
+  };
+  VisualMapping2.listVisualTypes = function() {
+    return keys(VisualMapping2.visualHandlers);
+  };
+  VisualMapping2.isValidType = function(visualType) {
+    return VisualMapping2.visualHandlers.hasOwnProperty(visualType);
+  };
+  VisualMapping2.eachVisual = function(visual, callback, context) {
+    if (isObject2(visual)) {
+      each(visual, callback, context);
+    } else {
+      callback.call(context, visual);
+    }
+  };
+  VisualMapping2.mapVisual = function(visual, callback, context) {
+    var isPrimary;
+    var newVisual = isArray(visual) ? [] : isObject2(visual) ? {} : (isPrimary = true, null);
+    VisualMapping2.eachVisual(visual, function(v3, key) {
+      var newVal = callback.call(context, v3, key);
+      isPrimary ? newVisual = newVal : newVisual[key] = newVal;
+    });
+    return newVisual;
+  };
+  VisualMapping2.retrieveVisuals = function(obj) {
+    var ret = {};
+    var hasVisual;
+    obj && each4(VisualMapping2.visualHandlers, function(h3, visualType) {
+      if (obj.hasOwnProperty(visualType)) {
+        ret[visualType] = obj[visualType];
+        hasVisual = true;
+      }
+    });
+    return hasVisual ? ret : null;
+  };
+  VisualMapping2.prepareVisualTypes = function(visualTypes) {
+    if (isArray(visualTypes)) {
+      visualTypes = visualTypes.slice();
+    } else if (isObject5(visualTypes)) {
+      var types_1 = [];
+      each4(visualTypes, function(item, type) {
+        types_1.push(type);
+      });
+      visualTypes = types_1;
+    } else {
+      return [];
+    }
+    visualTypes.sort(function(type1, type2) {
+      return type2 === "color" && type1 !== "color" && type1.indexOf("color") === 0 ? 1 : -1;
+    });
+    return visualTypes;
+  };
+  VisualMapping2.dependsOn = function(visualType1, visualType2) {
+    return visualType2 === "color" ? !!(visualType1 && visualType1.indexOf(visualType2) === 0) : visualType1 === visualType2;
+  };
+  VisualMapping2.findPieceIndex = function(value2, pieceList, findClosestWhenOutside) {
+    var possibleI;
+    var abs2 = Infinity;
+    for (var i3 = 0, len2 = pieceList.length;i3 < len2; i3++) {
+      var pieceValue = pieceList[i3].value;
+      if (pieceValue != null) {
+        if (pieceValue === value2 || isString(pieceValue) && pieceValue === value2 + "") {
+          return i3;
+        }
+        findClosestWhenOutside && updatePossible(pieceValue, i3);
+      }
+    }
+    for (var i3 = 0, len2 = pieceList.length;i3 < len2; i3++) {
+      var piece = pieceList[i3];
+      var interval = piece.interval;
+      var close_1 = piece.close;
+      if (interval) {
+        if (interval[0] === -Infinity) {
+          if (littleThan(close_1[1], value2, interval[1])) {
+            return i3;
+          }
+        } else if (interval[1] === Infinity) {
+          if (littleThan(close_1[0], interval[0], value2)) {
+            return i3;
+          }
+        } else if (littleThan(close_1[0], interval[0], value2) && littleThan(close_1[1], value2, interval[1])) {
+          return i3;
+        }
+        findClosestWhenOutside && updatePossible(interval[0], i3);
+        findClosestWhenOutside && updatePossible(interval[1], i3);
+      }
+    }
+    if (findClosestWhenOutside) {
+      return value2 === Infinity ? pieceList.length - 1 : value2 === -Infinity ? 0 : possibleI;
+    }
+    function updatePossible(val, index) {
+      var newAbs = Math.abs(val - value2);
+      if (newAbs < abs2) {
+        abs2 = newAbs;
+        possibleI = index;
+      }
+    }
+  };
+  VisualMapping2.visualHandlers = {
+    color: {
+      applyVisual: makeApplyVisual("color"),
+      getColorMapper: function() {
+        var thisOption = this.option;
+        return bind(thisOption.mappingMethod === "category" ? function(value2, isNormalized) {
+          !isNormalized && (value2 = this._normalizeData(value2));
+          return doMapCategory.call(this, value2);
+        } : function(value2, isNormalized, out2) {
+          var returnRGBArray = !!out2;
+          !isNormalized && (value2 = this._normalizeData(value2));
+          out2 = fastLerp(value2, thisOption.parsedVisual, out2);
+          return returnRGBArray ? out2 : stringify(out2, "rgba");
+        }, this);
+      },
+      _normalizedToVisual: {
+        linear: function(normalized) {
+          return stringify(fastLerp(normalized, this.option.parsedVisual), "rgba");
+        },
+        category: doMapCategory,
+        piecewise: function(normalized, value2) {
+          var result = getSpecifiedVisual.call(this, value2);
+          if (result == null) {
+            result = stringify(fastLerp(normalized, this.option.parsedVisual), "rgba");
+          }
+          return result;
+        },
+        fixed: doMapFixed
+      }
+    },
+    colorHue: makePartialColorVisualHandler(function(color, value2) {
+      return modifyHSL(color, value2);
+    }),
+    colorSaturation: makePartialColorVisualHandler(function(color, value2) {
+      return modifyHSL(color, null, value2);
+    }),
+    colorLightness: makePartialColorVisualHandler(function(color, value2) {
+      return modifyHSL(color, null, null, value2);
+    }),
+    colorAlpha: makePartialColorVisualHandler(function(color, value2) {
+      return modifyAlpha(color, value2);
+    }),
+    decal: {
+      applyVisual: makeApplyVisual("decal"),
+      _normalizedToVisual: {
+        linear: null,
+        category: doMapCategory,
+        piecewise: null,
+        fixed: null
+      }
+    },
+    opacity: {
+      applyVisual: makeApplyVisual("opacity"),
+      _normalizedToVisual: createNormalizedToNumericVisual([0, 1])
+    },
+    liftZ: {
+      applyVisual: makeApplyVisual("liftZ"),
+      _normalizedToVisual: {
+        linear: doMapFixed,
+        category: doMapFixed,
+        piecewise: doMapFixed,
+        fixed: doMapFixed
+      }
+    },
+    symbol: {
+      applyVisual: function(value2, getter, setter) {
+        var symbolCfg = this.mapValueToVisual(value2);
+        setter("symbol", symbolCfg);
+      },
+      _normalizedToVisual: {
+        linear: doMapToArray,
+        category: doMapCategory,
+        piecewise: function(normalized, value2) {
+          var result = getSpecifiedVisual.call(this, value2);
+          if (result == null) {
+            result = doMapToArray.call(this, normalized);
+          }
+          return result;
+        },
+        fixed: doMapFixed
+      }
+    },
+    symbolSize: {
+      applyVisual: makeApplyVisual("symbolSize"),
+      _normalizedToVisual: createNormalizedToNumericVisual([0, 1])
+    }
+  };
+  return VisualMapping2;
+}();
+function preprocessForPiecewise(thisOption) {
+  var pieceList = thisOption.pieceList;
+  thisOption.hasSpecialVisual = false;
+  each(pieceList, function(piece, index) {
+    piece.originIndex = index;
+    if (piece.visual != null) {
+      thisOption.hasSpecialVisual = true;
+    }
+  });
+}
+function preprocessForSpecifiedCategory(thisOption) {
+  var categories = thisOption.categories;
+  var categoryMap = thisOption.categoryMap = {};
+  var visual = thisOption.visual;
+  each4(categories, function(cate, index) {
+    categoryMap[cate] = index;
+  });
+  if (!isArray(visual)) {
+    var visualArr_1 = [];
+    if (isObject2(visual)) {
+      each4(visual, function(v3, cate) {
+        var index = categoryMap[cate];
+        visualArr_1[index != null ? index : CATEGORY_DEFAULT_VISUAL_INDEX] = v3;
+      });
+    } else {
+      visualArr_1[CATEGORY_DEFAULT_VISUAL_INDEX] = visual;
+    }
+    visual = setVisualToOption(thisOption, visualArr_1);
+  }
+  for (var i3 = categories.length - 1;i3 >= 0; i3--) {
+    if (visual[i3] == null) {
+      delete categoryMap[categories[i3]];
+      categories.pop();
+    }
+  }
+}
+function normalizeVisualRange(thisOption, isCategory2) {
+  var visual = thisOption.visual;
+  var visualArr = [];
+  if (isObject2(visual)) {
+    each4(visual, function(v3) {
+      visualArr.push(v3);
+    });
+  } else if (visual != null) {
+    visualArr.push(visual);
+  }
+  var doNotNeedPair = {
+    color: 1,
+    symbol: 1
+  };
+  if (!isCategory2 && visualArr.length === 1 && !doNotNeedPair.hasOwnProperty(thisOption.type)) {
+    visualArr[1] = visualArr[0];
+  }
+  setVisualToOption(thisOption, visualArr);
+}
+function makePartialColorVisualHandler(applyValue) {
+  return {
+    applyVisual: function(value2, getter, setter) {
+      var colorChannel = this.mapValueToVisual(value2);
+      setter("color", applyValue(getter("color"), colorChannel));
+    },
+    _normalizedToVisual: createNormalizedToNumericVisual([0, 1])
+  };
+}
+function doMapToArray(normalized) {
+  var visual = this.option.visual;
+  return visual[Math.round(linearMap(normalized, [0, 1], [0, visual.length - 1], true))] || {};
+}
+function makeApplyVisual(visualType) {
+  return function(value2, getter, setter) {
+    setter(visualType, this.mapValueToVisual(value2));
+  };
+}
+function doMapCategory(normalized) {
+  var visual = this.option.visual;
+  return visual[this.option.loop && normalized !== CATEGORY_DEFAULT_VISUAL_INDEX ? normalized % visual.length : normalized];
+}
+function doMapFixed() {
+  return this.option.visual[0];
+}
+function createNormalizedToNumericVisual(sourceExtent) {
+  return {
+    linear: function(normalized) {
+      return linearMap(normalized, sourceExtent, this.option.visual, true);
+    },
+    category: doMapCategory,
+    piecewise: function(normalized, value2) {
+      var result = getSpecifiedVisual.call(this, value2);
+      if (result == null) {
+        result = linearMap(normalized, sourceExtent, this.option.visual, true);
+      }
+      return result;
+    },
+    fixed: doMapFixed
+  };
+}
+function getSpecifiedVisual(value2) {
+  var thisOption = this.option;
+  var pieceList = thisOption.pieceList;
+  if (thisOption.hasSpecialVisual) {
+    var pieceIndex = VisualMapping.findPieceIndex(value2, pieceList);
+    var piece = pieceList[pieceIndex];
+    if (piece && piece.visual) {
+      return piece.visual[this.type];
+    }
+  }
+}
+function setVisualToOption(thisOption, visualArr) {
+  thisOption.visual = visualArr;
+  if (thisOption.type === "color") {
+    thisOption.parsedVisual = map(visualArr, function(item) {
+      var color = parse2(item);
+      if (!color && true) {
+        warn("'" + item + "' is an illegal color, fallback to '#000000'", true);
+      }
+      return color || [0, 0, 0, 1];
+    });
+  }
+  return visualArr;
+}
+var normalizers = {
+  linear: function(value2) {
+    return linearMap(value2, this.option.dataExtent, [0, 1], true);
+  },
+  piecewise: function(value2) {
+    var pieceList = this.option.pieceList;
+    var pieceIndex = VisualMapping.findPieceIndex(value2, pieceList, true);
+    if (pieceIndex != null) {
+      return linearMap(pieceIndex, [0, pieceList.length - 1], [0, 1], true);
+    }
+  },
+  category: function(value2) {
+    var index = this.option.categories ? this.option.categoryMap[value2] : value2;
+    return index == null ? CATEGORY_DEFAULT_VISUAL_INDEX : index;
+  },
+  fixed: noop
+};
+function littleThan(close, a3, b) {
+  return close ? a3 <= b : a3 < b;
+}
+var VisualMapping_default = VisualMapping;
+
+// node_modules/echarts/lib/chart/helper/LinePath.js
+var straightLineProto = Line_default.prototype;
+var bezierCurveProto = BezierCurve_default.prototype;
+var StraightLineShape = function() {
+  function StraightLineShape2() {
+    this.x1 = 0;
+    this.y1 = 0;
+    this.x2 = 0;
+    this.y2 = 0;
+    this.percent = 1;
+  }
+  return StraightLineShape2;
+}();
+var CurveShape = function(_super) {
+  __extends(CurveShape2, _super);
+  function CurveShape2() {
+    return _super !== null && _super.apply(this, arguments) || this;
+  }
+  return CurveShape2;
+}(StraightLineShape);
+function isStraightLine(shape) {
+  return isNaN(+shape.cpx1) || isNaN(+shape.cpy1);
+}
+var ECLinePath = function(_super) {
+  __extends(ECLinePath2, _super);
+  function ECLinePath2(opts) {
+    var _this = _super.call(this, opts) || this;
+    _this.type = "ec-line";
+    return _this;
+  }
+  ECLinePath2.prototype.getDefaultStyle = function() {
+    return {
+      stroke: "#000",
+      fill: null
+    };
+  };
+  ECLinePath2.prototype.getDefaultShape = function() {
+    return new StraightLineShape;
+  };
+  ECLinePath2.prototype.buildPath = function(ctx, shape) {
+    if (isStraightLine(shape)) {
+      straightLineProto.buildPath.call(this, ctx, shape);
+    } else {
+      bezierCurveProto.buildPath.call(this, ctx, shape);
+    }
+  };
+  ECLinePath2.prototype.pointAt = function(t4) {
+    if (isStraightLine(this.shape)) {
+      return straightLineProto.pointAt.call(this, t4);
+    } else {
+      return bezierCurveProto.pointAt.call(this, t4);
+    }
+  };
+  ECLinePath2.prototype.tangentAt = function(t4) {
+    var shape = this.shape;
+    var p3 = isStraightLine(shape) ? [shape.x2 - shape.x1, shape.y2 - shape.y1] : bezierCurveProto.tangentAt.call(this, t4);
+    return normalize(p3, p3);
+  };
+  return ECLinePath2;
+}(Path_default);
+var LinePath_default = ECLinePath;
+
+// node_modules/echarts/lib/chart/helper/Line.js
+var SYMBOL_CATEGORIES = ["fromSymbol", "toSymbol"];
+function makeSymbolTypeKey(symbolCategory) {
+  return "_" + symbolCategory + "Type";
+}
+function makeSymbolTypeValue(name, lineData, idx) {
+  var symbolType = lineData.getItemVisual(idx, name);
+  if (!symbolType || symbolType === "none") {
+    return symbolType;
+  }
+  var symbolSize = lineData.getItemVisual(idx, name + "Size");
+  var symbolRotate = lineData.getItemVisual(idx, name + "Rotate");
+  var symbolOffset = lineData.getItemVisual(idx, name + "Offset");
+  var symbolKeepAspect = lineData.getItemVisual(idx, name + "KeepAspect");
+  var symbolSizeArr = normalizeSymbolSize(symbolSize);
+  var symbolOffsetArr = normalizeSymbolOffset(symbolOffset || 0, symbolSizeArr);
+  return symbolType + symbolSizeArr + symbolOffsetArr + (symbolRotate || "") + (symbolKeepAspect || "");
+}
+function createSymbol2(name, lineData, idx) {
+  var symbolType = lineData.getItemVisual(idx, name);
+  if (!symbolType || symbolType === "none") {
+    return;
+  }
+  var symbolSize = lineData.getItemVisual(idx, name + "Size");
+  var symbolRotate = lineData.getItemVisual(idx, name + "Rotate");
+  var symbolOffset = lineData.getItemVisual(idx, name + "Offset");
+  var symbolKeepAspect = lineData.getItemVisual(idx, name + "KeepAspect");
+  var symbolSizeArr = normalizeSymbolSize(symbolSize);
+  var symbolOffsetArr = normalizeSymbolOffset(symbolOffset || 0, symbolSizeArr);
+  var symbolPath = createSymbol(symbolType, -symbolSizeArr[0] / 2 + symbolOffsetArr[0], -symbolSizeArr[1] / 2 + symbolOffsetArr[1], symbolSizeArr[0], symbolSizeArr[1], null, symbolKeepAspect);
+  symbolPath.__specifiedRotation = symbolRotate == null || isNaN(symbolRotate) ? undefined : +symbolRotate * Math.PI / 180 || 0;
+  symbolPath.name = name;
+  return symbolPath;
+}
+function createLine(points2) {
+  var line = new LinePath_default({
+    name: "line",
+    subPixelOptimize: true
+  });
+  setLinePoints(line.shape, points2);
+  return line;
+}
+function setLinePoints(targetShape, points2) {
+  targetShape.x1 = points2[0][0];
+  targetShape.y1 = points2[0][1];
+  targetShape.x2 = points2[1][0];
+  targetShape.y2 = points2[1][1];
+  targetShape.percent = 1;
+  var cp1 = points2[2];
+  if (cp1) {
+    targetShape.cpx1 = cp1[0];
+    targetShape.cpy1 = cp1[1];
+  } else {
+    targetShape.cpx1 = NaN;
+    targetShape.cpy1 = NaN;
+  }
+}
+var Line2 = function(_super) {
+  __extends(Line3, _super);
+  function Line3(lineData, idx, seriesScope) {
+    var _this = _super.call(this) || this;
+    _this._createLine(lineData, idx, seriesScope);
+    return _this;
+  }
+  Line3.prototype._createLine = function(lineData, idx, seriesScope) {
+    var seriesModel = lineData.hostModel;
+    var linePoints = lineData.getItemLayout(idx);
+    var line = createLine(linePoints);
+    line.shape.percent = 0;
+    initProps(line, {
+      shape: {
+        percent: 1
+      }
+    }, seriesModel, idx);
+    this.add(line);
+    each(SYMBOL_CATEGORIES, function(symbolCategory) {
+      var symbol = createSymbol2(symbolCategory, lineData, idx);
+      this.add(symbol);
+      this[makeSymbolTypeKey(symbolCategory)] = makeSymbolTypeValue(symbolCategory, lineData, idx);
+    }, this);
+    this._updateCommonStl(lineData, idx, seriesScope);
+  };
+  Line3.prototype.updateData = function(lineData, idx, seriesScope) {
+    var seriesModel = lineData.hostModel;
+    var line = this.childOfName("line");
+    var linePoints = lineData.getItemLayout(idx);
+    var target = {
+      shape: {}
+    };
+    setLinePoints(target.shape, linePoints);
+    updateProps(line, target, seriesModel, idx);
+    each(SYMBOL_CATEGORIES, function(symbolCategory) {
+      var symbolType = makeSymbolTypeValue(symbolCategory, lineData, idx);
+      var key = makeSymbolTypeKey(symbolCategory);
+      if (this[key] !== symbolType) {
+        this.remove(this.childOfName(symbolCategory));
+        var symbol = createSymbol2(symbolCategory, lineData, idx);
+        this.add(symbol);
+      }
+      this[key] = symbolType;
+    }, this);
+    this._updateCommonStl(lineData, idx, seriesScope);
+  };
+  Line3.prototype.getLinePath = function() {
+    return this.childAt(0);
+  };
+  Line3.prototype._updateCommonStl = function(lineData, idx, seriesScope) {
+    var seriesModel = lineData.hostModel;
+    var line = this.childOfName("line");
+    var emphasisLineStyle = seriesScope && seriesScope.emphasisLineStyle;
+    var blurLineStyle = seriesScope && seriesScope.blurLineStyle;
+    var selectLineStyle = seriesScope && seriesScope.selectLineStyle;
+    var labelStatesModels = seriesScope && seriesScope.labelStatesModels;
+    var emphasisDisabled = seriesScope && seriesScope.emphasisDisabled;
+    var focus = seriesScope && seriesScope.focus;
+    var blurScope = seriesScope && seriesScope.blurScope;
+    if (!seriesScope || lineData.hasItemOption) {
+      var itemModel = lineData.getItemModel(idx);
+      var emphasisModel = itemModel.getModel("emphasis");
+      emphasisLineStyle = emphasisModel.getModel("lineStyle").getLineStyle();
+      blurLineStyle = itemModel.getModel(["blur", "lineStyle"]).getLineStyle();
+      selectLineStyle = itemModel.getModel(["select", "lineStyle"]).getLineStyle();
+      emphasisDisabled = emphasisModel.get("disabled");
+      focus = emphasisModel.get("focus");
+      blurScope = emphasisModel.get("blurScope");
+      labelStatesModels = getLabelStatesModels(itemModel);
+    }
+    var lineStyle = lineData.getItemVisual(idx, "style");
+    var visualColor = lineStyle.stroke;
+    line.useStyle(lineStyle);
+    line.style.fill = null;
+    line.style.strokeNoScale = true;
+    line.ensureState("emphasis").style = emphasisLineStyle;
+    line.ensureState("blur").style = blurLineStyle;
+    line.ensureState("select").style = selectLineStyle;
+    each(SYMBOL_CATEGORIES, function(symbolCategory) {
+      var symbol = this.childOfName(symbolCategory);
+      if (symbol) {
+        symbol.setColor(visualColor);
+        symbol.style.opacity = lineStyle.opacity;
+        for (var i3 = 0;i3 < SPECIAL_STATES.length; i3++) {
+          var stateName = SPECIAL_STATES[i3];
+          var lineState = line.getState(stateName);
+          if (lineState) {
+            var lineStateStyle = lineState.style || {};
+            var state = symbol.ensureState(stateName);
+            var stateStyle = state.style || (state.style = {});
+            if (lineStateStyle.stroke != null) {
+              stateStyle[symbol.__isEmptyBrush ? "stroke" : "fill"] = lineStateStyle.stroke;
+            }
+            if (lineStateStyle.opacity != null) {
+              stateStyle.opacity = lineStateStyle.opacity;
+            }
+          }
+        }
+        symbol.markRedraw();
+      }
+    }, this);
+    var rawVal = seriesModel.getRawValue(idx);
+    setLabelStyle(this, labelStatesModels, {
+      labelDataIndex: idx,
+      labelFetcher: {
+        getFormattedLabel: function(dataIndex, stateName) {
+          return seriesModel.getFormattedLabel(dataIndex, stateName, lineData.dataType);
+        }
+      },
+      inheritColor: visualColor || "#000",
+      defaultOpacity: lineStyle.opacity,
+      defaultText: (rawVal == null ? lineData.getName(idx) : isFinite(rawVal) ? round2(rawVal) : rawVal) + ""
+    });
+    var label = this.getTextContent();
+    if (label) {
+      var labelNormalModel = labelStatesModels.normal;
+      label.__align = label.style.align;
+      label.__verticalAlign = label.style.verticalAlign;
+      label.__position = labelNormalModel.get("position") || "middle";
+      var distance2 = labelNormalModel.get("distance");
+      if (!isArray(distance2)) {
+        distance2 = [distance2, distance2];
+      }
+      label.__labelDistance = distance2;
+    }
+    this.setTextConfig({
+      position: null,
+      local: true,
+      inside: false
+    });
+    toggleHoverEmphasis(this, focus, blurScope, emphasisDisabled);
+  };
+  Line3.prototype.highlight = function() {
+    enterEmphasis(this);
+  };
+  Line3.prototype.downplay = function() {
+    leaveEmphasis(this);
+  };
+  Line3.prototype.updateLayout = function(lineData, idx) {
+    this.setLinePoints(lineData.getItemLayout(idx));
+  };
+  Line3.prototype.setLinePoints = function(points2) {
+    var linePath = this.childOfName("line");
+    setLinePoints(linePath.shape, points2);
+    linePath.dirty();
+  };
+  Line3.prototype.beforeUpdate = function() {
+    var lineGroup = this;
+    var symbolFrom = lineGroup.childOfName("fromSymbol");
+    var symbolTo = lineGroup.childOfName("toSymbol");
+    var label = lineGroup.getTextContent();
+    if (!symbolFrom && !symbolTo && (!label || label.ignore)) {
+      return;
+    }
+    var invScale = 1;
+    var parentNode = this.parent;
+    while (parentNode) {
+      if (parentNode.scaleX) {
+        invScale /= parentNode.scaleX;
+      }
+      parentNode = parentNode.parent;
+    }
+    var line = lineGroup.childOfName("line");
+    if (!this.__dirty && !line.__dirty) {
+      return;
+    }
+    var percent = line.shape.percent;
+    var fromPos = line.pointAt(0);
+    var toPos = line.pointAt(percent);
+    var d3 = sub([], toPos, fromPos);
+    normalize(d3, d3);
+    function setSymbolRotation(symbol, percent2) {
+      var specifiedRotation = symbol.__specifiedRotation;
+      if (specifiedRotation == null) {
+        var tangent2 = line.tangentAt(percent2);
+        symbol.attr("rotation", (percent2 === 1 ? -1 : 1) * Math.PI / 2 - Math.atan2(tangent2[1], tangent2[0]));
+      } else {
+        symbol.attr("rotation", specifiedRotation);
+      }
+    }
+    if (symbolFrom) {
+      symbolFrom.setPosition(fromPos);
+      setSymbolRotation(symbolFrom, 0);
+      symbolFrom.scaleX = symbolFrom.scaleY = invScale * percent;
+      symbolFrom.markRedraw();
+    }
+    if (symbolTo) {
+      symbolTo.setPosition(toPos);
+      setSymbolRotation(symbolTo, 1);
+      symbolTo.scaleX = symbolTo.scaleY = invScale * percent;
+      symbolTo.markRedraw();
+    }
+    if (label && !label.ignore) {
+      label.x = label.y = 0;
+      label.originX = label.originY = 0;
+      var textAlign = undefined;
+      var textVerticalAlign = undefined;
+      var distance2 = label.__labelDistance;
+      var distanceX = distance2[0] * invScale;
+      var distanceY = distance2[1] * invScale;
+      var halfPercent = percent / 2;
+      var tangent = line.tangentAt(halfPercent);
+      var n3 = [tangent[1], -tangent[0]];
+      var cp = line.pointAt(halfPercent);
+      if (n3[1] > 0) {
+        n3[0] = -n3[0];
+        n3[1] = -n3[1];
+      }
+      var dir3 = tangent[0] < 0 ? -1 : 1;
+      if (label.__position !== "start" && label.__position !== "end") {
+        var rotation = -Math.atan2(tangent[1], tangent[0]);
+        if (toPos[0] < fromPos[0]) {
+          rotation = Math.PI + rotation;
+        }
+        label.rotation = rotation;
+      }
+      var dy = undefined;
+      switch (label.__position) {
+        case "insideStartTop":
+        case "insideMiddleTop":
+        case "insideEndTop":
+        case "middle":
+          dy = -distanceY;
+          textVerticalAlign = "bottom";
+          break;
+        case "insideStartBottom":
+        case "insideMiddleBottom":
+        case "insideEndBottom":
+          dy = distanceY;
+          textVerticalAlign = "top";
+          break;
+        default:
+          dy = 0;
+          textVerticalAlign = "middle";
+      }
+      switch (label.__position) {
+        case "end":
+          label.x = d3[0] * distanceX + toPos[0];
+          label.y = d3[1] * distanceY + toPos[1];
+          textAlign = d3[0] > 0.8 ? "left" : d3[0] < -0.8 ? "right" : "center";
+          textVerticalAlign = d3[1] > 0.8 ? "top" : d3[1] < -0.8 ? "bottom" : "middle";
+          break;
+        case "start":
+          label.x = -d3[0] * distanceX + fromPos[0];
+          label.y = -d3[1] * distanceY + fromPos[1];
+          textAlign = d3[0] > 0.8 ? "right" : d3[0] < -0.8 ? "left" : "center";
+          textVerticalAlign = d3[1] > 0.8 ? "bottom" : d3[1] < -0.8 ? "top" : "middle";
+          break;
+        case "insideStartTop":
+        case "insideStart":
+        case "insideStartBottom":
+          label.x = distanceX * dir3 + fromPos[0];
+          label.y = fromPos[1] + dy;
+          textAlign = tangent[0] < 0 ? "right" : "left";
+          label.originX = -distanceX * dir3;
+          label.originY = -dy;
+          break;
+        case "insideMiddleTop":
+        case "insideMiddle":
+        case "insideMiddleBottom":
+        case "middle":
+          label.x = cp[0];
+          label.y = cp[1] + dy;
+          textAlign = "center";
+          label.originY = -dy;
+          break;
+        case "insideEndTop":
+        case "insideEnd":
+        case "insideEndBottom":
+          label.x = -distanceX * dir3 + toPos[0];
+          label.y = toPos[1] + dy;
+          textAlign = tangent[0] >= 0 ? "right" : "left";
+          label.originX = distanceX * dir3;
+          label.originY = -dy;
+          break;
+      }
+      label.scaleX = label.scaleY = invScale;
+      label.setStyle({
+        verticalAlign: label.__verticalAlign || textVerticalAlign,
+        align: label.__align || textAlign
+      });
+    }
+  };
+  return Line3;
+}(Group_default);
+var Line_default2 = Line2;
+
+// node_modules/echarts/lib/chart/helper/LineDraw.js
+var LineDraw = function() {
+  function LineDraw2(LineCtor) {
+    this.group = new Group_default;
+    this._LineCtor = LineCtor || Line_default2;
+  }
+  LineDraw2.prototype.updateData = function(lineData) {
+    var _this = this;
+    this._progressiveEls = null;
+    var lineDraw = this;
+    var group = lineDraw.group;
+    var oldLineData = lineDraw._lineData;
+    lineDraw._lineData = lineData;
+    if (!oldLineData) {
+      group.removeAll();
+    }
+    var seriesScope = makeSeriesScope2(lineData);
+    lineData.diff(oldLineData).add(function(idx) {
+      _this._doAdd(lineData, idx, seriesScope);
+    }).update(function(newIdx, oldIdx) {
+      _this._doUpdate(oldLineData, lineData, oldIdx, newIdx, seriesScope);
+    }).remove(function(idx) {
+      group.remove(oldLineData.getItemGraphicEl(idx));
+    }).execute();
+  };
+  LineDraw2.prototype.updateLayout = function() {
+    var lineData = this._lineData;
+    if (!lineData) {
+      return;
+    }
+    lineData.eachItemGraphicEl(function(el, idx) {
+      el.updateLayout(lineData, idx);
+    }, this);
+  };
+  LineDraw2.prototype.incrementalPrepareUpdate = function(lineData) {
+    this._seriesScope = makeSeriesScope2(lineData);
+    this._lineData = null;
+    this.group.removeAll();
+  };
+  LineDraw2.prototype.incrementalUpdate = function(taskParams, lineData) {
+    this._progressiveEls = [];
+    function updateIncrementalAndHover(el2) {
+      if (!el2.isGroup && !isEffectObject(el2)) {
+        el2.incremental = true;
+        el2.ensureState("emphasis").hoverLayer = true;
+      }
+    }
+    for (var idx = taskParams.start;idx < taskParams.end; idx++) {
+      var itemLayout = lineData.getItemLayout(idx);
+      if (lineNeedsDraw(itemLayout)) {
+        var el = new this._LineCtor(lineData, idx, this._seriesScope);
+        el.traverse(updateIncrementalAndHover);
+        this.group.add(el);
+        lineData.setItemGraphicEl(idx, el);
+        this._progressiveEls.push(el);
+      }
+    }
+  };
+  LineDraw2.prototype.remove = function() {
+    this.group.removeAll();
+  };
+  LineDraw2.prototype.eachRendered = function(cb) {
+    traverseElements(this._progressiveEls || this.group, cb);
+  };
+  LineDraw2.prototype._doAdd = function(lineData, idx, seriesScope) {
+    var itemLayout = lineData.getItemLayout(idx);
+    if (!lineNeedsDraw(itemLayout)) {
+      return;
+    }
+    var el = new this._LineCtor(lineData, idx, seriesScope);
+    lineData.setItemGraphicEl(idx, el);
+    this.group.add(el);
+  };
+  LineDraw2.prototype._doUpdate = function(oldLineData, newLineData, oldIdx, newIdx, seriesScope) {
+    var itemEl = oldLineData.getItemGraphicEl(oldIdx);
+    if (!lineNeedsDraw(newLineData.getItemLayout(newIdx))) {
+      this.group.remove(itemEl);
+      return;
+    }
+    if (!itemEl) {
+      itemEl = new this._LineCtor(newLineData, newIdx, seriesScope);
+    } else {
+      itemEl.updateData(newLineData, newIdx, seriesScope);
+    }
+    newLineData.setItemGraphicEl(newIdx, itemEl);
+    this.group.add(itemEl);
+  };
+  return LineDraw2;
+}();
+function isEffectObject(el) {
+  return el.animators && el.animators.length > 0;
+}
+function makeSeriesScope2(lineData) {
+  var hostModel = lineData.hostModel;
+  var emphasisModel = hostModel.getModel("emphasis");
+  return {
+    lineStyle: hostModel.getModel("lineStyle").getLineStyle(),
+    emphasisLineStyle: emphasisModel.getModel(["lineStyle"]).getLineStyle(),
+    blurLineStyle: hostModel.getModel(["blur", "lineStyle"]).getLineStyle(),
+    selectLineStyle: hostModel.getModel(["select", "lineStyle"]).getLineStyle(),
+    emphasisDisabled: emphasisModel.get("disabled"),
+    blurScope: emphasisModel.get("blurScope"),
+    focus: emphasisModel.get("focus"),
+    labelStatesModels: getLabelStatesModels(hostModel)
+  };
+}
+function isPointNaN(pt) {
+  return isNaN(pt[0]) || isNaN(pt[1]);
+}
+function lineNeedsDraw(pts) {
+  return pts && !isPointNaN(pts[0]) && !isPointNaN(pts[1]);
+}
+var LineDraw_default = LineDraw;
+
 // node_modules/echarts/lib/chart/gauge/PointerPath.js
 var PointerShape = function() {
   function PointerShape2() {
@@ -40740,9 +42453,951 @@ var GaugeSeriesModel = function(_super) {
 var GaugeSeries_default = GaugeSeriesModel;
 
 // node_modules/echarts/lib/chart/gauge/install.js
-function install7(registers) {
+function install8(registers) {
   registers.registerChartView(GaugeView_default);
   registers.registerSeriesModel(GaugeSeries_default);
+}
+// node_modules/echarts/lib/chart/funnel/FunnelView.js
+var opacityAccessPath = ["itemStyle", "opacity"];
+var FunnelPiece = function(_super) {
+  __extends(FunnelPiece2, _super);
+  function FunnelPiece2(data, idx) {
+    var _this = _super.call(this) || this;
+    var polygon = _this;
+    var labelLine = new Polyline_default;
+    var text = new Text_default;
+    polygon.setTextContent(text);
+    _this.setTextGuideLine(labelLine);
+    _this.updateData(data, idx, true);
+    return _this;
+  }
+  FunnelPiece2.prototype.updateData = function(data, idx, firstCreate) {
+    var polygon = this;
+    var seriesModel = data.hostModel;
+    var itemModel = data.getItemModel(idx);
+    var layout3 = data.getItemLayout(idx);
+    var emphasisModel = itemModel.getModel("emphasis");
+    var opacity = itemModel.get(opacityAccessPath);
+    opacity = opacity == null ? 1 : opacity;
+    if (!firstCreate) {
+      saveOldStyle(polygon);
+    }
+    polygon.useStyle(data.getItemVisual(idx, "style"));
+    polygon.style.lineJoin = "round";
+    if (firstCreate) {
+      polygon.setShape({
+        points: layout3.points
+      });
+      polygon.style.opacity = 0;
+      initProps(polygon, {
+        style: {
+          opacity
+        }
+      }, seriesModel, idx);
+    } else {
+      updateProps(polygon, {
+        style: {
+          opacity
+        },
+        shape: {
+          points: layout3.points
+        }
+      }, seriesModel, idx);
+    }
+    setStatesStylesFromModel(polygon, itemModel);
+    this._updateLabel(data, idx);
+    toggleHoverEmphasis(this, emphasisModel.get("focus"), emphasisModel.get("blurScope"), emphasisModel.get("disabled"));
+  };
+  FunnelPiece2.prototype._updateLabel = function(data, idx) {
+    var polygon = this;
+    var labelLine = this.getTextGuideLine();
+    var labelText = polygon.getTextContent();
+    var seriesModel = data.hostModel;
+    var itemModel = data.getItemModel(idx);
+    var layout3 = data.getItemLayout(idx);
+    var labelLayout = layout3.label;
+    var style = data.getItemVisual(idx, "style");
+    var visualColor = style.fill;
+    setLabelStyle(labelText, getLabelStatesModels(itemModel), {
+      labelFetcher: data.hostModel,
+      labelDataIndex: idx,
+      defaultOpacity: style.opacity,
+      defaultText: data.getName(idx)
+    }, {
+      normal: {
+        align: labelLayout.textAlign,
+        verticalAlign: labelLayout.verticalAlign
+      }
+    });
+    polygon.setTextConfig({
+      local: true,
+      inside: !!labelLayout.inside,
+      insideStroke: visualColor,
+      outsideFill: visualColor
+    });
+    var linePoints = labelLayout.linePoints;
+    labelLine.setShape({
+      points: linePoints
+    });
+    polygon.textGuideLineConfig = {
+      anchor: linePoints ? new Point_default(linePoints[0][0], linePoints[0][1]) : null
+    };
+    updateProps(labelText, {
+      style: {
+        x: labelLayout.x,
+        y: labelLayout.y
+      }
+    }, seriesModel, idx);
+    labelText.attr({
+      rotation: labelLayout.rotation,
+      originX: labelLayout.x,
+      originY: labelLayout.y,
+      z2: 10
+    });
+    setLabelLineStyle(polygon, getLabelLineStatesModels(itemModel), {
+      stroke: visualColor
+    });
+  };
+  return FunnelPiece2;
+}(Polygon_default);
+var FunnelView = function(_super) {
+  __extends(FunnelView2, _super);
+  function FunnelView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = FunnelView2.type;
+    _this.ignoreLabelLineUpdate = true;
+    return _this;
+  }
+  FunnelView2.prototype.render = function(seriesModel, ecModel, api) {
+    var data = seriesModel.getData();
+    var oldData = this._data;
+    var group = this.group;
+    data.diff(oldData).add(function(idx) {
+      var funnelPiece = new FunnelPiece(data, idx);
+      data.setItemGraphicEl(idx, funnelPiece);
+      group.add(funnelPiece);
+    }).update(function(newIdx, oldIdx) {
+      var piece = oldData.getItemGraphicEl(oldIdx);
+      piece.updateData(data, newIdx);
+      group.add(piece);
+      data.setItemGraphicEl(newIdx, piece);
+    }).remove(function(idx) {
+      var piece = oldData.getItemGraphicEl(idx);
+      removeElementWithFadeOut(piece, seriesModel, idx);
+    }).execute();
+    this._data = data;
+  };
+  FunnelView2.prototype.remove = function() {
+    this.group.removeAll();
+    this._data = null;
+  };
+  FunnelView2.prototype.dispose = function() {};
+  FunnelView2.type = "funnel";
+  return FunnelView2;
+}(Chart_default);
+var FunnelView_default = FunnelView;
+
+// node_modules/echarts/lib/chart/funnel/FunnelSeries.js
+var FunnelSeriesModel = function(_super) {
+  __extends(FunnelSeriesModel2, _super);
+  function FunnelSeriesModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = FunnelSeriesModel2.type;
+    return _this;
+  }
+  FunnelSeriesModel2.prototype.init = function(option) {
+    _super.prototype.init.apply(this, arguments);
+    this.legendVisualProvider = new LegendVisualProvider_default(bind(this.getData, this), bind(this.getRawData, this));
+    this._defaultLabelLine(option);
+  };
+  FunnelSeriesModel2.prototype.getInitialData = function(option, ecModel) {
+    return createSeriesDataSimply(this, {
+      coordDimensions: ["value"],
+      encodeDefaulter: curry(makeSeriesEncodeForNameBased, this)
+    });
+  };
+  FunnelSeriesModel2.prototype._defaultLabelLine = function(option) {
+    defaultEmphasis(option, "labelLine", ["show"]);
+    var labelLineNormalOpt = option.labelLine;
+    var labelLineEmphasisOpt = option.emphasis.labelLine;
+    labelLineNormalOpt.show = labelLineNormalOpt.show && option.label.show;
+    labelLineEmphasisOpt.show = labelLineEmphasisOpt.show && option.emphasis.label.show;
+  };
+  FunnelSeriesModel2.prototype.getDataParams = function(dataIndex) {
+    var data = this.getData();
+    var params = _super.prototype.getDataParams.call(this, dataIndex);
+    var valueDim = data.mapDimension("value");
+    var sum = data.getSum(valueDim);
+    params.percent = !sum ? 0 : +(data.get(valueDim, dataIndex) / sum * 100).toFixed(2);
+    params.$vars.push("percent");
+    return params;
+  };
+  FunnelSeriesModel2.type = "series.funnel";
+  FunnelSeriesModel2.defaultOption = {
+    z: 2,
+    legendHoverLink: true,
+    colorBy: "data",
+    left: 80,
+    top: 60,
+    right: 80,
+    bottom: 60,
+    minSize: "0%",
+    maxSize: "100%",
+    sort: "descending",
+    orient: "vertical",
+    gap: 0,
+    funnelAlign: "center",
+    label: {
+      show: true,
+      position: "outer"
+    },
+    labelLine: {
+      show: true,
+      length: 20,
+      lineStyle: {
+        width: 1
+      }
+    },
+    itemStyle: {
+      borderColor: "#fff",
+      borderWidth: 1
+    },
+    emphasis: {
+      label: {
+        show: true
+      }
+    },
+    select: {
+      itemStyle: {
+        borderColor: "#212121"
+      }
+    }
+  };
+  return FunnelSeriesModel2;
+}(Series_default);
+var FunnelSeries_default = FunnelSeriesModel;
+
+// node_modules/echarts/lib/chart/funnel/funnelLayout.js
+function getViewRect2(seriesModel, api) {
+  return getLayoutRect(seriesModel.getBoxLayoutParams(), {
+    width: api.getWidth(),
+    height: api.getHeight()
+  });
+}
+function getSortedIndices(data, sort2) {
+  var valueDim = data.mapDimension("value");
+  var valueArr = data.mapArray(valueDim, function(val) {
+    return val;
+  });
+  var indices = [];
+  var isAscending = sort2 === "ascending";
+  for (var i3 = 0, len2 = data.count();i3 < len2; i3++) {
+    indices[i3] = i3;
+  }
+  if (isFunction(sort2)) {
+    indices.sort(sort2);
+  } else if (sort2 !== "none") {
+    indices.sort(function(a3, b) {
+      return isAscending ? valueArr[a3] - valueArr[b] : valueArr[b] - valueArr[a3];
+    });
+  }
+  return indices;
+}
+function labelLayout(data) {
+  var seriesModel = data.hostModel;
+  var orient = seriesModel.get("orient");
+  data.each(function(idx) {
+    var itemModel = data.getItemModel(idx);
+    var labelModel = itemModel.getModel("label");
+    var labelPosition = labelModel.get("position");
+    var labelLineModel = itemModel.getModel("labelLine");
+    var layout3 = data.getItemLayout(idx);
+    var points2 = layout3.points;
+    var isLabelInside = labelPosition === "inner" || labelPosition === "inside" || labelPosition === "center" || labelPosition === "insideLeft" || labelPosition === "insideRight";
+    var textAlign;
+    var textX;
+    var textY;
+    var linePoints;
+    if (isLabelInside) {
+      if (labelPosition === "insideLeft") {
+        textX = (points2[0][0] + points2[3][0]) / 2 + 5;
+        textY = (points2[0][1] + points2[3][1]) / 2;
+        textAlign = "left";
+      } else if (labelPosition === "insideRight") {
+        textX = (points2[1][0] + points2[2][0]) / 2 - 5;
+        textY = (points2[1][1] + points2[2][1]) / 2;
+        textAlign = "right";
+      } else {
+        textX = (points2[0][0] + points2[1][0] + points2[2][0] + points2[3][0]) / 4;
+        textY = (points2[0][1] + points2[1][1] + points2[2][1] + points2[3][1]) / 4;
+        textAlign = "center";
+      }
+      linePoints = [[textX, textY], [textX, textY]];
+    } else {
+      var x1 = undefined;
+      var y1 = undefined;
+      var x22 = undefined;
+      var y22 = undefined;
+      var labelLineLen = labelLineModel.get("length");
+      if (true) {
+        if (orient === "vertical" && ["top", "bottom"].indexOf(labelPosition) > -1) {
+          labelPosition = "left";
+          console.warn("Position error: Funnel chart on vertical orient dose not support top and bottom.");
+        }
+        if (orient === "horizontal" && ["left", "right"].indexOf(labelPosition) > -1) {
+          labelPosition = "bottom";
+          console.warn("Position error: Funnel chart on horizontal orient dose not support left and right.");
+        }
+      }
+      if (labelPosition === "left") {
+        x1 = (points2[3][0] + points2[0][0]) / 2;
+        y1 = (points2[3][1] + points2[0][1]) / 2;
+        x22 = x1 - labelLineLen;
+        textX = x22 - 5;
+        textAlign = "right";
+      } else if (labelPosition === "right") {
+        x1 = (points2[1][0] + points2[2][0]) / 2;
+        y1 = (points2[1][1] + points2[2][1]) / 2;
+        x22 = x1 + labelLineLen;
+        textX = x22 + 5;
+        textAlign = "left";
+      } else if (labelPosition === "top") {
+        x1 = (points2[3][0] + points2[0][0]) / 2;
+        y1 = (points2[3][1] + points2[0][1]) / 2;
+        y22 = y1 - labelLineLen;
+        textY = y22 - 5;
+        textAlign = "center";
+      } else if (labelPosition === "bottom") {
+        x1 = (points2[1][0] + points2[2][0]) / 2;
+        y1 = (points2[1][1] + points2[2][1]) / 2;
+        y22 = y1 + labelLineLen;
+        textY = y22 + 5;
+        textAlign = "center";
+      } else if (labelPosition === "rightTop") {
+        x1 = orient === "horizontal" ? points2[3][0] : points2[1][0];
+        y1 = orient === "horizontal" ? points2[3][1] : points2[1][1];
+        if (orient === "horizontal") {
+          y22 = y1 - labelLineLen;
+          textY = y22 - 5;
+          textAlign = "center";
+        } else {
+          x22 = x1 + labelLineLen;
+          textX = x22 + 5;
+          textAlign = "top";
+        }
+      } else if (labelPosition === "rightBottom") {
+        x1 = points2[2][0];
+        y1 = points2[2][1];
+        if (orient === "horizontal") {
+          y22 = y1 + labelLineLen;
+          textY = y22 + 5;
+          textAlign = "center";
+        } else {
+          x22 = x1 + labelLineLen;
+          textX = x22 + 5;
+          textAlign = "bottom";
+        }
+      } else if (labelPosition === "leftTop") {
+        x1 = points2[0][0];
+        y1 = orient === "horizontal" ? points2[0][1] : points2[1][1];
+        if (orient === "horizontal") {
+          y22 = y1 - labelLineLen;
+          textY = y22 - 5;
+          textAlign = "center";
+        } else {
+          x22 = x1 - labelLineLen;
+          textX = x22 - 5;
+          textAlign = "right";
+        }
+      } else if (labelPosition === "leftBottom") {
+        x1 = orient === "horizontal" ? points2[1][0] : points2[3][0];
+        y1 = orient === "horizontal" ? points2[1][1] : points2[2][1];
+        if (orient === "horizontal") {
+          y22 = y1 + labelLineLen;
+          textY = y22 + 5;
+          textAlign = "center";
+        } else {
+          x22 = x1 - labelLineLen;
+          textX = x22 - 5;
+          textAlign = "right";
+        }
+      } else {
+        x1 = (points2[1][0] + points2[2][0]) / 2;
+        y1 = (points2[1][1] + points2[2][1]) / 2;
+        if (orient === "horizontal") {
+          y22 = y1 + labelLineLen;
+          textY = y22 + 5;
+          textAlign = "center";
+        } else {
+          x22 = x1 + labelLineLen;
+          textX = x22 + 5;
+          textAlign = "left";
+        }
+      }
+      if (orient === "horizontal") {
+        x22 = x1;
+        textX = x22;
+      } else {
+        y22 = y1;
+        textY = y22;
+      }
+      linePoints = [[x1, y1], [x22, y22]];
+    }
+    layout3.label = {
+      linePoints,
+      x: textX,
+      y: textY,
+      verticalAlign: "middle",
+      textAlign,
+      inside: isLabelInside
+    };
+  });
+}
+function funnelLayout(ecModel, api) {
+  ecModel.eachSeriesByType("funnel", function(seriesModel) {
+    var data = seriesModel.getData();
+    var valueDim = data.mapDimension("value");
+    var sort2 = seriesModel.get("sort");
+    var viewRect2 = getViewRect2(seriesModel, api);
+    var orient = seriesModel.get("orient");
+    var viewWidth = viewRect2.width;
+    var viewHeight = viewRect2.height;
+    var indices = getSortedIndices(data, sort2);
+    var x3 = viewRect2.x;
+    var y3 = viewRect2.y;
+    var sizeExtent = orient === "horizontal" ? [parsePercent2(seriesModel.get("minSize"), viewHeight), parsePercent2(seriesModel.get("maxSize"), viewHeight)] : [parsePercent2(seriesModel.get("minSize"), viewWidth), parsePercent2(seriesModel.get("maxSize"), viewWidth)];
+    var dataExtent = data.getDataExtent(valueDim);
+    var min3 = seriesModel.get("min");
+    var max3 = seriesModel.get("max");
+    if (min3 == null) {
+      min3 = Math.min(dataExtent[0], 0);
+    }
+    if (max3 == null) {
+      max3 = dataExtent[1];
+    }
+    var funnelAlign = seriesModel.get("funnelAlign");
+    var gap = seriesModel.get("gap");
+    var viewSize = orient === "horizontal" ? viewWidth : viewHeight;
+    var itemSize = (viewSize - gap * (data.count() - 1)) / data.count();
+    var getLinePoints = function(idx2, offset) {
+      if (orient === "horizontal") {
+        var val_1 = data.get(valueDim, idx2) || 0;
+        var itemHeight = linearMap(val_1, [min3, max3], sizeExtent, true);
+        var y0 = undefined;
+        switch (funnelAlign) {
+          case "top":
+            y0 = y3;
+            break;
+          case "center":
+            y0 = y3 + (viewHeight - itemHeight) / 2;
+            break;
+          case "bottom":
+            y0 = y3 + (viewHeight - itemHeight);
+            break;
+        }
+        return [[offset, y0], [offset, y0 + itemHeight]];
+      }
+      var val = data.get(valueDim, idx2) || 0;
+      var itemWidth = linearMap(val, [min3, max3], sizeExtent, true);
+      var x0;
+      switch (funnelAlign) {
+        case "left":
+          x0 = x3;
+          break;
+        case "center":
+          x0 = x3 + (viewWidth - itemWidth) / 2;
+          break;
+        case "right":
+          x0 = x3 + viewWidth - itemWidth;
+          break;
+      }
+      return [[x0, offset], [x0 + itemWidth, offset]];
+    };
+    if (sort2 === "ascending") {
+      itemSize = -itemSize;
+      gap = -gap;
+      if (orient === "horizontal") {
+        x3 += viewWidth;
+      } else {
+        y3 += viewHeight;
+      }
+      indices = indices.reverse();
+    }
+    for (var i3 = 0;i3 < indices.length; i3++) {
+      var idx = indices[i3];
+      var nextIdx = indices[i3 + 1];
+      var itemModel = data.getItemModel(idx);
+      if (orient === "horizontal") {
+        var width = itemModel.get(["itemStyle", "width"]);
+        if (width == null) {
+          width = itemSize;
+        } else {
+          width = parsePercent2(width, viewWidth);
+          if (sort2 === "ascending") {
+            width = -width;
+          }
+        }
+        var start2 = getLinePoints(idx, x3);
+        var end2 = getLinePoints(nextIdx, x3 + width);
+        x3 += width + gap;
+        data.setItemLayout(idx, {
+          points: start2.concat(end2.slice().reverse())
+        });
+      } else {
+        var height = itemModel.get(["itemStyle", "height"]);
+        if (height == null) {
+          height = itemSize;
+        } else {
+          height = parsePercent2(height, viewHeight);
+          if (sort2 === "ascending") {
+            height = -height;
+          }
+        }
+        var start2 = getLinePoints(idx, y3);
+        var end2 = getLinePoints(nextIdx, y3 + height);
+        y3 += height + gap;
+        data.setItemLayout(idx, {
+          points: start2.concat(end2.slice().reverse())
+        });
+      }
+    }
+    labelLayout(data);
+  });
+}
+
+// node_modules/echarts/lib/chart/funnel/install.js
+function install9(registers) {
+  registers.registerChartView(FunnelView_default);
+  registers.registerSeriesModel(FunnelSeries_default);
+  registers.registerLayout(funnelLayout);
+  registers.registerProcessor(dataFilter("funnel"));
+}
+// node_modules/echarts/lib/component/helper/sliderMove.js
+function sliderMove(delta, handleEnds, extent3, handleIndex, minSpan, maxSpan) {
+  delta = delta || 0;
+  var extentSpan = extent3[1] - extent3[0];
+  if (minSpan != null) {
+    minSpan = restrict(minSpan, [0, extentSpan]);
+  }
+  if (maxSpan != null) {
+    maxSpan = Math.max(maxSpan, minSpan != null ? minSpan : 0);
+  }
+  if (handleIndex === "all") {
+    var handleSpan = Math.abs(handleEnds[1] - handleEnds[0]);
+    handleSpan = restrict(handleSpan, [0, extentSpan]);
+    minSpan = maxSpan = restrict(handleSpan, [minSpan, maxSpan]);
+    handleIndex = 0;
+  }
+  handleEnds[0] = restrict(handleEnds[0], extent3);
+  handleEnds[1] = restrict(handleEnds[1], extent3);
+  var originalDistSign = getSpanSign(handleEnds, handleIndex);
+  handleEnds[handleIndex] += delta;
+  var extentMinSpan = minSpan || 0;
+  var realExtent = extent3.slice();
+  originalDistSign.sign < 0 ? realExtent[0] += extentMinSpan : realExtent[1] -= extentMinSpan;
+  handleEnds[handleIndex] = restrict(handleEnds[handleIndex], realExtent);
+  var currDistSign;
+  currDistSign = getSpanSign(handleEnds, handleIndex);
+  if (minSpan != null && (currDistSign.sign !== originalDistSign.sign || currDistSign.span < minSpan)) {
+    handleEnds[1 - handleIndex] = handleEnds[handleIndex] + originalDistSign.sign * minSpan;
+  }
+  currDistSign = getSpanSign(handleEnds, handleIndex);
+  if (maxSpan != null && currDistSign.span > maxSpan) {
+    handleEnds[1 - handleIndex] = handleEnds[handleIndex] + currDistSign.sign * maxSpan;
+  }
+  return handleEnds;
+}
+function getSpanSign(handleEnds, handleIndex) {
+  var dist3 = handleEnds[handleIndex] - handleEnds[1 - handleIndex];
+  return {
+    span: Math.abs(dist3),
+    sign: dist3 > 0 ? -1 : dist3 < 0 ? 1 : handleIndex ? -1 : 1
+  };
+}
+function restrict(value2, extend2) {
+  return Math.min(extend2[1] != null ? extend2[1] : Infinity, Math.max(extend2[0] != null ? extend2[0] : -Infinity, value2));
+}
+
+// node_modules/echarts/lib/chart/heatmap/HeatmapLayer.js
+var GRADIENT_LEVELS = 256;
+var HeatmapLayer = function() {
+  function HeatmapLayer2() {
+    this.blurSize = 30;
+    this.pointSize = 20;
+    this.maxOpacity = 1;
+    this.minOpacity = 0;
+    this._gradientPixels = {
+      inRange: null,
+      outOfRange: null
+    };
+    var canvas = platformApi.createCanvas();
+    this.canvas = canvas;
+  }
+  HeatmapLayer2.prototype.update = function(data, width, height, normalize3, colorFunc, isInRange) {
+    var brush2 = this._getBrush();
+    var gradientInRange = this._getGradient(colorFunc, "inRange");
+    var gradientOutOfRange = this._getGradient(colorFunc, "outOfRange");
+    var r3 = this.pointSize + this.blurSize;
+    var canvas = this.canvas;
+    var ctx = canvas.getContext("2d");
+    var len2 = data.length;
+    canvas.width = width;
+    canvas.height = height;
+    for (var i3 = 0;i3 < len2; ++i3) {
+      var p3 = data[i3];
+      var x3 = p3[0];
+      var y3 = p3[1];
+      var value2 = p3[2];
+      var alpha = normalize3(value2);
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(brush2, x3 - r3, y3 - r3);
+    }
+    if (!canvas.width || !canvas.height) {
+      return canvas;
+    }
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var pixels = imageData.data;
+    var offset = 0;
+    var pixelLen = pixels.length;
+    var minOpacity = this.minOpacity;
+    var maxOpacity = this.maxOpacity;
+    var diffOpacity = maxOpacity - minOpacity;
+    while (offset < pixelLen) {
+      var alpha = pixels[offset + 3] / 256;
+      var gradientOffset = Math.floor(alpha * (GRADIENT_LEVELS - 1)) * 4;
+      if (alpha > 0) {
+        var gradient = isInRange(alpha) ? gradientInRange : gradientOutOfRange;
+        alpha > 0 && (alpha = alpha * diffOpacity + minOpacity);
+        pixels[offset++] = gradient[gradientOffset];
+        pixels[offset++] = gradient[gradientOffset + 1];
+        pixels[offset++] = gradient[gradientOffset + 2];
+        pixels[offset++] = gradient[gradientOffset + 3] * alpha * 256;
+      } else {
+        offset += 4;
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+    return canvas;
+  };
+  HeatmapLayer2.prototype._getBrush = function() {
+    var brushCanvas = this._brushCanvas || (this._brushCanvas = platformApi.createCanvas());
+    var r3 = this.pointSize + this.blurSize;
+    var d3 = r3 * 2;
+    brushCanvas.width = d3;
+    brushCanvas.height = d3;
+    var ctx = brushCanvas.getContext("2d");
+    ctx.clearRect(0, 0, d3, d3);
+    ctx.shadowOffsetX = d3;
+    ctx.shadowBlur = this.blurSize;
+    ctx.shadowColor = "#000";
+    ctx.beginPath();
+    ctx.arc(-r3, r3, this.pointSize, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fill();
+    return brushCanvas;
+  };
+  HeatmapLayer2.prototype._getGradient = function(colorFunc, state) {
+    var gradientPixels = this._gradientPixels;
+    var pixelsSingleState = gradientPixels[state] || (gradientPixels[state] = new Uint8ClampedArray(256 * 4));
+    var color = [0, 0, 0, 0];
+    var off = 0;
+    for (var i3 = 0;i3 < 256; i3++) {
+      colorFunc[state](i3 / 255, true, color);
+      pixelsSingleState[off++] = color[0];
+      pixelsSingleState[off++] = color[1];
+      pixelsSingleState[off++] = color[2];
+      pixelsSingleState[off++] = color[3];
+    }
+    return pixelsSingleState;
+  };
+  return HeatmapLayer2;
+}();
+var HeatmapLayer_default = HeatmapLayer;
+
+// node_modules/echarts/lib/chart/heatmap/HeatmapView.js
+function getIsInPiecewiseRange(dataExtent, pieceList, selected) {
+  var dataSpan = dataExtent[1] - dataExtent[0];
+  pieceList = map(pieceList, function(piece) {
+    return {
+      interval: [(piece.interval[0] - dataExtent[0]) / dataSpan, (piece.interval[1] - dataExtent[0]) / dataSpan]
+    };
+  });
+  var len2 = pieceList.length;
+  var lastIndex = 0;
+  return function(val) {
+    var i3;
+    for (i3 = lastIndex;i3 < len2; i3++) {
+      var interval = pieceList[i3].interval;
+      if (interval[0] <= val && val <= interval[1]) {
+        lastIndex = i3;
+        break;
+      }
+    }
+    if (i3 === len2) {
+      for (i3 = lastIndex - 1;i3 >= 0; i3--) {
+        var interval = pieceList[i3].interval;
+        if (interval[0] <= val && val <= interval[1]) {
+          lastIndex = i3;
+          break;
+        }
+      }
+    }
+    return i3 >= 0 && i3 < len2 && selected[i3];
+  };
+}
+function getIsInContinuousRange(dataExtent, range) {
+  var dataSpan = dataExtent[1] - dataExtent[0];
+  range = [(range[0] - dataExtent[0]) / dataSpan, (range[1] - dataExtent[0]) / dataSpan];
+  return function(val) {
+    return val >= range[0] && val <= range[1];
+  };
+}
+function isGeoCoordSys(coordSys) {
+  var dimensions = coordSys.dimensions;
+  return dimensions[0] === "lng" && dimensions[1] === "lat";
+}
+var HeatmapView = function(_super) {
+  __extends(HeatmapView2, _super);
+  function HeatmapView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = HeatmapView2.type;
+    return _this;
+  }
+  HeatmapView2.prototype.render = function(seriesModel, ecModel, api) {
+    var visualMapOfThisSeries;
+    ecModel.eachComponent("visualMap", function(visualMap) {
+      visualMap.eachTargetSeries(function(targetSeries) {
+        if (targetSeries === seriesModel) {
+          visualMapOfThisSeries = visualMap;
+        }
+      });
+    });
+    if (true) {
+      if (!visualMapOfThisSeries) {
+        throw new Error("Heatmap must use with visualMap");
+      }
+    }
+    this._progressiveEls = null;
+    this.group.removeAll();
+    var coordSys = seriesModel.coordinateSystem;
+    if (coordSys.type === "cartesian2d" || coordSys.type === "calendar") {
+      this._renderOnCartesianAndCalendar(seriesModel, api, 0, seriesModel.getData().count());
+    } else if (isGeoCoordSys(coordSys)) {
+      this._renderOnGeo(coordSys, seriesModel, visualMapOfThisSeries, api);
+    }
+  };
+  HeatmapView2.prototype.incrementalPrepareRender = function(seriesModel, ecModel, api) {
+    this.group.removeAll();
+  };
+  HeatmapView2.prototype.incrementalRender = function(params, seriesModel, ecModel, api) {
+    var coordSys = seriesModel.coordinateSystem;
+    if (coordSys) {
+      if (isGeoCoordSys(coordSys)) {
+        this.render(seriesModel, ecModel, api);
+      } else {
+        this._progressiveEls = [];
+        this._renderOnCartesianAndCalendar(seriesModel, api, params.start, params.end, true);
+      }
+    }
+  };
+  HeatmapView2.prototype.eachRendered = function(cb) {
+    traverseElements(this._progressiveEls || this.group, cb);
+  };
+  HeatmapView2.prototype._renderOnCartesianAndCalendar = function(seriesModel, api, start2, end2, incremental) {
+    var coordSys = seriesModel.coordinateSystem;
+    var isCartesian2d = isCoordinateSystemType(coordSys, "cartesian2d");
+    var width;
+    var height;
+    var xAxisExtent;
+    var yAxisExtent;
+    if (isCartesian2d) {
+      var xAxis = coordSys.getAxis("x");
+      var yAxis = coordSys.getAxis("y");
+      if (true) {
+        if (!(xAxis.type === "category" && yAxis.type === "category")) {
+          throw new Error("Heatmap on cartesian must have two category axes");
+        }
+        if (!(xAxis.onBand && yAxis.onBand)) {
+          throw new Error("Heatmap on cartesian must have two axes with boundaryGap true");
+        }
+      }
+      width = xAxis.getBandWidth() + 0.5;
+      height = yAxis.getBandWidth() + 0.5;
+      xAxisExtent = xAxis.scale.getExtent();
+      yAxisExtent = yAxis.scale.getExtent();
+    }
+    var group = this.group;
+    var data = seriesModel.getData();
+    var emphasisStyle = seriesModel.getModel(["emphasis", "itemStyle"]).getItemStyle();
+    var blurStyle = seriesModel.getModel(["blur", "itemStyle"]).getItemStyle();
+    var selectStyle = seriesModel.getModel(["select", "itemStyle"]).getItemStyle();
+    var borderRadius = seriesModel.get(["itemStyle", "borderRadius"]);
+    var labelStatesModels = getLabelStatesModels(seriesModel);
+    var emphasisModel = seriesModel.getModel("emphasis");
+    var focus = emphasisModel.get("focus");
+    var blurScope = emphasisModel.get("blurScope");
+    var emphasisDisabled = emphasisModel.get("disabled");
+    var dataDims = isCartesian2d ? [data.mapDimension("x"), data.mapDimension("y"), data.mapDimension("value")] : [data.mapDimension("time"), data.mapDimension("value")];
+    for (var idx = start2;idx < end2; idx++) {
+      var rect = undefined;
+      var style = data.getItemVisual(idx, "style");
+      if (isCartesian2d) {
+        var dataDimX = data.get(dataDims[0], idx);
+        var dataDimY = data.get(dataDims[1], idx);
+        if (isNaN(data.get(dataDims[2], idx)) || isNaN(dataDimX) || isNaN(dataDimY) || dataDimX < xAxisExtent[0] || dataDimX > xAxisExtent[1] || dataDimY < yAxisExtent[0] || dataDimY > yAxisExtent[1]) {
+          continue;
+        }
+        var point = coordSys.dataToPoint([dataDimX, dataDimY]);
+        rect = new Rect_default({
+          shape: {
+            x: point[0] - width / 2,
+            y: point[1] - height / 2,
+            width,
+            height
+          },
+          style
+        });
+      } else {
+        if (isNaN(data.get(dataDims[1], idx))) {
+          continue;
+        }
+        rect = new Rect_default({
+          z2: 1,
+          shape: coordSys.dataToRect([data.get(dataDims[0], idx)]).contentShape,
+          style
+        });
+      }
+      if (data.hasItemOption) {
+        var itemModel = data.getItemModel(idx);
+        var emphasisModel_1 = itemModel.getModel("emphasis");
+        emphasisStyle = emphasisModel_1.getModel("itemStyle").getItemStyle();
+        blurStyle = itemModel.getModel(["blur", "itemStyle"]).getItemStyle();
+        selectStyle = itemModel.getModel(["select", "itemStyle"]).getItemStyle();
+        borderRadius = itemModel.get(["itemStyle", "borderRadius"]);
+        focus = emphasisModel_1.get("focus");
+        blurScope = emphasisModel_1.get("blurScope");
+        emphasisDisabled = emphasisModel_1.get("disabled");
+        labelStatesModels = getLabelStatesModels(itemModel);
+      }
+      rect.shape.r = borderRadius;
+      var rawValue = seriesModel.getRawValue(idx);
+      var defaultText = "-";
+      if (rawValue && rawValue[2] != null) {
+        defaultText = rawValue[2] + "";
+      }
+      setLabelStyle(rect, labelStatesModels, {
+        labelFetcher: seriesModel,
+        labelDataIndex: idx,
+        defaultOpacity: style.opacity,
+        defaultText
+      });
+      rect.ensureState("emphasis").style = emphasisStyle;
+      rect.ensureState("blur").style = blurStyle;
+      rect.ensureState("select").style = selectStyle;
+      toggleHoverEmphasis(rect, focus, blurScope, emphasisDisabled);
+      rect.incremental = incremental;
+      if (incremental) {
+        rect.states.emphasis.hoverLayer = true;
+      }
+      group.add(rect);
+      data.setItemGraphicEl(idx, rect);
+      if (this._progressiveEls) {
+        this._progressiveEls.push(rect);
+      }
+    }
+  };
+  HeatmapView2.prototype._renderOnGeo = function(geo, seriesModel, visualMapModel, api) {
+    var inRangeVisuals = visualMapModel.targetVisuals.inRange;
+    var outOfRangeVisuals = visualMapModel.targetVisuals.outOfRange;
+    var data = seriesModel.getData();
+    var hmLayer = this._hmLayer || this._hmLayer || new HeatmapLayer_default;
+    hmLayer.blurSize = seriesModel.get("blurSize");
+    hmLayer.pointSize = seriesModel.get("pointSize");
+    hmLayer.minOpacity = seriesModel.get("minOpacity");
+    hmLayer.maxOpacity = seriesModel.get("maxOpacity");
+    var rect = geo.getViewRect().clone();
+    var roamTransform = geo.getRoamTransform();
+    rect.applyTransform(roamTransform);
+    var x3 = Math.max(rect.x, 0);
+    var y3 = Math.max(rect.y, 0);
+    var x22 = Math.min(rect.width + rect.x, api.getWidth());
+    var y22 = Math.min(rect.height + rect.y, api.getHeight());
+    var width = x22 - x3;
+    var height = y22 - y3;
+    var dims = [data.mapDimension("lng"), data.mapDimension("lat"), data.mapDimension("value")];
+    var points2 = data.mapArray(dims, function(lng, lat, value2) {
+      var pt = geo.dataToPoint([lng, lat]);
+      pt[0] -= x3;
+      pt[1] -= y3;
+      pt.push(value2);
+      return pt;
+    });
+    var dataExtent = visualMapModel.getExtent();
+    var isInRange = visualMapModel.type === "visualMap.continuous" ? getIsInContinuousRange(dataExtent, visualMapModel.option.range) : getIsInPiecewiseRange(dataExtent, visualMapModel.getPieceList(), visualMapModel.option.selected);
+    hmLayer.update(points2, width, height, inRangeVisuals.color.getNormalizer(), {
+      inRange: inRangeVisuals.color.getColorMapper(),
+      outOfRange: outOfRangeVisuals.color.getColorMapper()
+    }, isInRange);
+    var img = new Image_default({
+      style: {
+        width,
+        height,
+        x: x3,
+        y: y3,
+        image: hmLayer.canvas
+      },
+      silent: true
+    });
+    this.group.add(img);
+  };
+  HeatmapView2.type = "heatmap";
+  return HeatmapView2;
+}(Chart_default);
+var HeatmapView_default = HeatmapView;
+
+// node_modules/echarts/lib/chart/heatmap/HeatmapSeries.js
+var HeatmapSeriesModel = function(_super) {
+  __extends(HeatmapSeriesModel2, _super);
+  function HeatmapSeriesModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = HeatmapSeriesModel2.type;
+    return _this;
+  }
+  HeatmapSeriesModel2.prototype.getInitialData = function(option, ecModel) {
+    return createSeriesData_default(null, this, {
+      generateCoord: "value"
+    });
+  };
+  HeatmapSeriesModel2.prototype.preventIncremental = function() {
+    var coordSysCreator = CoordinateSystem_default.get(this.get("coordinateSystem"));
+    if (coordSysCreator && coordSysCreator.dimensions) {
+      return coordSysCreator.dimensions[0] === "lng" && coordSysCreator.dimensions[1] === "lat";
+    }
+  };
+  HeatmapSeriesModel2.type = "series.heatmap";
+  HeatmapSeriesModel2.dependencies = ["grid", "geo", "calendar"];
+  HeatmapSeriesModel2.defaultOption = {
+    coordinateSystem: "cartesian2d",
+    z: 2,
+    geoIndex: 0,
+    blurSize: 30,
+    pointSize: 20,
+    maxOpacity: 1,
+    minOpacity: 0,
+    select: {
+      itemStyle: {
+        borderColor: "#212121"
+      }
+    }
+  };
+  return HeatmapSeriesModel2;
+}(Series_default);
+var HeatmapSeries_default = HeatmapSeriesModel;
+
+// node_modules/echarts/lib/chart/heatmap/install.js
+function install10(registers) {
+  registers.registerChartView(HeatmapView_default);
+  registers.registerSeriesModel(HeatmapSeries_default);
 }
 // node_modules/zrender/lib/canvas/Layer.js
 function createDom(id, painter, dpr2) {
@@ -41630,14 +44285,14 @@ var CanvasPainter = function() {
 var Painter_default = CanvasPainter;
 
 // node_modules/echarts/lib/renderer/installCanvasRenderer.js
-function install8(registers) {
+function install11(registers) {
   registers.registerPainter("canvas", Painter_default);
 }
 // src/preact/lib/echarts.ts
 var registered = { renderer: false };
 function ensureRenderer() {
   if (!registered.renderer) {
-    use([install8]);
+    use([install11]);
     registered.renderer = true;
   }
 }
@@ -41674,7 +44329,7 @@ function useECharts(ref, deps, buildOption, onInit) {
 }
 
 // src/preact/components/widgets/gauge.ts
-registerEChartsModules([install7]);
+registerEChartsModules([install8]);
 function computeGaugeHeight(ctrl) {
   const gtype = (ctrl.gtype || "gage").toString().toLowerCase();
   if (gtype === "wave")
@@ -42346,13 +45001,13 @@ function DatePickerWidget(props) {
     setValue(v3);
     if (!validate(v3))
       return;
-    onEmit?.("ui-change", { payload: v3 });
+    onEmit?.("update-value", { id: c3.id, value: { payload: v3, type: "date-picker" } });
   };
   const handleCalendarSelect = (dateStr) => {
     setValue(dateStr);
     if (!validate(dateStr))
       return;
-    onEmit?.("ui-change", { payload: dateStr });
+    onEmit?.("update-value", { id: c3.id, value: { payload: dateStr, type: "date-picker" } });
   };
   const toggleCalendar = () => {
     if (isDisabled)
@@ -42552,21 +45207,21 @@ function ColourPickerWidget(props) {
   const emitChange = q2((h3, s3, l3, a3) => {
     const color = formatColor(h3, s3, l3, a3, format2);
     if (dynamicOutput || !isOpen) {
-      onEmit?.("ui-change", { payload: color });
+      onEmit?.("update-value", { id: c3.id, value: { payload: color, type: "colour-picker" } });
     }
-  }, [format2, dynamicOutput, isOpen, onEmit]);
+  }, [format2, dynamicOutput, isOpen, onEmit, c3.id]);
   y2(() => {
     if (!isOpen || inline)
       return;
     const handleClickOutside = (e4) => {
       if (containerRef.current && !containerRef.current.contains(e4.target)) {
         setIsOpen(false);
-        onEmit?.("ui-change", { payload: currentColor });
+        onEmit?.("update-value", { id: c3.id, value: { payload: currentColor, type: "colour-picker" } });
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, inline, currentColor, onEmit]);
+  }, [isOpen, inline, currentColor, onEmit, c3.id]);
   const handleSatLightDrag = q2((e4) => {
     if (isDisabled || !satLightRef.current)
       return;
@@ -42671,7 +45326,7 @@ function ColourPickerWidget(props) {
     if (isDisabled || inline)
       return;
     if (isOpen) {
-      onEmit?.("ui-change", { payload: currentColor });
+      onEmit?.("update-value", { id: c3.id, value: { payload: currentColor, type: "colour-picker" } });
     }
     setIsOpen(!isOpen);
   };
@@ -42967,9 +45622,12 @@ function TemplateWidget(props) {
 // src/preact/components/widgets/form.ts
 function buildFormEmit(ctrl, fallbackLabel, values) {
   return {
-    payload: values,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "form"
+    id: ctrl.id,
+    value: {
+      payload: values,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "form"
+    }
   };
 }
 function FormWidget(props) {
@@ -43050,7 +45708,7 @@ function FormWidget(props) {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0)
       return;
-    onEmit?.("ui-control", buildFormEmit(c3, title, values));
+    onEmit?.("update-value", buildFormEmit(c3, title, values));
   }}
   >
     ${title ? m2`<p class="formlabel" dangerouslySetInnerHTML=${{ __html: title }}></p>` : null}
@@ -43702,7 +46360,7 @@ var AxisPointerModel_default = AxisPointerModel;
 
 // node_modules/echarts/lib/component/axisPointer/globalListener.js
 var inner9 = makeInner();
-var each4 = each;
+var each5 = each;
 function register(key, api, handler) {
   if (env_default.node) {
     return;
@@ -43724,7 +46382,7 @@ function initGlobalListeners(zr, api) {
   function useHandler(eventType, cb) {
     zr.on(eventType, function(e4) {
       var dis = makeDispatchAction(api);
-      each4(inner9(zr).records, function(record) {
+      each5(inner9(zr).records, function(record) {
         record && cb(record, e4, dis.dispatchAction);
       });
       dispatchTooltipFinally(dis.pendings, api);
@@ -44136,7 +46794,7 @@ function illegalPoint(point) {
 }
 
 // node_modules/echarts/lib/component/axisPointer/install.js
-function install9(registers) {
+function install12(registers) {
   AxisView_default.registerAxisPointerClass("CartesianAxisPointer", CartesianAxisPointer_default);
   registers.registerComponentModel(AxisPointerModel_default);
   registers.registerComponentView(AxisPointerView_default);
@@ -44160,10 +46818,686 @@ function install9(registers) {
 }
 
 // node_modules/echarts/lib/component/grid/install.js
-function install10(registers) {
+function install13(registers) {
   use(install4);
-  use(install9);
+  use(install12);
 }
+// node_modules/echarts/lib/component/dataZoom/helper.js
+var DATA_ZOOM_AXIS_DIMENSIONS = ["x", "y", "radius", "angle", "single"];
+var SERIES_COORDS = ["cartesian2d", "polar", "singleAxis"];
+function isCoordSupported(seriesModel) {
+  var coordType = seriesModel.get("coordinateSystem");
+  return indexOf(SERIES_COORDS, coordType) >= 0;
+}
+function getAxisMainType(axisDim) {
+  if (true) {
+    assert(axisDim);
+  }
+  return axisDim + "Axis";
+}
+function findEffectedDataZooms(ecModel, payload) {
+  var axisRecords = createHashMap();
+  var effectedModels = [];
+  var effectedModelMap = createHashMap();
+  ecModel.eachComponent({
+    mainType: "dataZoom",
+    query: payload
+  }, function(dataZoomModel) {
+    if (!effectedModelMap.get(dataZoomModel.uid)) {
+      addToEffected(dataZoomModel);
+    }
+  });
+  var foundNewLink;
+  do {
+    foundNewLink = false;
+    ecModel.eachComponent("dataZoom", processSingle);
+  } while (foundNewLink);
+  function processSingle(dataZoomModel) {
+    if (!effectedModelMap.get(dataZoomModel.uid) && isLinked(dataZoomModel)) {
+      addToEffected(dataZoomModel);
+      foundNewLink = true;
+    }
+  }
+  function addToEffected(dataZoom) {
+    effectedModelMap.set(dataZoom.uid, true);
+    effectedModels.push(dataZoom);
+    markAxisControlled(dataZoom);
+  }
+  function isLinked(dataZoomModel) {
+    var isLink = false;
+    dataZoomModel.eachTargetAxis(function(axisDim, axisIndex) {
+      var axisIdxArr = axisRecords.get(axisDim);
+      if (axisIdxArr && axisIdxArr[axisIndex]) {
+        isLink = true;
+      }
+    });
+    return isLink;
+  }
+  function markAxisControlled(dataZoomModel) {
+    dataZoomModel.eachTargetAxis(function(axisDim, axisIndex) {
+      (axisRecords.get(axisDim) || axisRecords.set(axisDim, []))[axisIndex] = true;
+    });
+  }
+  return effectedModels;
+}
+function collectReferCoordSysModelInfo(dataZoomModel) {
+  var ecModel = dataZoomModel.ecModel;
+  var coordSysInfoWrap = {
+    infoList: [],
+    infoMap: createHashMap()
+  };
+  dataZoomModel.eachTargetAxis(function(axisDim, axisIndex) {
+    var axisModel = ecModel.getComponent(getAxisMainType(axisDim), axisIndex);
+    if (!axisModel) {
+      return;
+    }
+    var coordSysModel = axisModel.getCoordSysModel();
+    if (!coordSysModel) {
+      return;
+    }
+    var coordSysUid = coordSysModel.uid;
+    var coordSysInfo = coordSysInfoWrap.infoMap.get(coordSysUid);
+    if (!coordSysInfo) {
+      coordSysInfo = {
+        model: coordSysModel,
+        axisModels: []
+      };
+      coordSysInfoWrap.infoList.push(coordSysInfo);
+      coordSysInfoWrap.infoMap.set(coordSysUid, coordSysInfo);
+    }
+    coordSysInfo.axisModels.push(axisModel);
+  });
+  return coordSysInfoWrap;
+}
+
+// node_modules/echarts/lib/component/dataZoom/DataZoomModel.js
+var DataZoomAxisInfo = function() {
+  function DataZoomAxisInfo2() {
+    this.indexList = [];
+    this.indexMap = [];
+  }
+  DataZoomAxisInfo2.prototype.add = function(axisCmptIdx) {
+    if (!this.indexMap[axisCmptIdx]) {
+      this.indexList.push(axisCmptIdx);
+      this.indexMap[axisCmptIdx] = true;
+    }
+  };
+  return DataZoomAxisInfo2;
+}();
+var DataZoomModel = function(_super) {
+  __extends(DataZoomModel2, _super);
+  function DataZoomModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = DataZoomModel2.type;
+    _this._autoThrottle = true;
+    _this._noTarget = true;
+    _this._rangePropMode = ["percent", "percent"];
+    return _this;
+  }
+  DataZoomModel2.prototype.init = function(option, parentModel, ecModel) {
+    var inputRawOption = retrieveRawOption(option);
+    this.settledOption = inputRawOption;
+    this.mergeDefaultAndTheme(option, ecModel);
+    this._doInit(inputRawOption);
+  };
+  DataZoomModel2.prototype.mergeOption = function(newOption) {
+    var inputRawOption = retrieveRawOption(newOption);
+    merge(this.option, newOption, true);
+    merge(this.settledOption, inputRawOption, true);
+    this._doInit(inputRawOption);
+  };
+  DataZoomModel2.prototype._doInit = function(inputRawOption) {
+    var thisOption = this.option;
+    this._setDefaultThrottle(inputRawOption);
+    this._updateRangeUse(inputRawOption);
+    var settledOption = this.settledOption;
+    each([["start", "startValue"], ["end", "endValue"]], function(names, index) {
+      if (this._rangePropMode[index] === "value") {
+        thisOption[names[0]] = settledOption[names[0]] = null;
+      }
+    }, this);
+    this._resetTarget();
+  };
+  DataZoomModel2.prototype._resetTarget = function() {
+    var optionOrient = this.get("orient", true);
+    var targetAxisIndexMap = this._targetAxisInfoMap = createHashMap();
+    var hasAxisSpecified = this._fillSpecifiedTargetAxis(targetAxisIndexMap);
+    if (hasAxisSpecified) {
+      this._orient = optionOrient || this._makeAutoOrientByTargetAxis();
+    } else {
+      this._orient = optionOrient || "horizontal";
+      this._fillAutoTargetAxisByOrient(targetAxisIndexMap, this._orient);
+    }
+    this._noTarget = true;
+    targetAxisIndexMap.each(function(axisInfo) {
+      if (axisInfo.indexList.length) {
+        this._noTarget = false;
+      }
+    }, this);
+  };
+  DataZoomModel2.prototype._fillSpecifiedTargetAxis = function(targetAxisIndexMap) {
+    var hasAxisSpecified = false;
+    each(DATA_ZOOM_AXIS_DIMENSIONS, function(axisDim) {
+      var refering = this.getReferringComponents(getAxisMainType(axisDim), MULTIPLE_REFERRING);
+      if (!refering.specified) {
+        return;
+      }
+      hasAxisSpecified = true;
+      var axisInfo = new DataZoomAxisInfo;
+      each(refering.models, function(axisModel) {
+        axisInfo.add(axisModel.componentIndex);
+      });
+      targetAxisIndexMap.set(axisDim, axisInfo);
+    }, this);
+    return hasAxisSpecified;
+  };
+  DataZoomModel2.prototype._fillAutoTargetAxisByOrient = function(targetAxisIndexMap, orient) {
+    var ecModel = this.ecModel;
+    var needAuto = true;
+    if (needAuto) {
+      var axisDim = orient === "vertical" ? "y" : "x";
+      var axisModels = ecModel.findComponents({
+        mainType: axisDim + "Axis"
+      });
+      setParallelAxis(axisModels, axisDim);
+    }
+    if (needAuto) {
+      var axisModels = ecModel.findComponents({
+        mainType: "singleAxis",
+        filter: function(axisModel) {
+          return axisModel.get("orient", true) === orient;
+        }
+      });
+      setParallelAxis(axisModels, "single");
+    }
+    function setParallelAxis(axisModels2, axisDim2) {
+      var axisModel = axisModels2[0];
+      if (!axisModel) {
+        return;
+      }
+      var axisInfo = new DataZoomAxisInfo;
+      axisInfo.add(axisModel.componentIndex);
+      targetAxisIndexMap.set(axisDim2, axisInfo);
+      needAuto = false;
+      if (axisDim2 === "x" || axisDim2 === "y") {
+        var gridModel_1 = axisModel.getReferringComponents("grid", SINGLE_REFERRING).models[0];
+        gridModel_1 && each(axisModels2, function(axModel) {
+          if (axisModel.componentIndex !== axModel.componentIndex && gridModel_1 === axModel.getReferringComponents("grid", SINGLE_REFERRING).models[0]) {
+            axisInfo.add(axModel.componentIndex);
+          }
+        });
+      }
+    }
+    if (needAuto) {
+      each(DATA_ZOOM_AXIS_DIMENSIONS, function(axisDim2) {
+        if (!needAuto) {
+          return;
+        }
+        var axisModels2 = ecModel.findComponents({
+          mainType: getAxisMainType(axisDim2),
+          filter: function(axisModel) {
+            return axisModel.get("type", true) === "category";
+          }
+        });
+        if (axisModels2[0]) {
+          var axisInfo = new DataZoomAxisInfo;
+          axisInfo.add(axisModels2[0].componentIndex);
+          targetAxisIndexMap.set(axisDim2, axisInfo);
+          needAuto = false;
+        }
+      }, this);
+    }
+  };
+  DataZoomModel2.prototype._makeAutoOrientByTargetAxis = function() {
+    var dim;
+    this.eachTargetAxis(function(axisDim) {
+      !dim && (dim = axisDim);
+    }, this);
+    return dim === "y" ? "vertical" : "horizontal";
+  };
+  DataZoomModel2.prototype._setDefaultThrottle = function(inputRawOption) {
+    if (inputRawOption.hasOwnProperty("throttle")) {
+      this._autoThrottle = false;
+    }
+    if (this._autoThrottle) {
+      var globalOption = this.ecModel.option;
+      this.option.throttle = globalOption.animation && globalOption.animationDurationUpdate > 0 ? 100 : 20;
+    }
+  };
+  DataZoomModel2.prototype._updateRangeUse = function(inputRawOption) {
+    var rangePropMode = this._rangePropMode;
+    var rangeModeInOption = this.get("rangeMode");
+    each([["start", "startValue"], ["end", "endValue"]], function(names, index) {
+      var percentSpecified = inputRawOption[names[0]] != null;
+      var valueSpecified = inputRawOption[names[1]] != null;
+      if (percentSpecified && !valueSpecified) {
+        rangePropMode[index] = "percent";
+      } else if (!percentSpecified && valueSpecified) {
+        rangePropMode[index] = "value";
+      } else if (rangeModeInOption) {
+        rangePropMode[index] = rangeModeInOption[index];
+      } else if (percentSpecified) {
+        rangePropMode[index] = "percent";
+      }
+    });
+  };
+  DataZoomModel2.prototype.noTarget = function() {
+    return this._noTarget;
+  };
+  DataZoomModel2.prototype.getFirstTargetAxisModel = function() {
+    var firstAxisModel;
+    this.eachTargetAxis(function(axisDim, axisIndex) {
+      if (firstAxisModel == null) {
+        firstAxisModel = this.ecModel.getComponent(getAxisMainType(axisDim), axisIndex);
+      }
+    }, this);
+    return firstAxisModel;
+  };
+  DataZoomModel2.prototype.eachTargetAxis = function(callback, context) {
+    this._targetAxisInfoMap.each(function(axisInfo, axisDim) {
+      each(axisInfo.indexList, function(axisIndex) {
+        callback.call(context, axisDim, axisIndex);
+      });
+    });
+  };
+  DataZoomModel2.prototype.getAxisProxy = function(axisDim, axisIndex) {
+    var axisModel = this.getAxisModel(axisDim, axisIndex);
+    if (axisModel) {
+      return axisModel.__dzAxisProxy;
+    }
+  };
+  DataZoomModel2.prototype.getAxisModel = function(axisDim, axisIndex) {
+    if (true) {
+      assert(axisDim && axisIndex != null);
+    }
+    var axisInfo = this._targetAxisInfoMap.get(axisDim);
+    if (axisInfo && axisInfo.indexMap[axisIndex]) {
+      return this.ecModel.getComponent(getAxisMainType(axisDim), axisIndex);
+    }
+  };
+  DataZoomModel2.prototype.setRawRange = function(opt) {
+    var thisOption = this.option;
+    var settledOption = this.settledOption;
+    each([["start", "startValue"], ["end", "endValue"]], function(names) {
+      if (opt[names[0]] != null || opt[names[1]] != null) {
+        thisOption[names[0]] = settledOption[names[0]] = opt[names[0]];
+        thisOption[names[1]] = settledOption[names[1]] = opt[names[1]];
+      }
+    }, this);
+    this._updateRangeUse(opt);
+  };
+  DataZoomModel2.prototype.setCalculatedRange = function(opt) {
+    var option = this.option;
+    each(["start", "startValue", "end", "endValue"], function(name) {
+      option[name] = opt[name];
+    });
+  };
+  DataZoomModel2.prototype.getPercentRange = function() {
+    var axisProxy = this.findRepresentativeAxisProxy();
+    if (axisProxy) {
+      return axisProxy.getDataPercentWindow();
+    }
+  };
+  DataZoomModel2.prototype.getValueRange = function(axisDim, axisIndex) {
+    if (axisDim == null && axisIndex == null) {
+      var axisProxy = this.findRepresentativeAxisProxy();
+      if (axisProxy) {
+        return axisProxy.getDataValueWindow();
+      }
+    } else {
+      return this.getAxisProxy(axisDim, axisIndex).getDataValueWindow();
+    }
+  };
+  DataZoomModel2.prototype.findRepresentativeAxisProxy = function(axisModel) {
+    if (axisModel) {
+      return axisModel.__dzAxisProxy;
+    }
+    var firstProxy;
+    var axisDimList = this._targetAxisInfoMap.keys();
+    for (var i3 = 0;i3 < axisDimList.length; i3++) {
+      var axisDim = axisDimList[i3];
+      var axisInfo = this._targetAxisInfoMap.get(axisDim);
+      for (var j3 = 0;j3 < axisInfo.indexList.length; j3++) {
+        var proxy = this.getAxisProxy(axisDim, axisInfo.indexList[j3]);
+        if (proxy.hostedBy(this)) {
+          return proxy;
+        }
+        if (!firstProxy) {
+          firstProxy = proxy;
+        }
+      }
+    }
+    return firstProxy;
+  };
+  DataZoomModel2.prototype.getRangePropMode = function() {
+    return this._rangePropMode.slice();
+  };
+  DataZoomModel2.prototype.getOrient = function() {
+    if (true) {
+      assert(this._orient);
+    }
+    return this._orient;
+  };
+  DataZoomModel2.type = "dataZoom";
+  DataZoomModel2.dependencies = ["xAxis", "yAxis", "radiusAxis", "angleAxis", "singleAxis", "series", "toolbox"];
+  DataZoomModel2.defaultOption = {
+    z: 4,
+    filterMode: "filter",
+    start: 0,
+    end: 100
+  };
+  return DataZoomModel2;
+}(Component_default);
+function retrieveRawOption(option) {
+  var ret = {};
+  each(["start", "end", "startValue", "endValue", "throttle"], function(name) {
+    option.hasOwnProperty(name) && (ret[name] = option[name]);
+  });
+  return ret;
+}
+var DataZoomModel_default = DataZoomModel;
+
+// node_modules/echarts/lib/component/dataZoom/DataZoomView.js
+var DataZoomView = function(_super) {
+  __extends(DataZoomView2, _super);
+  function DataZoomView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = DataZoomView2.type;
+    return _this;
+  }
+  DataZoomView2.prototype.render = function(dataZoomModel, ecModel, api, payload) {
+    this.dataZoomModel = dataZoomModel;
+    this.ecModel = ecModel;
+    this.api = api;
+  };
+  DataZoomView2.type = "dataZoom";
+  return DataZoomView2;
+}(Component_default2);
+var DataZoomView_default = DataZoomView;
+
+// node_modules/echarts/lib/component/dataZoom/AxisProxy.js
+var each6 = each;
+var asc2 = asc;
+var AxisProxy = function() {
+  function AxisProxy2(dimName, axisIndex, dataZoomModel, ecModel) {
+    this._dimName = dimName;
+    this._axisIndex = axisIndex;
+    this.ecModel = ecModel;
+    this._dataZoomModel = dataZoomModel;
+  }
+  AxisProxy2.prototype.hostedBy = function(dataZoomModel) {
+    return this._dataZoomModel === dataZoomModel;
+  };
+  AxisProxy2.prototype.getDataValueWindow = function() {
+    return this._valueWindow.slice();
+  };
+  AxisProxy2.prototype.getDataPercentWindow = function() {
+    return this._percentWindow.slice();
+  };
+  AxisProxy2.prototype.getTargetSeriesModels = function() {
+    var seriesModels = [];
+    this.ecModel.eachSeries(function(seriesModel) {
+      if (isCoordSupported(seriesModel)) {
+        var axisMainType = getAxisMainType(this._dimName);
+        var axisModel = seriesModel.getReferringComponents(axisMainType, SINGLE_REFERRING).models[0];
+        if (axisModel && this._axisIndex === axisModel.componentIndex) {
+          seriesModels.push(seriesModel);
+        }
+      }
+    }, this);
+    return seriesModels;
+  };
+  AxisProxy2.prototype.getAxisModel = function() {
+    return this.ecModel.getComponent(this._dimName + "Axis", this._axisIndex);
+  };
+  AxisProxy2.prototype.getMinMaxSpan = function() {
+    return clone(this._minMaxSpan);
+  };
+  AxisProxy2.prototype.calculateDataWindow = function(opt) {
+    var dataExtent = this._dataExtent;
+    var axisModel = this.getAxisModel();
+    var scale4 = axisModel.axis.scale;
+    var rangePropMode = this._dataZoomModel.getRangePropMode();
+    var percentExtent = [0, 100];
+    var percentWindow = [];
+    var valueWindow = [];
+    var hasPropModeValue;
+    each6(["start", "end"], function(prop, idx) {
+      var boundPercent = opt[prop];
+      var boundValue = opt[prop + "Value"];
+      if (rangePropMode[idx] === "percent") {
+        boundPercent == null && (boundPercent = percentExtent[idx]);
+        boundValue = scale4.parse(linearMap(boundPercent, percentExtent, dataExtent));
+      } else {
+        hasPropModeValue = true;
+        boundValue = boundValue == null ? dataExtent[idx] : scale4.parse(boundValue);
+        boundPercent = linearMap(boundValue, dataExtent, percentExtent);
+      }
+      valueWindow[idx] = boundValue == null || isNaN(boundValue) ? dataExtent[idx] : boundValue;
+      percentWindow[idx] = boundPercent == null || isNaN(boundPercent) ? percentExtent[idx] : boundPercent;
+    });
+    asc2(valueWindow);
+    asc2(percentWindow);
+    var spans = this._minMaxSpan;
+    hasPropModeValue ? restrictSet(valueWindow, percentWindow, dataExtent, percentExtent, false) : restrictSet(percentWindow, valueWindow, percentExtent, dataExtent, true);
+    function restrictSet(fromWindow, toWindow, fromExtent, toExtent, toValue) {
+      var suffix = toValue ? "Span" : "ValueSpan";
+      sliderMove(0, fromWindow, fromExtent, "all", spans["min" + suffix], spans["max" + suffix]);
+      for (var i3 = 0;i3 < 2; i3++) {
+        toWindow[i3] = linearMap(fromWindow[i3], fromExtent, toExtent, true);
+        toValue && (toWindow[i3] = scale4.parse(toWindow[i3]));
+      }
+    }
+    return {
+      valueWindow,
+      percentWindow
+    };
+  };
+  AxisProxy2.prototype.reset = function(dataZoomModel) {
+    if (dataZoomModel !== this._dataZoomModel) {
+      return;
+    }
+    var targetSeries = this.getTargetSeriesModels();
+    this._dataExtent = calculateDataExtent(this, this._dimName, targetSeries);
+    this._updateMinMaxSpan();
+    var dataWindow = this.calculateDataWindow(dataZoomModel.settledOption);
+    this._valueWindow = dataWindow.valueWindow;
+    this._percentWindow = dataWindow.percentWindow;
+    this._setAxisModel();
+  };
+  AxisProxy2.prototype.filterData = function(dataZoomModel, api) {
+    if (dataZoomModel !== this._dataZoomModel) {
+      return;
+    }
+    var axisDim = this._dimName;
+    var seriesModels = this.getTargetSeriesModels();
+    var filterMode = dataZoomModel.get("filterMode");
+    var valueWindow = this._valueWindow;
+    if (filterMode === "none") {
+      return;
+    }
+    each6(seriesModels, function(seriesModel) {
+      var seriesData = seriesModel.getData();
+      var dataDims = seriesData.mapDimensionsAll(axisDim);
+      if (!dataDims.length) {
+        return;
+      }
+      if (filterMode === "weakFilter") {
+        var store_1 = seriesData.getStore();
+        var dataDimIndices_1 = map(dataDims, function(dim) {
+          return seriesData.getDimensionIndex(dim);
+        }, seriesData);
+        seriesData.filterSelf(function(dataIndex) {
+          var leftOut;
+          var rightOut;
+          var hasValue;
+          for (var i3 = 0;i3 < dataDims.length; i3++) {
+            var value2 = store_1.get(dataDimIndices_1[i3], dataIndex);
+            var thisHasValue = !isNaN(value2);
+            var thisLeftOut = value2 < valueWindow[0];
+            var thisRightOut = value2 > valueWindow[1];
+            if (thisHasValue && !thisLeftOut && !thisRightOut) {
+              return true;
+            }
+            thisHasValue && (hasValue = true);
+            thisLeftOut && (leftOut = true);
+            thisRightOut && (rightOut = true);
+          }
+          return hasValue && leftOut && rightOut;
+        });
+      } else {
+        each6(dataDims, function(dim) {
+          if (filterMode === "empty") {
+            seriesModel.setData(seriesData = seriesData.map(dim, function(value2) {
+              return !isInWindow(value2) ? NaN : value2;
+            }));
+          } else {
+            var range = {};
+            range[dim] = valueWindow;
+            seriesData.selectRange(range);
+          }
+        });
+      }
+      each6(dataDims, function(dim) {
+        seriesData.setApproximateExtent(valueWindow, dim);
+      });
+    });
+    function isInWindow(value2) {
+      return value2 >= valueWindow[0] && value2 <= valueWindow[1];
+    }
+  };
+  AxisProxy2.prototype._updateMinMaxSpan = function() {
+    var minMaxSpan = this._minMaxSpan = {};
+    var dataZoomModel = this._dataZoomModel;
+    var dataExtent = this._dataExtent;
+    each6(["min", "max"], function(minMax) {
+      var percentSpan = dataZoomModel.get(minMax + "Span");
+      var valueSpan = dataZoomModel.get(minMax + "ValueSpan");
+      valueSpan != null && (valueSpan = this.getAxisModel().axis.scale.parse(valueSpan));
+      if (valueSpan != null) {
+        percentSpan = linearMap(dataExtent[0] + valueSpan, dataExtent, [0, 100], true);
+      } else if (percentSpan != null) {
+        valueSpan = linearMap(percentSpan, [0, 100], dataExtent, true) - dataExtent[0];
+      }
+      minMaxSpan[minMax + "Span"] = percentSpan;
+      minMaxSpan[minMax + "ValueSpan"] = valueSpan;
+    }, this);
+  };
+  AxisProxy2.prototype._setAxisModel = function() {
+    var axisModel = this.getAxisModel();
+    var percentWindow = this._percentWindow;
+    var valueWindow = this._valueWindow;
+    if (!percentWindow) {
+      return;
+    }
+    var precision = getPixelPrecision(valueWindow, [0, 500]);
+    precision = Math.min(precision, 20);
+    var rawExtentInfo = axisModel.axis.scale.rawExtentInfo;
+    if (percentWindow[0] !== 0) {
+      rawExtentInfo.setDeterminedMinMax("min", +valueWindow[0].toFixed(precision));
+    }
+    if (percentWindow[1] !== 100) {
+      rawExtentInfo.setDeterminedMinMax("max", +valueWindow[1].toFixed(precision));
+    }
+    rawExtentInfo.freeze();
+  };
+  return AxisProxy2;
+}();
+function calculateDataExtent(axisProxy, axisDim, seriesModels) {
+  var dataExtent = [Infinity, -Infinity];
+  each6(seriesModels, function(seriesModel) {
+    unionAxisExtentFromData(dataExtent, seriesModel.getData(), axisDim);
+  });
+  var axisModel = axisProxy.getAxisModel();
+  var rawExtentResult = ensureScaleRawExtentInfo(axisModel.axis.scale, axisModel, dataExtent).calculate();
+  return [rawExtentResult.min, rawExtentResult.max];
+}
+var AxisProxy_default = AxisProxy;
+
+// node_modules/echarts/lib/component/dataZoom/dataZoomProcessor.js
+var dataZoomProcessor = {
+  getTargetSeries: function(ecModel) {
+    function eachAxisModel(cb) {
+      ecModel.eachComponent("dataZoom", function(dataZoomModel) {
+        dataZoomModel.eachTargetAxis(function(axisDim, axisIndex) {
+          var axisModel = ecModel.getComponent(getAxisMainType(axisDim), axisIndex);
+          cb(axisDim, axisIndex, axisModel, dataZoomModel);
+        });
+      });
+    }
+    eachAxisModel(function(axisDim, axisIndex, axisModel, dataZoomModel) {
+      axisModel.__dzAxisProxy = null;
+    });
+    var proxyList = [];
+    eachAxisModel(function(axisDim, axisIndex, axisModel, dataZoomModel) {
+      if (!axisModel.__dzAxisProxy) {
+        axisModel.__dzAxisProxy = new AxisProxy_default(axisDim, axisIndex, dataZoomModel, ecModel);
+        proxyList.push(axisModel.__dzAxisProxy);
+      }
+    });
+    var seriesModelMap = createHashMap();
+    each(proxyList, function(axisProxy) {
+      each(axisProxy.getTargetSeriesModels(), function(seriesModel) {
+        seriesModelMap.set(seriesModel.uid, seriesModel);
+      });
+    });
+    return seriesModelMap;
+  },
+  overallReset: function(ecModel, api) {
+    ecModel.eachComponent("dataZoom", function(dataZoomModel) {
+      dataZoomModel.eachTargetAxis(function(axisDim, axisIndex) {
+        dataZoomModel.getAxisProxy(axisDim, axisIndex).reset(dataZoomModel);
+      });
+      dataZoomModel.eachTargetAxis(function(axisDim, axisIndex) {
+        dataZoomModel.getAxisProxy(axisDim, axisIndex).filterData(dataZoomModel, api);
+      });
+    });
+    ecModel.eachComponent("dataZoom", function(dataZoomModel) {
+      var axisProxy = dataZoomModel.findRepresentativeAxisProxy();
+      if (axisProxy) {
+        var percentRange = axisProxy.getDataPercentWindow();
+        var valueRange = axisProxy.getDataValueWindow();
+        dataZoomModel.setCalculatedRange({
+          start: percentRange[0],
+          end: percentRange[1],
+          startValue: valueRange[0],
+          endValue: valueRange[1]
+        });
+      }
+    });
+  }
+};
+var dataZoomProcessor_default = dataZoomProcessor;
+
+// node_modules/echarts/lib/component/dataZoom/dataZoomAction.js
+function installDataZoomAction(registers) {
+  registers.registerAction("dataZoom", function(payload, ecModel) {
+    var effectedModels = findEffectedDataZooms(ecModel, payload);
+    each(effectedModels, function(dataZoomModel) {
+      dataZoomModel.setRawRange({
+        start: payload.start,
+        end: payload.end,
+        startValue: payload.startValue,
+        endValue: payload.endValue
+      });
+    });
+  });
+}
+
+// node_modules/echarts/lib/component/dataZoom/installCommon.js
+var installed = false;
+function installCommon(registers) {
+  if (installed) {
+    return;
+  }
+  installed = true;
+  registers.registerProcessor(registers.PRIORITY.PROCESSOR.FILTER, dataZoomProcessor_default);
+  installDataZoomAction(registers);
+  registers.registerSubTypeDefaulter("dataZoom", function() {
+    return "slider";
+  });
+}
+
 // node_modules/echarts/lib/component/helper/listComponent.js
 function makeBackground(rect, componentModel) {
   var padding = normalizeCssArray2(componentModel.get("padding"));
@@ -45130,8 +48464,8 @@ var TooltipView = function(_super) {
     tooltipContent.show(tooltipModel, nearPointColor);
     this._updatePosition(tooltipModel, positionExpr, x3, y3, tooltipContent, params, el);
   };
-  TooltipView2.prototype._getNearestPoint = function(point, tooltipDataParams, trigger, borderColor) {
-    if (trigger === "axis" || isArray(tooltipDataParams)) {
+  TooltipView2.prototype._getNearestPoint = function(point, tooltipDataParams, trigger2, borderColor) {
+    if (trigger2 === "axis" || isArray(tooltipDataParams)) {
       return {
         color: borderColor || (this._renderMode === "html" ? "#fff" : "none")
       };
@@ -45369,8 +48703,8 @@ function findComponentReference(payload, ecModel, api) {
 var TooltipView_default = TooltipView;
 
 // node_modules/echarts/lib/component/tooltip/install.js
-function install11(registers) {
-  use(install9);
+function install14(registers) {
+  use(install12);
   registers.registerComponentModel(TooltipModel_default);
   registers.registerComponentView(TooltipView_default);
   registers.registerAction({
@@ -45384,6 +48718,99 @@ function install11(registers) {
     update: "tooltip:manuallyHideTip"
   }, noop);
 }
+// node_modules/echarts/lib/visual/visualSolution.js
+var each7 = each;
+function hasKeys(obj) {
+  if (obj) {
+    for (var name_1 in obj) {
+      if (obj.hasOwnProperty(name_1)) {
+        return true;
+      }
+    }
+  }
+}
+function createVisualMappings(option, stateList, supplementVisualOption) {
+  var visualMappings = {};
+  each7(stateList, function(state) {
+    var mappings = visualMappings[state] = createMappings();
+    each7(option[state], function(visualData, visualType) {
+      if (!VisualMapping_default.isValidType(visualType)) {
+        return;
+      }
+      var mappingOption = {
+        type: visualType,
+        visual: visualData
+      };
+      supplementVisualOption && supplementVisualOption(mappingOption, state);
+      mappings[visualType] = new VisualMapping_default(mappingOption);
+      if (visualType === "opacity") {
+        mappingOption = clone(mappingOption);
+        mappingOption.type = "colorAlpha";
+        mappings.__hidden.__alphaForOpacity = new VisualMapping_default(mappingOption);
+      }
+    });
+  });
+  return visualMappings;
+  function createMappings() {
+    var Creater = function() {};
+    Creater.prototype.__hidden = Creater.prototype;
+    var obj = new Creater;
+    return obj;
+  }
+}
+function replaceVisualOption(thisOption, newOption, keys2) {
+  var has;
+  each(keys2, function(key) {
+    if (newOption.hasOwnProperty(key) && hasKeys(newOption[key])) {
+      has = true;
+    }
+  });
+  has && each(keys2, function(key) {
+    if (newOption.hasOwnProperty(key) && hasKeys(newOption[key])) {
+      thisOption[key] = clone(newOption[key]);
+    } else {
+      delete thisOption[key];
+    }
+  });
+}
+function incrementalApplyVisual(stateList, visualMappings, getValueState, dim) {
+  var visualTypesMap = {};
+  each(stateList, function(state) {
+    var visualTypes = VisualMapping_default.prepareVisualTypes(visualMappings[state]);
+    visualTypesMap[state] = visualTypes;
+  });
+  return {
+    progress: function progress(params, data) {
+      var dimIndex;
+      if (dim != null) {
+        dimIndex = data.getDimensionIndex(dim);
+      }
+      function getVisual(key) {
+        return getItemVisualFromData(data, dataIndex, key);
+      }
+      function setVisual(key, value3) {
+        setItemVisualFromData(data, dataIndex, key, value3);
+      }
+      var dataIndex;
+      var store = data.getStore();
+      while ((dataIndex = params.next()) != null) {
+        var rawDataItem = data.getRawDataItem(dataIndex);
+        if (rawDataItem && rawDataItem.visualMap === false) {
+          continue;
+        }
+        var value2 = dim != null ? store.get(dimIndex, dataIndex) : dataIndex;
+        var valueState = getValueState(value2);
+        var mappings = visualMappings[valueState];
+        var visualTypes = visualTypesMap[valueState];
+        for (var i3 = 0, len2 = visualTypes.length;i3 < len2; i3++) {
+          var type = visualTypes[i3];
+          mappings[type] && mappings[type].applyVisual(value2, getVisual, setVisual);
+        }
+      }
+    }
+  };
+}
+
 // node_modules/echarts/lib/component/title/install.js
 var TitleModel = function(_super) {
   __extends(TitleModel2, _super);
@@ -45544,9 +48971,600 @@ var TitleView = function(_super) {
   TitleView2.type = "title";
   return TitleView2;
 }(Component_default2);
-function install12(registers) {
+function install15(registers) {
   registers.registerComponentModel(TitleModel);
   registers.registerComponentView(TitleView);
+}
+// node_modules/echarts/lib/component/marker/checkMarkerInSeries.js
+function checkMarkerInSeries(seriesOpts, markerType) {
+  if (!seriesOpts) {
+    return false;
+  }
+  var seriesOptArr = isArray(seriesOpts) ? seriesOpts : [seriesOpts];
+  for (var idx = 0;idx < seriesOptArr.length; idx++) {
+    if (seriesOptArr[idx] && seriesOptArr[idx][markerType]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// node_modules/echarts/lib/component/marker/MarkerModel.js
+function fillLabel(opt) {
+  defaultEmphasis(opt, "label", ["show"]);
+}
+var inner11 = makeInner();
+var MarkerModel = function(_super) {
+  __extends(MarkerModel2, _super);
+  function MarkerModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = MarkerModel2.type;
+    _this.createdBySelf = false;
+    return _this;
+  }
+  MarkerModel2.prototype.init = function(option, parentModel, ecModel) {
+    if (true) {
+      if (this.type === "marker") {
+        throw new Error("Marker component is abstract component. Use markLine, markPoint, markArea instead.");
+      }
+    }
+    this.mergeDefaultAndTheme(option, ecModel);
+    this._mergeOption(option, ecModel, false, true);
+  };
+  MarkerModel2.prototype.isAnimationEnabled = function() {
+    if (env_default.node) {
+      return false;
+    }
+    var hostSeries = this.__hostSeries;
+    return this.getShallow("animation") && hostSeries && hostSeries.isAnimationEnabled();
+  };
+  MarkerModel2.prototype.mergeOption = function(newOpt, ecModel) {
+    this._mergeOption(newOpt, ecModel, false, false);
+  };
+  MarkerModel2.prototype._mergeOption = function(newOpt, ecModel, createdBySelf, isInit) {
+    var componentType = this.mainType;
+    if (!createdBySelf) {
+      ecModel.eachSeries(function(seriesModel) {
+        var markerOpt = seriesModel.get(this.mainType, true);
+        var markerModel = inner11(seriesModel)[componentType];
+        if (!markerOpt || !markerOpt.data) {
+          inner11(seriesModel)[componentType] = null;
+          return;
+        }
+        if (!markerModel) {
+          if (isInit) {
+            fillLabel(markerOpt);
+          }
+          each(markerOpt.data, function(item) {
+            if (item instanceof Array) {
+              fillLabel(item[0]);
+              fillLabel(item[1]);
+            } else {
+              fillLabel(item);
+            }
+          });
+          markerModel = this.createMarkerModelFromSeries(markerOpt, this, ecModel);
+          extend(markerModel, {
+            mainType: this.mainType,
+            seriesIndex: seriesModel.seriesIndex,
+            name: seriesModel.name,
+            createdBySelf: true
+          });
+          markerModel.__hostSeries = seriesModel;
+        } else {
+          markerModel._mergeOption(markerOpt, ecModel, true);
+        }
+        inner11(seriesModel)[componentType] = markerModel;
+      }, this);
+    }
+  };
+  MarkerModel2.prototype.formatTooltip = function(dataIndex, multipleSeries, dataType) {
+    var data = this.getData();
+    var value2 = this.getRawValue(dataIndex);
+    var itemName = data.getName(dataIndex);
+    return createTooltipMarkup("section", {
+      header: this.name,
+      blocks: [createTooltipMarkup("nameValue", {
+        name: itemName,
+        value: value2,
+        noName: !itemName,
+        noValue: value2 == null
+      })]
+    });
+  };
+  MarkerModel2.prototype.getData = function() {
+    return this._data;
+  };
+  MarkerModel2.prototype.setData = function(data) {
+    this._data = data;
+  };
+  MarkerModel2.prototype.getDataParams = function(dataIndex, dataType) {
+    var params = DataFormatMixin.prototype.getDataParams.call(this, dataIndex, dataType);
+    var hostSeries = this.__hostSeries;
+    if (hostSeries) {
+      params.seriesId = hostSeries.id;
+      params.seriesName = hostSeries.name;
+      params.seriesType = hostSeries.subType;
+    }
+    return params;
+  };
+  MarkerModel2.getMarkerModelFromSeries = function(seriesModel, componentType) {
+    return inner11(seriesModel)[componentType];
+  };
+  MarkerModel2.type = "marker";
+  MarkerModel2.dependencies = ["series", "grid", "polar", "geo"];
+  return MarkerModel2;
+}(Component_default);
+mixin2(MarkerModel, DataFormatMixin.prototype);
+var MarkerModel_default = MarkerModel;
+
+// node_modules/echarts/lib/component/marker/markerHelper.js
+function hasXOrY(item) {
+  return !(isNaN(parseFloat(item.x)) && isNaN(parseFloat(item.y)));
+}
+function hasXAndY(item) {
+  return !isNaN(parseFloat(item.x)) && !isNaN(parseFloat(item.y));
+}
+function markerTypeCalculatorWithExtent(markerType, data, otherDataDim, targetDataDim, otherCoordIndex, targetCoordIndex) {
+  var coordArr = [];
+  var stacked = isDimensionStacked(data, targetDataDim);
+  var calcDataDim = stacked ? data.getCalculationInfo("stackResultDimension") : targetDataDim;
+  var value2 = numCalculate(data, calcDataDim, markerType);
+  var dataIndex = data.indicesOfNearest(calcDataDim, value2)[0];
+  coordArr[otherCoordIndex] = data.get(otherDataDim, dataIndex);
+  coordArr[targetCoordIndex] = data.get(calcDataDim, dataIndex);
+  var coordArrValue = data.get(targetDataDim, dataIndex);
+  var precision = getPrecision(data.get(targetDataDim, dataIndex));
+  precision = Math.min(precision, 20);
+  if (precision >= 0) {
+    coordArr[targetCoordIndex] = +coordArr[targetCoordIndex].toFixed(precision);
+  }
+  return [coordArr, coordArrValue];
+}
+var markerTypeCalculator = {
+  min: curry(markerTypeCalculatorWithExtent, "min"),
+  max: curry(markerTypeCalculatorWithExtent, "max"),
+  average: curry(markerTypeCalculatorWithExtent, "average"),
+  median: curry(markerTypeCalculatorWithExtent, "median")
+};
+function dataTransform(seriesModel, item) {
+  if (!item) {
+    return;
+  }
+  var data = seriesModel.getData();
+  var coordSys = seriesModel.coordinateSystem;
+  var dims = coordSys && coordSys.dimensions;
+  if (!hasXAndY(item) && !isArray(item.coord) && isArray(dims)) {
+    var axisInfo = getAxisInfo2(item, data, coordSys, seriesModel);
+    item = clone(item);
+    if (item.type && markerTypeCalculator[item.type] && axisInfo.baseAxis && axisInfo.valueAxis) {
+      var otherCoordIndex = indexOf(dims, axisInfo.baseAxis.dim);
+      var targetCoordIndex = indexOf(dims, axisInfo.valueAxis.dim);
+      var coordInfo = markerTypeCalculator[item.type](data, axisInfo.baseDataDim, axisInfo.valueDataDim, otherCoordIndex, targetCoordIndex);
+      item.coord = coordInfo[0];
+      item.value = coordInfo[1];
+    } else {
+      item.coord = [item.xAxis != null ? item.xAxis : item.radiusAxis, item.yAxis != null ? item.yAxis : item.angleAxis];
+    }
+  }
+  if (item.coord == null || !isArray(dims)) {
+    item.coord = [];
+  } else {
+    var coord = item.coord;
+    for (var i3 = 0;i3 < 2; i3++) {
+      if (markerTypeCalculator[coord[i3]]) {
+        coord[i3] = numCalculate(data, data.mapDimension(dims[i3]), coord[i3]);
+      }
+    }
+  }
+  return item;
+}
+function getAxisInfo2(item, data, coordSys, seriesModel) {
+  var ret = {};
+  if (item.valueIndex != null || item.valueDim != null) {
+    ret.valueDataDim = item.valueIndex != null ? data.getDimension(item.valueIndex) : item.valueDim;
+    ret.valueAxis = coordSys.getAxis(dataDimToCoordDim(seriesModel, ret.valueDataDim));
+    ret.baseAxis = coordSys.getOtherAxis(ret.valueAxis);
+    ret.baseDataDim = data.mapDimension(ret.baseAxis.dim);
+  } else {
+    ret.baseAxis = seriesModel.getBaseAxis();
+    ret.valueAxis = coordSys.getOtherAxis(ret.baseAxis);
+    ret.baseDataDim = data.mapDimension(ret.baseAxis.dim);
+    ret.valueDataDim = data.mapDimension(ret.valueAxis.dim);
+  }
+  return ret;
+}
+function dataDimToCoordDim(seriesModel, dataDim) {
+  var dimItem = seriesModel.getData().getDimensionInfo(dataDim);
+  return dimItem && dimItem.coordDim;
+}
+function dataFilter2(coordSys, item) {
+  return coordSys && coordSys.containData && item.coord && !hasXOrY(item) ? coordSys.containData(item.coord) : true;
+}
+function createMarkerDimValueGetter(inCoordSys, dims) {
+  return inCoordSys ? function(item, dimName, dataIndex, dimIndex) {
+    var rawVal = dimIndex < 2 ? item.coord && item.coord[dimIndex] : item.value;
+    return parseDataValue(rawVal, dims[dimIndex]);
+  } : function(item, dimName, dataIndex, dimIndex) {
+    return parseDataValue(item.value, dims[dimIndex]);
+  };
+}
+function numCalculate(data, valueDataDim, type) {
+  if (type === "average") {
+    var sum_1 = 0;
+    var count_1 = 0;
+    data.each(valueDataDim, function(val, idx) {
+      if (!isNaN(val)) {
+        sum_1 += val;
+        count_1++;
+      }
+    });
+    return sum_1 / count_1;
+  } else if (type === "median") {
+    return data.getMedian(valueDataDim);
+  } else {
+    return data.getDataExtent(valueDataDim)[type === "max" ? 1 : 0];
+  }
+}
+
+// node_modules/echarts/lib/component/marker/MarkerView.js
+var inner12 = makeInner();
+var MarkerView = function(_super) {
+  __extends(MarkerView2, _super);
+  function MarkerView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = MarkerView2.type;
+    return _this;
+  }
+  MarkerView2.prototype.init = function() {
+    this.markerGroupMap = createHashMap();
+  };
+  MarkerView2.prototype.render = function(markerModel, ecModel, api) {
+    var _this = this;
+    var markerGroupMap = this.markerGroupMap;
+    markerGroupMap.each(function(item) {
+      inner12(item).keep = false;
+    });
+    ecModel.eachSeries(function(seriesModel) {
+      var markerModel2 = MarkerModel_default.getMarkerModelFromSeries(seriesModel, _this.type);
+      markerModel2 && _this.renderSeries(seriesModel, markerModel2, ecModel, api);
+    });
+    markerGroupMap.each(function(item) {
+      !inner12(item).keep && _this.group.remove(item.group);
+    });
+  };
+  MarkerView2.prototype.markKeep = function(drawGroup) {
+    inner12(drawGroup).keep = true;
+  };
+  MarkerView2.prototype.toggleBlurSeries = function(seriesModelList, isBlur) {
+    var _this = this;
+    each(seriesModelList, function(seriesModel) {
+      var markerModel = MarkerModel_default.getMarkerModelFromSeries(seriesModel, _this.type);
+      if (markerModel) {
+        var data = markerModel.getData();
+        data.eachItemGraphicEl(function(el) {
+          if (el) {
+            isBlur ? enterBlur(el) : leaveBlur(el);
+          }
+        });
+      }
+    });
+  };
+  MarkerView2.type = "marker";
+  return MarkerView2;
+}(Component_default2);
+var MarkerView_default = MarkerView;
+
+// node_modules/echarts/lib/component/marker/MarkLineModel.js
+var MarkLineModel = function(_super) {
+  __extends(MarkLineModel2, _super);
+  function MarkLineModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = MarkLineModel2.type;
+    return _this;
+  }
+  MarkLineModel2.prototype.createMarkerModelFromSeries = function(markerOpt, masterMarkerModel, ecModel) {
+    return new MarkLineModel2(markerOpt, masterMarkerModel, ecModel);
+  };
+  MarkLineModel2.type = "markLine";
+  MarkLineModel2.defaultOption = {
+    z: 5,
+    symbol: ["circle", "arrow"],
+    symbolSize: [8, 16],
+    symbolOffset: 0,
+    precision: 2,
+    tooltip: {
+      trigger: "item"
+    },
+    label: {
+      show: true,
+      position: "end",
+      distance: 5
+    },
+    lineStyle: {
+      type: "dashed"
+    },
+    emphasis: {
+      label: {
+        show: true
+      },
+      lineStyle: {
+        width: 3
+      }
+    },
+    animationEasing: "linear"
+  };
+  return MarkLineModel2;
+}(MarkerModel_default);
+var MarkLineModel_default = MarkLineModel;
+
+// node_modules/echarts/lib/component/marker/MarkLineView.js
+var inner13 = makeInner();
+var markLineTransform = function(seriesModel, coordSys, mlModel, item) {
+  var data = seriesModel.getData();
+  var itemArray;
+  if (!isArray(item)) {
+    var mlType = item.type;
+    if (mlType === "min" || mlType === "max" || mlType === "average" || mlType === "median" || item.xAxis != null || item.yAxis != null) {
+      var valueAxis2 = undefined;
+      var value2 = undefined;
+      if (item.yAxis != null || item.xAxis != null) {
+        valueAxis2 = coordSys.getAxis(item.yAxis != null ? "y" : "x");
+        value2 = retrieve(item.yAxis, item.xAxis);
+      } else {
+        var axisInfo = getAxisInfo2(item, data, coordSys, seriesModel);
+        valueAxis2 = axisInfo.valueAxis;
+        var valueDataDim = getStackedDimension(data, axisInfo.valueDataDim);
+        value2 = numCalculate(data, valueDataDim, mlType);
+      }
+      var valueIndex = valueAxis2.dim === "x" ? 0 : 1;
+      var baseIndex = 1 - valueIndex;
+      var mlFrom = clone(item);
+      var mlTo = {
+        coord: []
+      };
+      mlFrom.type = null;
+      mlFrom.coord = [];
+      mlFrom.coord[baseIndex] = -Infinity;
+      mlTo.coord[baseIndex] = Infinity;
+      var precision = mlModel.get("precision");
+      if (precision >= 0 && isNumber(value2)) {
+        value2 = +value2.toFixed(Math.min(precision, 20));
+      }
+      mlFrom.coord[valueIndex] = mlTo.coord[valueIndex] = value2;
+      itemArray = [mlFrom, mlTo, {
+        type: mlType,
+        valueIndex: item.valueIndex,
+        value: value2
+      }];
+    } else {
+      if (true) {
+        logError("Invalid markLine data.");
+      }
+      itemArray = [];
+    }
+  } else {
+    itemArray = item;
+  }
+  var normalizedItem = [dataTransform(seriesModel, itemArray[0]), dataTransform(seriesModel, itemArray[1]), extend({}, itemArray[2])];
+  normalizedItem[2].type = normalizedItem[2].type || null;
+  merge(normalizedItem[2], normalizedItem[0]);
+  merge(normalizedItem[2], normalizedItem[1]);
+  return normalizedItem;
+};
+function isInfinity(val) {
+  return !isNaN(val) && !isFinite(val);
+}
+function ifMarkLineHasOnlyDim(dimIndex, fromCoord, toCoord, coordSys) {
+  var otherDimIndex = 1 - dimIndex;
+  var dimName = coordSys.dimensions[dimIndex];
+  return isInfinity(fromCoord[otherDimIndex]) && isInfinity(toCoord[otherDimIndex]) && fromCoord[dimIndex] === toCoord[dimIndex] && coordSys.getAxis(dimName).containData(fromCoord[dimIndex]);
+}
+function markLineFilter(coordSys, item) {
+  if (coordSys.type === "cartesian2d") {
+    var fromCoord = item[0].coord;
+    var toCoord = item[1].coord;
+    if (fromCoord && toCoord && (ifMarkLineHasOnlyDim(1, fromCoord, toCoord, coordSys) || ifMarkLineHasOnlyDim(0, fromCoord, toCoord, coordSys))) {
+      return true;
+    }
+  }
+  return dataFilter2(coordSys, item[0]) && dataFilter2(coordSys, item[1]);
+}
+function updateSingleMarkerEndLayout(data, idx, isFrom, seriesModel, api) {
+  var coordSys = seriesModel.coordinateSystem;
+  var itemModel = data.getItemModel(idx);
+  var point;
+  var xPx = parsePercent2(itemModel.get("x"), api.getWidth());
+  var yPx = parsePercent2(itemModel.get("y"), api.getHeight());
+  if (!isNaN(xPx) && !isNaN(yPx)) {
+    point = [xPx, yPx];
+  } else {
+    if (seriesModel.getMarkerPosition) {
+      point = seriesModel.getMarkerPosition(data.getValues(data.dimensions, idx));
+    } else {
+      var dims = coordSys.dimensions;
+      var x3 = data.get(dims[0], idx);
+      var y3 = data.get(dims[1], idx);
+      point = coordSys.dataToPoint([x3, y3]);
+    }
+    if (isCoordinateSystemType(coordSys, "cartesian2d")) {
+      var xAxis = coordSys.getAxis("x");
+      var yAxis = coordSys.getAxis("y");
+      var dims = coordSys.dimensions;
+      if (isInfinity(data.get(dims[0], idx))) {
+        point[0] = xAxis.toGlobalCoord(xAxis.getExtent()[isFrom ? 0 : 1]);
+      } else if (isInfinity(data.get(dims[1], idx))) {
+        point[1] = yAxis.toGlobalCoord(yAxis.getExtent()[isFrom ? 0 : 1]);
+      }
+    }
+    if (!isNaN(xPx)) {
+      point[0] = xPx;
+    }
+    if (!isNaN(yPx)) {
+      point[1] = yPx;
+    }
+  }
+  data.setItemLayout(idx, point);
+}
+var MarkLineView = function(_super) {
+  __extends(MarkLineView2, _super);
+  function MarkLineView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = MarkLineView2.type;
+    return _this;
+  }
+  MarkLineView2.prototype.updateTransform = function(markLineModel, ecModel, api) {
+    ecModel.eachSeries(function(seriesModel) {
+      var mlModel = MarkerModel_default.getMarkerModelFromSeries(seriesModel, "markLine");
+      if (mlModel) {
+        var mlData_1 = mlModel.getData();
+        var fromData_1 = inner13(mlModel).from;
+        var toData_1 = inner13(mlModel).to;
+        fromData_1.each(function(idx) {
+          updateSingleMarkerEndLayout(fromData_1, idx, true, seriesModel, api);
+          updateSingleMarkerEndLayout(toData_1, idx, false, seriesModel, api);
+        });
+        mlData_1.each(function(idx) {
+          mlData_1.setItemLayout(idx, [fromData_1.getItemLayout(idx), toData_1.getItemLayout(idx)]);
+        });
+        this.markerGroupMap.get(seriesModel.id).updateLayout();
+      }
+    }, this);
+  };
+  MarkLineView2.prototype.renderSeries = function(seriesModel, mlModel, ecModel, api) {
+    var coordSys = seriesModel.coordinateSystem;
+    var seriesId = seriesModel.id;
+    var seriesData = seriesModel.getData();
+    var lineDrawMap = this.markerGroupMap;
+    var lineDraw = lineDrawMap.get(seriesId) || lineDrawMap.set(seriesId, new LineDraw_default);
+    this.group.add(lineDraw.group);
+    var mlData = createList(coordSys, seriesModel, mlModel);
+    var fromData = mlData.from;
+    var toData = mlData.to;
+    var lineData = mlData.line;
+    inner13(mlModel).from = fromData;
+    inner13(mlModel).to = toData;
+    mlModel.setData(lineData);
+    var symbolType = mlModel.get("symbol");
+    var symbolSize = mlModel.get("symbolSize");
+    var symbolRotate = mlModel.get("symbolRotate");
+    var symbolOffset = mlModel.get("symbolOffset");
+    if (!isArray(symbolType)) {
+      symbolType = [symbolType, symbolType];
+    }
+    if (!isArray(symbolSize)) {
+      symbolSize = [symbolSize, symbolSize];
+    }
+    if (!isArray(symbolRotate)) {
+      symbolRotate = [symbolRotate, symbolRotate];
+    }
+    if (!isArray(symbolOffset)) {
+      symbolOffset = [symbolOffset, symbolOffset];
+    }
+    mlData.from.each(function(idx) {
+      updateDataVisualAndLayout(fromData, idx, true);
+      updateDataVisualAndLayout(toData, idx, false);
+    });
+    lineData.each(function(idx) {
+      var lineStyle = lineData.getItemModel(idx).getModel("lineStyle").getLineStyle();
+      lineData.setItemLayout(idx, [fromData.getItemLayout(idx), toData.getItemLayout(idx)]);
+      if (lineStyle.stroke == null) {
+        lineStyle.stroke = fromData.getItemVisual(idx, "style").fill;
+      }
+      lineData.setItemVisual(idx, {
+        fromSymbolKeepAspect: fromData.getItemVisual(idx, "symbolKeepAspect"),
+        fromSymbolOffset: fromData.getItemVisual(idx, "symbolOffset"),
+        fromSymbolRotate: fromData.getItemVisual(idx, "symbolRotate"),
+        fromSymbolSize: fromData.getItemVisual(idx, "symbolSize"),
+        fromSymbol: fromData.getItemVisual(idx, "symbol"),
+        toSymbolKeepAspect: toData.getItemVisual(idx, "symbolKeepAspect"),
+        toSymbolOffset: toData.getItemVisual(idx, "symbolOffset"),
+        toSymbolRotate: toData.getItemVisual(idx, "symbolRotate"),
+        toSymbolSize: toData.getItemVisual(idx, "symbolSize"),
+        toSymbol: toData.getItemVisual(idx, "symbol"),
+        style: lineStyle
+      });
+    });
+    lineDraw.updateData(lineData);
+    mlData.line.eachItemGraphicEl(function(el) {
+      getECData(el).dataModel = mlModel;
+      el.traverse(function(child) {
+        getECData(child).dataModel = mlModel;
+      });
+    });
+    function updateDataVisualAndLayout(data, idx, isFrom) {
+      var itemModel = data.getItemModel(idx);
+      updateSingleMarkerEndLayout(data, idx, isFrom, seriesModel, api);
+      var style = itemModel.getModel("itemStyle").getItemStyle();
+      if (style.fill == null) {
+        style.fill = getVisualFromData(seriesData, "color");
+      }
+      data.setItemVisual(idx, {
+        symbolKeepAspect: itemModel.get("symbolKeepAspect"),
+        symbolOffset: retrieve2(itemModel.get("symbolOffset", true), symbolOffset[isFrom ? 0 : 1]),
+        symbolRotate: retrieve2(itemModel.get("symbolRotate", true), symbolRotate[isFrom ? 0 : 1]),
+        symbolSize: retrieve2(itemModel.get("symbolSize"), symbolSize[isFrom ? 0 : 1]),
+        symbol: retrieve2(itemModel.get("symbol", true), symbolType[isFrom ? 0 : 1]),
+        style
+      });
+    }
+    this.markKeep(lineDraw);
+    lineDraw.group.silent = mlModel.get("silent") || seriesModel.get("silent");
+  };
+  MarkLineView2.type = "markLine";
+  return MarkLineView2;
+}(MarkerView_default);
+function createList(coordSys, seriesModel, mlModel) {
+  var coordDimsInfos;
+  if (coordSys) {
+    coordDimsInfos = map(coordSys && coordSys.dimensions, function(coordDim) {
+      var info = seriesModel.getData().getDimensionInfo(seriesModel.getData().mapDimension(coordDim)) || {};
+      return extend(extend({}, info), {
+        name: coordDim,
+        ordinalMeta: null
+      });
+    });
+  } else {
+    coordDimsInfos = [{
+      name: "value",
+      type: "float"
+    }];
+  }
+  var fromData = new SeriesData_default(coordDimsInfos, mlModel);
+  var toData = new SeriesData_default(coordDimsInfos, mlModel);
+  var lineData = new SeriesData_default([], mlModel);
+  var optData = map(mlModel.get("data"), curry(markLineTransform, seriesModel, coordSys, mlModel));
+  if (coordSys) {
+    optData = filter(optData, curry(markLineFilter, coordSys));
+  }
+  var dimValueGetter = createMarkerDimValueGetter(!!coordSys, coordDimsInfos);
+  fromData.initData(map(optData, function(item) {
+    return item[0];
+  }), null, dimValueGetter);
+  toData.initData(map(optData, function(item) {
+    return item[1];
+  }), null, dimValueGetter);
+  lineData.initData(map(optData, function(item) {
+    return item[2];
+  }));
+  lineData.hasItemOption = true;
+  return {
+    from: fromData,
+    to: toData,
+    line: lineData
+  };
+}
+var MarkLineView_default = MarkLineView;
+
+// node_modules/echarts/lib/component/marker/installMarkLine.js
+function install16(registers) {
+  registers.registerComponentModel(MarkLineModel_default);
+  registers.registerComponentView(MarkLineView_default);
+  registers.registerPreprocessor(function(opt) {
+    if (checkMarkerInSeries(opt.series, "markLine")) {
+      opt.markLine = opt.markLine || {};
+    }
+  });
 }
 // node_modules/echarts/lib/component/legend/LegendModel.js
 var getDefaultSelectorOptions = function(ecModel, type) {
@@ -45793,7 +49811,7 @@ var LegendModel_default = LegendModel;
 
 // node_modules/echarts/lib/component/legend/LegendView.js
 var curry2 = curry;
-var each5 = each;
+var each8 = each;
 var Group2 = Group_default;
 var LegendView = function(_super) {
   __extends(LegendView2, _super);
@@ -45862,7 +49880,7 @@ var LegendView = function(_super) {
     ecModel.eachRawSeries(function(seriesModel) {
       !seriesModel.get("legendHoverLink") && excludeSeriesId.push(seriesModel.id);
     });
-    each5(legendModel.getData(), function(legendItemModel, dataIndex) {
+    each8(legendModel.getData(), function(legendItemModel, dataIndex) {
       var name = legendItemModel.get("name");
       if (!this.newlineDisabled && (name === "" || name === `
 `)) {
@@ -45937,7 +49955,7 @@ var LegendView = function(_super) {
   };
   LegendView2.prototype._createSelector = function(selector, legendModel, api, orient, selectorPosition) {
     var selectorGroup = this.getSelectorGroup();
-    each5(selector, function createSelectorButton(selectorItem) {
+    each8(selector, function createSelectorButton(selectorItem) {
       var type = selectorItem.type;
       var labelText = new Text_default({
         style: {
@@ -46099,7 +50117,7 @@ function getLegendStyle(iconType, legendItemModel, lineVisualStyle, itemVisualSt
     if (style.lineWidth === "auto") {
       style.lineWidth = visualStyle.lineWidth > 0 ? 2 : 0;
     }
-    each5(style, function(propVal, propName) {
+    each8(style, function(propVal, propName) {
       style[propName] === "inherit" && (style[propName] = visualStyle[propName]);
     });
   }
@@ -46266,7 +50284,7 @@ function installLegendAction(registers) {
 }
 
 // node_modules/echarts/lib/component/legend/installLegendPlain.js
-function install13(registers) {
+function install17(registers) {
   registers.registerComponentModel(LegendModel_default);
   registers.registerComponentView(LegendView_default);
   registers.registerProcessor(registers.PRIORITY.PROCESSOR.SERIES_FILTER, legendFilter);
@@ -46618,17 +50636,2884 @@ function installScrollableLegendAction(registers) {
 }
 
 // node_modules/echarts/lib/component/legend/installLegendScroll.js
-function install14(registers) {
-  use(install13);
+function install18(registers) {
+  use(install17);
   registers.registerComponentModel(ScrollableLegendModel_default);
   registers.registerComponentView(ScrollableLegendView_default);
   installScrollableLegendAction(registers);
 }
 
 // node_modules/echarts/lib/component/legend/install.js
-function install15(registers) {
-  use(install13);
-  use(install14);
+function install19(registers) {
+  use(install17);
+  use(install18);
+}
+// node_modules/echarts/lib/component/dataZoom/InsideZoomModel.js
+var InsideZoomModel = function(_super) {
+  __extends(InsideZoomModel2, _super);
+  function InsideZoomModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = InsideZoomModel2.type;
+    return _this;
+  }
+  InsideZoomModel2.type = "dataZoom.inside";
+  InsideZoomModel2.defaultOption = inheritDefaultOption(DataZoomModel_default.defaultOption, {
+    disabled: false,
+    zoomLock: false,
+    zoomOnMouseWheel: true,
+    moveOnMouseMove: true,
+    moveOnMouseWheel: false,
+    preventDefaultMouseMove: true
+  });
+  return InsideZoomModel2;
+}(DataZoomModel_default);
+var InsideZoomModel_default = InsideZoomModel;
+
+// node_modules/echarts/lib/component/dataZoom/roams.js
+var inner14 = makeInner();
+function setViewInfoToCoordSysRecord(api, dataZoomModel, getRange) {
+  inner14(api).coordSysRecordMap.each(function(coordSysRecord) {
+    var dzInfo = coordSysRecord.dataZoomInfoMap.get(dataZoomModel.uid);
+    if (dzInfo) {
+      dzInfo.getRange = getRange;
+    }
+  });
+}
+function disposeCoordSysRecordIfNeeded(api, dataZoomModel) {
+  var coordSysRecordMap = inner14(api).coordSysRecordMap;
+  var coordSysKeyArr = coordSysRecordMap.keys();
+  for (var i3 = 0;i3 < coordSysKeyArr.length; i3++) {
+    var coordSysKey = coordSysKeyArr[i3];
+    var coordSysRecord = coordSysRecordMap.get(coordSysKey);
+    var dataZoomInfoMap = coordSysRecord.dataZoomInfoMap;
+    if (dataZoomInfoMap) {
+      var dzUid = dataZoomModel.uid;
+      var dzInfo = dataZoomInfoMap.get(dzUid);
+      if (dzInfo) {
+        dataZoomInfoMap.removeKey(dzUid);
+        if (!dataZoomInfoMap.keys().length) {
+          disposeCoordSysRecord(coordSysRecordMap, coordSysRecord);
+        }
+      }
+    }
+  }
+}
+function disposeCoordSysRecord(coordSysRecordMap, coordSysRecord) {
+  if (coordSysRecord) {
+    coordSysRecordMap.removeKey(coordSysRecord.model.uid);
+    var controller = coordSysRecord.controller;
+    controller && controller.dispose();
+  }
+}
+function createCoordSysRecord(api, coordSysModel) {
+  var coordSysRecord = {
+    model: coordSysModel,
+    containsPoint: curry(containsPoint, coordSysModel),
+    dispatchAction: curry(dispatchAction, api),
+    dataZoomInfoMap: null,
+    controller: null
+  };
+  var controller = coordSysRecord.controller = new RoamController_default(api.getZr());
+  each(["pan", "zoom", "scrollMove"], function(eventName) {
+    controller.on(eventName, function(event) {
+      var batch = [];
+      coordSysRecord.dataZoomInfoMap.each(function(dzInfo) {
+        if (!event.isAvailableBehavior(dzInfo.model.option)) {
+          return;
+        }
+        var method = (dzInfo.getRange || {})[eventName];
+        var range = method && method(dzInfo.dzReferCoordSysInfo, coordSysRecord.model.mainType, coordSysRecord.controller, event);
+        !dzInfo.model.get("disabled", true) && range && batch.push({
+          dataZoomId: dzInfo.model.id,
+          start: range[0],
+          end: range[1]
+        });
+      });
+      batch.length && coordSysRecord.dispatchAction(batch);
+    });
+  });
+  return coordSysRecord;
+}
+function dispatchAction(api, batch) {
+  if (!api.isDisposed()) {
+    api.dispatchAction({
+      type: "dataZoom",
+      animation: {
+        easing: "cubicOut",
+        duration: 100
+      },
+      batch
+    });
+  }
+}
+function containsPoint(coordSysModel, e4, x3, y3) {
+  return coordSysModel.coordinateSystem.containPoint([x3, y3]);
+}
+function mergeControllerParams(dataZoomInfoMap) {
+  var controlType;
+  var prefix = "type_";
+  var typePriority = {
+    type_true: 2,
+    type_move: 1,
+    type_false: 0,
+    type_undefined: -1
+  };
+  var preventDefaultMouseMove = true;
+  dataZoomInfoMap.each(function(dataZoomInfo) {
+    var dataZoomModel = dataZoomInfo.model;
+    var oneType = dataZoomModel.get("disabled", true) ? false : dataZoomModel.get("zoomLock", true) ? "move" : true;
+    if (typePriority[prefix + oneType] > typePriority[prefix + controlType]) {
+      controlType = oneType;
+    }
+    preventDefaultMouseMove = preventDefaultMouseMove && dataZoomModel.get("preventDefaultMouseMove", true);
+  });
+  return {
+    controlType,
+    opt: {
+      zoomOnMouseWheel: true,
+      moveOnMouseMove: true,
+      moveOnMouseWheel: true,
+      preventDefaultMouseMove: !!preventDefaultMouseMove
+    }
+  };
+}
+function installDataZoomRoamProcessor(registers) {
+  registers.registerProcessor(registers.PRIORITY.PROCESSOR.FILTER, function(ecModel, api) {
+    var apiInner = inner14(api);
+    var coordSysRecordMap = apiInner.coordSysRecordMap || (apiInner.coordSysRecordMap = createHashMap());
+    coordSysRecordMap.each(function(coordSysRecord) {
+      coordSysRecord.dataZoomInfoMap = null;
+    });
+    ecModel.eachComponent({
+      mainType: "dataZoom",
+      subType: "inside"
+    }, function(dataZoomModel) {
+      var dzReferCoordSysWrap = collectReferCoordSysModelInfo(dataZoomModel);
+      each(dzReferCoordSysWrap.infoList, function(dzCoordSysInfo) {
+        var coordSysUid = dzCoordSysInfo.model.uid;
+        var coordSysRecord = coordSysRecordMap.get(coordSysUid) || coordSysRecordMap.set(coordSysUid, createCoordSysRecord(api, dzCoordSysInfo.model));
+        var dataZoomInfoMap = coordSysRecord.dataZoomInfoMap || (coordSysRecord.dataZoomInfoMap = createHashMap());
+        dataZoomInfoMap.set(dataZoomModel.uid, {
+          dzReferCoordSysInfo: dzCoordSysInfo,
+          model: dataZoomModel,
+          getRange: null
+        });
+      });
+    });
+    coordSysRecordMap.each(function(coordSysRecord) {
+      var controller = coordSysRecord.controller;
+      var firstDzInfo;
+      var dataZoomInfoMap = coordSysRecord.dataZoomInfoMap;
+      if (dataZoomInfoMap) {
+        var firstDzKey = dataZoomInfoMap.keys()[0];
+        if (firstDzKey != null) {
+          firstDzInfo = dataZoomInfoMap.get(firstDzKey);
+        }
+      }
+      if (!firstDzInfo) {
+        disposeCoordSysRecord(coordSysRecordMap, coordSysRecord);
+        return;
+      }
+      var controllerParams = mergeControllerParams(dataZoomInfoMap);
+      controller.enable(controllerParams.controlType, controllerParams.opt);
+      controller.setPointerChecker(coordSysRecord.containsPoint);
+      createOrUpdate(coordSysRecord, "dispatchAction", firstDzInfo.model.get("throttle", true), "fixRate");
+    });
+  });
+}
+
+// node_modules/echarts/lib/component/dataZoom/InsideZoomView.js
+var InsideZoomView = function(_super) {
+  __extends(InsideZoomView2, _super);
+  function InsideZoomView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = "dataZoom.inside";
+    return _this;
+  }
+  InsideZoomView2.prototype.render = function(dataZoomModel, ecModel, api) {
+    _super.prototype.render.apply(this, arguments);
+    if (dataZoomModel.noTarget()) {
+      this._clear();
+      return;
+    }
+    this.range = dataZoomModel.getPercentRange();
+    setViewInfoToCoordSysRecord(api, dataZoomModel, {
+      pan: bind(getRangeHandlers.pan, this),
+      zoom: bind(getRangeHandlers.zoom, this),
+      scrollMove: bind(getRangeHandlers.scrollMove, this)
+    });
+  };
+  InsideZoomView2.prototype.dispose = function() {
+    this._clear();
+    _super.prototype.dispose.apply(this, arguments);
+  };
+  InsideZoomView2.prototype._clear = function() {
+    disposeCoordSysRecordIfNeeded(this.api, this.dataZoomModel);
+    this.range = null;
+  };
+  InsideZoomView2.type = "dataZoom.inside";
+  return InsideZoomView2;
+}(DataZoomView_default);
+var getRangeHandlers = {
+  zoom: function(coordSysInfo, coordSysMainType, controller, e4) {
+    var lastRange = this.range;
+    var range = lastRange.slice();
+    var axisModel = coordSysInfo.axisModels[0];
+    if (!axisModel) {
+      return;
+    }
+    var directionInfo = getDirectionInfo[coordSysMainType](null, [e4.originX, e4.originY], axisModel, controller, coordSysInfo);
+    var percentPoint = (directionInfo.signal > 0 ? directionInfo.pixelStart + directionInfo.pixelLength - directionInfo.pixel : directionInfo.pixel - directionInfo.pixelStart) / directionInfo.pixelLength * (range[1] - range[0]) + range[0];
+    var scale4 = Math.max(1 / e4.scale, 0);
+    range[0] = (range[0] - percentPoint) * scale4 + percentPoint;
+    range[1] = (range[1] - percentPoint) * scale4 + percentPoint;
+    var minMaxSpan = this.dataZoomModel.findRepresentativeAxisProxy().getMinMaxSpan();
+    sliderMove(0, range, [0, 100], 0, minMaxSpan.minSpan, minMaxSpan.maxSpan);
+    this.range = range;
+    if (lastRange[0] !== range[0] || lastRange[1] !== range[1]) {
+      return range;
+    }
+  },
+  pan: makeMover(function(range, axisModel, coordSysInfo, coordSysMainType, controller, e4) {
+    var directionInfo = getDirectionInfo[coordSysMainType]([e4.oldX, e4.oldY], [e4.newX, e4.newY], axisModel, controller, coordSysInfo);
+    return directionInfo.signal * (range[1] - range[0]) * directionInfo.pixel / directionInfo.pixelLength;
+  }),
+  scrollMove: makeMover(function(range, axisModel, coordSysInfo, coordSysMainType, controller, e4) {
+    var directionInfo = getDirectionInfo[coordSysMainType]([0, 0], [e4.scrollDelta, e4.scrollDelta], axisModel, controller, coordSysInfo);
+    return directionInfo.signal * (range[1] - range[0]) * e4.scrollDelta;
+  })
+};
+function makeMover(getPercentDelta) {
+  return function(coordSysInfo, coordSysMainType, controller, e4) {
+    var lastRange = this.range;
+    var range = lastRange.slice();
+    var axisModel = coordSysInfo.axisModels[0];
+    if (!axisModel) {
+      return;
+    }
+    var percentDelta = getPercentDelta(range, axisModel, coordSysInfo, coordSysMainType, controller, e4);
+    sliderMove(percentDelta, range, [0, 100], "all");
+    this.range = range;
+    if (lastRange[0] !== range[0] || lastRange[1] !== range[1]) {
+      return range;
+    }
+  };
+}
+var getDirectionInfo = {
+  grid: function(oldPoint, newPoint, axisModel, controller, coordSysInfo) {
+    var axis = axisModel.axis;
+    var ret = {};
+    var rect = coordSysInfo.model.coordinateSystem.getRect();
+    oldPoint = oldPoint || [0, 0];
+    if (axis.dim === "x") {
+      ret.pixel = newPoint[0] - oldPoint[0];
+      ret.pixelLength = rect.width;
+      ret.pixelStart = rect.x;
+      ret.signal = axis.inverse ? 1 : -1;
+    } else {
+      ret.pixel = newPoint[1] - oldPoint[1];
+      ret.pixelLength = rect.height;
+      ret.pixelStart = rect.y;
+      ret.signal = axis.inverse ? -1 : 1;
+    }
+    return ret;
+  },
+  polar: function(oldPoint, newPoint, axisModel, controller, coordSysInfo) {
+    var axis = axisModel.axis;
+    var ret = {};
+    var polar = coordSysInfo.model.coordinateSystem;
+    var radiusExtent = polar.getRadiusAxis().getExtent();
+    var angleExtent = polar.getAngleAxis().getExtent();
+    oldPoint = oldPoint ? polar.pointToCoord(oldPoint) : [0, 0];
+    newPoint = polar.pointToCoord(newPoint);
+    if (axisModel.mainType === "radiusAxis") {
+      ret.pixel = newPoint[0] - oldPoint[0];
+      ret.pixelLength = radiusExtent[1] - radiusExtent[0];
+      ret.pixelStart = radiusExtent[0];
+      ret.signal = axis.inverse ? 1 : -1;
+    } else {
+      ret.pixel = newPoint[1] - oldPoint[1];
+      ret.pixelLength = angleExtent[1] - angleExtent[0];
+      ret.pixelStart = angleExtent[0];
+      ret.signal = axis.inverse ? -1 : 1;
+    }
+    return ret;
+  },
+  singleAxis: function(oldPoint, newPoint, axisModel, controller, coordSysInfo) {
+    var axis = axisModel.axis;
+    var rect = coordSysInfo.model.coordinateSystem.getRect();
+    var ret = {};
+    oldPoint = oldPoint || [0, 0];
+    if (axis.orient === "horizontal") {
+      ret.pixel = newPoint[0] - oldPoint[0];
+      ret.pixelLength = rect.width;
+      ret.pixelStart = rect.x;
+      ret.signal = axis.inverse ? 1 : -1;
+    } else {
+      ret.pixel = newPoint[1] - oldPoint[1];
+      ret.pixelLength = rect.height;
+      ret.pixelStart = rect.y;
+      ret.signal = axis.inverse ? -1 : 1;
+    }
+    return ret;
+  }
+};
+var InsideZoomView_default = InsideZoomView;
+
+// node_modules/echarts/lib/component/dataZoom/installDataZoomInside.js
+function install20(registers) {
+  installCommon(registers);
+  registers.registerComponentModel(InsideZoomModel_default);
+  registers.registerComponentView(InsideZoomView_default);
+  installDataZoomRoamProcessor(registers);
+}
+
+// node_modules/echarts/lib/component/dataZoom/SliderZoomModel.js
+var SliderZoomModel = function(_super) {
+  __extends(SliderZoomModel2, _super);
+  function SliderZoomModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = SliderZoomModel2.type;
+    return _this;
+  }
+  SliderZoomModel2.type = "dataZoom.slider";
+  SliderZoomModel2.layoutMode = "box";
+  SliderZoomModel2.defaultOption = inheritDefaultOption(DataZoomModel_default.defaultOption, {
+    show: true,
+    right: "ph",
+    top: "ph",
+    width: "ph",
+    height: "ph",
+    left: null,
+    bottom: null,
+    borderColor: "#d2dbee",
+    borderRadius: 3,
+    backgroundColor: "rgba(47,69,84,0)",
+    dataBackground: {
+      lineStyle: {
+        color: "#d2dbee",
+        width: 0.5
+      },
+      areaStyle: {
+        color: "#d2dbee",
+        opacity: 0.2
+      }
+    },
+    selectedDataBackground: {
+      lineStyle: {
+        color: "#8fb0f7",
+        width: 0.5
+      },
+      areaStyle: {
+        color: "#8fb0f7",
+        opacity: 0.2
+      }
+    },
+    fillerColor: "rgba(135,175,274,0.2)",
+    handleIcon: "path://M-9.35,34.56V42m0-40V9.5m-2,0h4a2,2,0,0,1,2,2v21a2,2,0,0,1-2,2h-4a2,2,0,0,1-2-2v-21A2,2,0,0,1-11.35,9.5Z",
+    handleSize: "100%",
+    handleStyle: {
+      color: "#fff",
+      borderColor: "#ACB8D1"
+    },
+    moveHandleSize: 7,
+    moveHandleIcon: "path://M-320.9-50L-320.9-50c18.1,0,27.1,9,27.1,27.1V85.7c0,18.1-9,27.1-27.1,27.1l0,0c-18.1,0-27.1-9-27.1-27.1V-22.9C-348-41-339-50-320.9-50z M-212.3-50L-212.3-50c18.1,0,27.1,9,27.1,27.1V85.7c0,18.1-9,27.1-27.1,27.1l0,0c-18.1,0-27.1-9-27.1-27.1V-22.9C-239.4-41-230.4-50-212.3-50z M-103.7-50L-103.7-50c18.1,0,27.1,9,27.1,27.1V85.7c0,18.1-9,27.1-27.1,27.1l0,0c-18.1,0-27.1-9-27.1-27.1V-22.9C-130.9-41-121.8-50-103.7-50z",
+    moveHandleStyle: {
+      color: "#D2DBEE",
+      opacity: 0.7
+    },
+    showDetail: true,
+    showDataShadow: "auto",
+    realtime: true,
+    zoomLock: false,
+    textStyle: {
+      color: "#6E7079"
+    },
+    brushSelect: true,
+    brushStyle: {
+      color: "rgba(135,175,274,0.15)"
+    },
+    emphasis: {
+      handleLabel: {
+        show: true
+      },
+      handleStyle: {
+        borderColor: "#8FB0F7"
+      },
+      moveHandleStyle: {
+        color: "#8FB0F7"
+      }
+    }
+  });
+  return SliderZoomModel2;
+}(DataZoomModel_default);
+var SliderZoomModel_default = SliderZoomModel;
+
+// node_modules/echarts/lib/component/dataZoom/SliderZoomView.js
+var Rect2 = Rect_default;
+var DEFAULT_LOCATION_EDGE_GAP = 7;
+var DEFAULT_FRAME_BORDER_WIDTH = 1;
+var DEFAULT_FILLER_SIZE = 30;
+var DEFAULT_MOVE_HANDLE_SIZE = 7;
+var HORIZONTAL = "horizontal";
+var VERTICAL = "vertical";
+var LABEL_GAP = 5;
+var SHOW_DATA_SHADOW_SERIES_TYPE = ["line", "bar", "candlestick", "scatter"];
+var REALTIME_ANIMATION_CONFIG = {
+  easing: "cubicOut",
+  duration: 100,
+  delay: 0
+};
+var SliderZoomView = function(_super) {
+  __extends(SliderZoomView2, _super);
+  function SliderZoomView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = SliderZoomView2.type;
+    _this._displayables = {};
+    return _this;
+  }
+  SliderZoomView2.prototype.init = function(ecModel, api) {
+    this.api = api;
+    this._onBrush = bind(this._onBrush, this);
+    this._onBrushEnd = bind(this._onBrushEnd, this);
+  };
+  SliderZoomView2.prototype.render = function(dataZoomModel, ecModel, api, payload) {
+    _super.prototype.render.apply(this, arguments);
+    createOrUpdate(this, "_dispatchZoomAction", dataZoomModel.get("throttle"), "fixRate");
+    this._orient = dataZoomModel.getOrient();
+    if (dataZoomModel.get("show") === false) {
+      this.group.removeAll();
+      return;
+    }
+    if (dataZoomModel.noTarget()) {
+      this._clear();
+      this.group.removeAll();
+      return;
+    }
+    if (!payload || payload.type !== "dataZoom" || payload.from !== this.uid) {
+      this._buildView();
+    }
+    this._updateView();
+  };
+  SliderZoomView2.prototype.dispose = function() {
+    this._clear();
+    _super.prototype.dispose.apply(this, arguments);
+  };
+  SliderZoomView2.prototype._clear = function() {
+    clear(this, "_dispatchZoomAction");
+    var zr = this.api.getZr();
+    zr.off("mousemove", this._onBrush);
+    zr.off("mouseup", this._onBrushEnd);
+  };
+  SliderZoomView2.prototype._buildView = function() {
+    var thisGroup = this.group;
+    thisGroup.removeAll();
+    this._brushing = false;
+    this._displayables.brushRect = null;
+    this._resetLocation();
+    this._resetInterval();
+    var barGroup = this._displayables.sliderGroup = new Group_default;
+    this._renderBackground();
+    this._renderHandle();
+    this._renderDataShadow();
+    thisGroup.add(barGroup);
+    this._positionGroup();
+  };
+  SliderZoomView2.prototype._resetLocation = function() {
+    var dataZoomModel = this.dataZoomModel;
+    var api = this.api;
+    var showMoveHandle = dataZoomModel.get("brushSelect");
+    var moveHandleSize = showMoveHandle ? DEFAULT_MOVE_HANDLE_SIZE : 0;
+    var coordRect = this._findCoordRect();
+    var ecSize = {
+      width: api.getWidth(),
+      height: api.getHeight()
+    };
+    var positionInfo = this._orient === HORIZONTAL ? {
+      right: ecSize.width - coordRect.x - coordRect.width,
+      top: ecSize.height - DEFAULT_FILLER_SIZE - DEFAULT_LOCATION_EDGE_GAP - moveHandleSize,
+      width: coordRect.width,
+      height: DEFAULT_FILLER_SIZE
+    } : {
+      right: DEFAULT_LOCATION_EDGE_GAP,
+      top: coordRect.y,
+      width: DEFAULT_FILLER_SIZE,
+      height: coordRect.height
+    };
+    var layoutParams = getLayoutParams(dataZoomModel.option);
+    each(["right", "top", "width", "height"], function(name) {
+      if (layoutParams[name] === "ph") {
+        layoutParams[name] = positionInfo[name];
+      }
+    });
+    var layoutRect = getLayoutRect(layoutParams, ecSize);
+    this._location = {
+      x: layoutRect.x,
+      y: layoutRect.y
+    };
+    this._size = [layoutRect.width, layoutRect.height];
+    this._orient === VERTICAL && this._size.reverse();
+  };
+  SliderZoomView2.prototype._positionGroup = function() {
+    var thisGroup = this.group;
+    var location2 = this._location;
+    var orient = this._orient;
+    var targetAxisModel = this.dataZoomModel.getFirstTargetAxisModel();
+    var inverse = targetAxisModel && targetAxisModel.get("inverse");
+    var sliderGroup = this._displayables.sliderGroup;
+    var otherAxisInverse = (this._dataShadowInfo || {}).otherAxisInverse;
+    sliderGroup.attr(orient === HORIZONTAL && !inverse ? {
+      scaleY: otherAxisInverse ? 1 : -1,
+      scaleX: 1
+    } : orient === HORIZONTAL && inverse ? {
+      scaleY: otherAxisInverse ? 1 : -1,
+      scaleX: -1
+    } : orient === VERTICAL && !inverse ? {
+      scaleY: otherAxisInverse ? -1 : 1,
+      scaleX: 1,
+      rotation: Math.PI / 2
+    } : {
+      scaleY: otherAxisInverse ? -1 : 1,
+      scaleX: -1,
+      rotation: Math.PI / 2
+    });
+    var rect = thisGroup.getBoundingRect([sliderGroup]);
+    thisGroup.x = location2.x - rect.x;
+    thisGroup.y = location2.y - rect.y;
+    thisGroup.markRedraw();
+  };
+  SliderZoomView2.prototype._getViewExtent = function() {
+    return [0, this._size[0]];
+  };
+  SliderZoomView2.prototype._renderBackground = function() {
+    var dataZoomModel = this.dataZoomModel;
+    var size = this._size;
+    var barGroup = this._displayables.sliderGroup;
+    var brushSelect = dataZoomModel.get("brushSelect");
+    barGroup.add(new Rect2({
+      silent: true,
+      shape: {
+        x: 0,
+        y: 0,
+        width: size[0],
+        height: size[1]
+      },
+      style: {
+        fill: dataZoomModel.get("backgroundColor")
+      },
+      z2: -40
+    }));
+    var clickPanel = new Rect2({
+      shape: {
+        x: 0,
+        y: 0,
+        width: size[0],
+        height: size[1]
+      },
+      style: {
+        fill: "transparent"
+      },
+      z2: 0,
+      onclick: bind(this._onClickPanel, this)
+    });
+    var zr = this.api.getZr();
+    if (brushSelect) {
+      clickPanel.on("mousedown", this._onBrushStart, this);
+      clickPanel.cursor = "crosshair";
+      zr.on("mousemove", this._onBrush);
+      zr.on("mouseup", this._onBrushEnd);
+    } else {
+      zr.off("mousemove", this._onBrush);
+      zr.off("mouseup", this._onBrushEnd);
+    }
+    barGroup.add(clickPanel);
+  };
+  SliderZoomView2.prototype._renderDataShadow = function() {
+    var info = this._dataShadowInfo = this._prepareDataShadowInfo();
+    this._displayables.dataShadowSegs = [];
+    if (!info) {
+      return;
+    }
+    var size = this._size;
+    var oldSize = this._shadowSize || [];
+    var seriesModel = info.series;
+    var data = seriesModel.getRawData();
+    var candlestickDim = seriesModel.getShadowDim && seriesModel.getShadowDim();
+    var otherDim = candlestickDim && data.getDimensionInfo(candlestickDim) ? seriesModel.getShadowDim() : info.otherDim;
+    if (otherDim == null) {
+      return;
+    }
+    var polygonPts = this._shadowPolygonPts;
+    var polylinePts = this._shadowPolylinePts;
+    if (data !== this._shadowData || otherDim !== this._shadowDim || size[0] !== oldSize[0] || size[1] !== oldSize[1]) {
+      var otherDataExtent_1 = data.getDataExtent(otherDim);
+      var otherOffset = (otherDataExtent_1[1] - otherDataExtent_1[0]) * 0.3;
+      otherDataExtent_1 = [otherDataExtent_1[0] - otherOffset, otherDataExtent_1[1] + otherOffset];
+      var otherShadowExtent_1 = [0, size[1]];
+      var thisShadowExtent = [0, size[0]];
+      var areaPoints_1 = [[size[0], 0], [0, 0]];
+      var linePoints_1 = [];
+      var step_1 = thisShadowExtent[1] / (data.count() - 1);
+      var thisCoord_1 = 0;
+      var stride_1 = Math.round(data.count() / size[0]);
+      var lastIsEmpty_1;
+      data.each([otherDim], function(value2, index) {
+        if (stride_1 > 0 && index % stride_1) {
+          thisCoord_1 += step_1;
+          return;
+        }
+        var isEmpty = value2 == null || isNaN(value2) || value2 === "";
+        var otherCoord = isEmpty ? 0 : linearMap(value2, otherDataExtent_1, otherShadowExtent_1, true);
+        if (isEmpty && !lastIsEmpty_1 && index) {
+          areaPoints_1.push([areaPoints_1[areaPoints_1.length - 1][0], 0]);
+          linePoints_1.push([linePoints_1[linePoints_1.length - 1][0], 0]);
+        } else if (!isEmpty && lastIsEmpty_1) {
+          areaPoints_1.push([thisCoord_1, 0]);
+          linePoints_1.push([thisCoord_1, 0]);
+        }
+        areaPoints_1.push([thisCoord_1, otherCoord]);
+        linePoints_1.push([thisCoord_1, otherCoord]);
+        thisCoord_1 += step_1;
+        lastIsEmpty_1 = isEmpty;
+      });
+      polygonPts = this._shadowPolygonPts = areaPoints_1;
+      polylinePts = this._shadowPolylinePts = linePoints_1;
+    }
+    this._shadowData = data;
+    this._shadowDim = otherDim;
+    this._shadowSize = [size[0], size[1]];
+    var dataZoomModel = this.dataZoomModel;
+    function createDataShadowGroup(isSelectedArea) {
+      var model = dataZoomModel.getModel(isSelectedArea ? "selectedDataBackground" : "dataBackground");
+      var group2 = new Group_default;
+      var polygon = new Polygon_default({
+        shape: {
+          points: polygonPts
+        },
+        segmentIgnoreThreshold: 1,
+        style: model.getModel("areaStyle").getAreaStyle(),
+        silent: true,
+        z2: -20
+      });
+      var polyline = new Polyline_default({
+        shape: {
+          points: polylinePts
+        },
+        segmentIgnoreThreshold: 1,
+        style: model.getModel("lineStyle").getLineStyle(),
+        silent: true,
+        z2: -19
+      });
+      group2.add(polygon);
+      group2.add(polyline);
+      return group2;
+    }
+    for (var i3 = 0;i3 < 3; i3++) {
+      var group = createDataShadowGroup(i3 === 1);
+      this._displayables.sliderGroup.add(group);
+      this._displayables.dataShadowSegs.push(group);
+    }
+  };
+  SliderZoomView2.prototype._prepareDataShadowInfo = function() {
+    var dataZoomModel = this.dataZoomModel;
+    var showDataShadow = dataZoomModel.get("showDataShadow");
+    if (showDataShadow === false) {
+      return;
+    }
+    var result;
+    var ecModel = this.ecModel;
+    dataZoomModel.eachTargetAxis(function(axisDim, axisIndex) {
+      var seriesModels = dataZoomModel.getAxisProxy(axisDim, axisIndex).getTargetSeriesModels();
+      each(seriesModels, function(seriesModel) {
+        if (result) {
+          return;
+        }
+        if (showDataShadow !== true && indexOf(SHOW_DATA_SHADOW_SERIES_TYPE, seriesModel.get("type")) < 0) {
+          return;
+        }
+        var thisAxis = ecModel.getComponent(getAxisMainType(axisDim), axisIndex).axis;
+        var otherDim = getOtherDim(axisDim);
+        var otherAxisInverse;
+        var coordSys = seriesModel.coordinateSystem;
+        if (otherDim != null && coordSys.getOtherAxis) {
+          otherAxisInverse = coordSys.getOtherAxis(thisAxis).inverse;
+        }
+        otherDim = seriesModel.getData().mapDimension(otherDim);
+        result = {
+          thisAxis,
+          series: seriesModel,
+          thisDim: axisDim,
+          otherDim,
+          otherAxisInverse
+        };
+      }, this);
+    }, this);
+    return result;
+  };
+  SliderZoomView2.prototype._renderHandle = function() {
+    var thisGroup = this.group;
+    var displayables = this._displayables;
+    var handles = displayables.handles = [null, null];
+    var handleLabels = displayables.handleLabels = [null, null];
+    var sliderGroup = this._displayables.sliderGroup;
+    var size = this._size;
+    var dataZoomModel = this.dataZoomModel;
+    var api = this.api;
+    var borderRadius = dataZoomModel.get("borderRadius") || 0;
+    var brushSelect = dataZoomModel.get("brushSelect");
+    var filler = displayables.filler = new Rect2({
+      silent: brushSelect,
+      style: {
+        fill: dataZoomModel.get("fillerColor")
+      },
+      textConfig: {
+        position: "inside"
+      }
+    });
+    sliderGroup.add(filler);
+    sliderGroup.add(new Rect2({
+      silent: true,
+      subPixelOptimize: true,
+      shape: {
+        x: 0,
+        y: 0,
+        width: size[0],
+        height: size[1],
+        r: borderRadius
+      },
+      style: {
+        stroke: dataZoomModel.get("dataBackgroundColor") || dataZoomModel.get("borderColor"),
+        lineWidth: DEFAULT_FRAME_BORDER_WIDTH,
+        fill: "rgba(0,0,0,0)"
+      }
+    }));
+    each([0, 1], function(handleIndex) {
+      var iconStr = dataZoomModel.get("handleIcon");
+      if (!symbolBuildProxies[iconStr] && iconStr.indexOf("path://") < 0 && iconStr.indexOf("image://") < 0) {
+        iconStr = "path://" + iconStr;
+        if (true) {
+          deprecateLog("handleIcon now needs 'path://' prefix when using a path string");
+        }
+      }
+      var path = createSymbol(iconStr, -1, 0, 2, 2, null, true);
+      path.attr({
+        cursor: getCursor(this._orient),
+        draggable: true,
+        drift: bind(this._onDragMove, this, handleIndex),
+        ondragend: bind(this._onDragEnd, this),
+        onmouseover: bind(this._showDataInfo, this, true),
+        onmouseout: bind(this._showDataInfo, this, false),
+        z2: 5
+      });
+      var bRect = path.getBoundingRect();
+      var handleSize = dataZoomModel.get("handleSize");
+      this._handleHeight = parsePercent2(handleSize, this._size[1]);
+      this._handleWidth = bRect.width / bRect.height * this._handleHeight;
+      path.setStyle(dataZoomModel.getModel("handleStyle").getItemStyle());
+      path.style.strokeNoScale = true;
+      path.rectHover = true;
+      path.ensureState("emphasis").style = dataZoomModel.getModel(["emphasis", "handleStyle"]).getItemStyle();
+      enableHoverEmphasis(path);
+      var handleColor = dataZoomModel.get("handleColor");
+      if (handleColor != null) {
+        path.style.fill = handleColor;
+      }
+      sliderGroup.add(handles[handleIndex] = path);
+      var textStyleModel = dataZoomModel.getModel("textStyle");
+      var handleLabel = dataZoomModel.get("handleLabel") || {};
+      var handleLabelShow = handleLabel.show || false;
+      thisGroup.add(handleLabels[handleIndex] = new Text_default({
+        silent: true,
+        invisible: !handleLabelShow,
+        style: createTextStyle(textStyleModel, {
+          x: 0,
+          y: 0,
+          text: "",
+          verticalAlign: "middle",
+          align: "center",
+          fill: textStyleModel.getTextColor(),
+          font: textStyleModel.getFont()
+        }),
+        z2: 10
+      }));
+    }, this);
+    var actualMoveZone = filler;
+    if (brushSelect) {
+      var moveHandleHeight = parsePercent2(dataZoomModel.get("moveHandleSize"), size[1]);
+      var moveHandle_1 = displayables.moveHandle = new Rect_default({
+        style: dataZoomModel.getModel("moveHandleStyle").getItemStyle(),
+        silent: true,
+        shape: {
+          r: [0, 0, 2, 2],
+          y: size[1] - 0.5,
+          height: moveHandleHeight
+        }
+      });
+      var iconSize = moveHandleHeight * 0.8;
+      var moveHandleIcon = displayables.moveHandleIcon = createSymbol(dataZoomModel.get("moveHandleIcon"), -iconSize / 2, -iconSize / 2, iconSize, iconSize, "#fff", true);
+      moveHandleIcon.silent = true;
+      moveHandleIcon.y = size[1] + moveHandleHeight / 2 - 0.5;
+      moveHandle_1.ensureState("emphasis").style = dataZoomModel.getModel(["emphasis", "moveHandleStyle"]).getItemStyle();
+      var moveZoneExpandSize = Math.min(size[1] / 2, Math.max(moveHandleHeight, 10));
+      actualMoveZone = displayables.moveZone = new Rect_default({
+        invisible: true,
+        shape: {
+          y: size[1] - moveZoneExpandSize,
+          height: moveHandleHeight + moveZoneExpandSize
+        }
+      });
+      actualMoveZone.on("mouseover", function() {
+        api.enterEmphasis(moveHandle_1);
+      }).on("mouseout", function() {
+        api.leaveEmphasis(moveHandle_1);
+      });
+      sliderGroup.add(moveHandle_1);
+      sliderGroup.add(moveHandleIcon);
+      sliderGroup.add(actualMoveZone);
+    }
+    actualMoveZone.attr({
+      draggable: true,
+      cursor: getCursor(this._orient),
+      drift: bind(this._onDragMove, this, "all"),
+      ondragstart: bind(this._showDataInfo, this, true),
+      ondragend: bind(this._onDragEnd, this),
+      onmouseover: bind(this._showDataInfo, this, true),
+      onmouseout: bind(this._showDataInfo, this, false)
+    });
+  };
+  SliderZoomView2.prototype._resetInterval = function() {
+    var range = this._range = this.dataZoomModel.getPercentRange();
+    var viewExtent = this._getViewExtent();
+    this._handleEnds = [linearMap(range[0], [0, 100], viewExtent, true), linearMap(range[1], [0, 100], viewExtent, true)];
+  };
+  SliderZoomView2.prototype._updateInterval = function(handleIndex, delta) {
+    var dataZoomModel = this.dataZoomModel;
+    var handleEnds = this._handleEnds;
+    var viewExtend = this._getViewExtent();
+    var minMaxSpan = dataZoomModel.findRepresentativeAxisProxy().getMinMaxSpan();
+    var percentExtent = [0, 100];
+    sliderMove(delta, handleEnds, viewExtend, dataZoomModel.get("zoomLock") ? "all" : handleIndex, minMaxSpan.minSpan != null ? linearMap(minMaxSpan.minSpan, percentExtent, viewExtend, true) : null, minMaxSpan.maxSpan != null ? linearMap(minMaxSpan.maxSpan, percentExtent, viewExtend, true) : null);
+    var lastRange = this._range;
+    var range = this._range = asc([linearMap(handleEnds[0], viewExtend, percentExtent, true), linearMap(handleEnds[1], viewExtend, percentExtent, true)]);
+    return !lastRange || lastRange[0] !== range[0] || lastRange[1] !== range[1];
+  };
+  SliderZoomView2.prototype._updateView = function(nonRealtime) {
+    var displaybles = this._displayables;
+    var handleEnds = this._handleEnds;
+    var handleInterval = asc(handleEnds.slice());
+    var size = this._size;
+    each([0, 1], function(handleIndex) {
+      var handle = displaybles.handles[handleIndex];
+      var handleHeight = this._handleHeight;
+      handle.attr({
+        scaleX: handleHeight / 2,
+        scaleY: handleHeight / 2,
+        x: handleEnds[handleIndex] + (handleIndex ? -1 : 1),
+        y: size[1] / 2 - handleHeight / 2
+      });
+    }, this);
+    displaybles.filler.setShape({
+      x: handleInterval[0],
+      y: 0,
+      width: handleInterval[1] - handleInterval[0],
+      height: size[1]
+    });
+    var viewExtent = {
+      x: handleInterval[0],
+      width: handleInterval[1] - handleInterval[0]
+    };
+    if (displaybles.moveHandle) {
+      displaybles.moveHandle.setShape(viewExtent);
+      displaybles.moveZone.setShape(viewExtent);
+      displaybles.moveZone.getBoundingRect();
+      displaybles.moveHandleIcon && displaybles.moveHandleIcon.attr("x", viewExtent.x + viewExtent.width / 2);
+    }
+    var dataShadowSegs = displaybles.dataShadowSegs;
+    var segIntervals = [0, handleInterval[0], handleInterval[1], size[0]];
+    for (var i3 = 0;i3 < dataShadowSegs.length; i3++) {
+      var segGroup = dataShadowSegs[i3];
+      var clipPath = segGroup.getClipPath();
+      if (!clipPath) {
+        clipPath = new Rect_default;
+        segGroup.setClipPath(clipPath);
+      }
+      clipPath.setShape({
+        x: segIntervals[i3],
+        y: 0,
+        width: segIntervals[i3 + 1] - segIntervals[i3],
+        height: size[1]
+      });
+    }
+    this._updateDataInfo(nonRealtime);
+  };
+  SliderZoomView2.prototype._updateDataInfo = function(nonRealtime) {
+    var dataZoomModel = this.dataZoomModel;
+    var displaybles = this._displayables;
+    var handleLabels = displaybles.handleLabels;
+    var orient = this._orient;
+    var labelTexts = ["", ""];
+    if (dataZoomModel.get("showDetail")) {
+      var axisProxy = dataZoomModel.findRepresentativeAxisProxy();
+      if (axisProxy) {
+        var axis = axisProxy.getAxisModel().axis;
+        var range = this._range;
+        var dataInterval = nonRealtime ? axisProxy.calculateDataWindow({
+          start: range[0],
+          end: range[1]
+        }).valueWindow : axisProxy.getDataValueWindow();
+        labelTexts = [this._formatLabel(dataInterval[0], axis), this._formatLabel(dataInterval[1], axis)];
+      }
+    }
+    var orderedHandleEnds = asc(this._handleEnds.slice());
+    setLabel.call(this, 0);
+    setLabel.call(this, 1);
+    function setLabel(handleIndex) {
+      var barTransform = getTransform(displaybles.handles[handleIndex].parent, this.group);
+      var direction = transformDirection(handleIndex === 0 ? "right" : "left", barTransform);
+      var offset = this._handleWidth / 2 + LABEL_GAP;
+      var textPoint = applyTransform2([orderedHandleEnds[handleIndex] + (handleIndex === 0 ? -offset : offset), this._size[1] / 2], barTransform);
+      handleLabels[handleIndex].setStyle({
+        x: textPoint[0],
+        y: textPoint[1],
+        verticalAlign: orient === HORIZONTAL ? "middle" : direction,
+        align: orient === HORIZONTAL ? direction : "center",
+        text: labelTexts[handleIndex]
+      });
+    }
+  };
+  SliderZoomView2.prototype._formatLabel = function(value2, axis) {
+    var dataZoomModel = this.dataZoomModel;
+    var labelFormatter = dataZoomModel.get("labelFormatter");
+    var labelPrecision = dataZoomModel.get("labelPrecision");
+    if (labelPrecision == null || labelPrecision === "auto") {
+      labelPrecision = axis.getPixelPrecision();
+    }
+    var valueStr = value2 == null || isNaN(value2) ? "" : axis.type === "category" || axis.type === "time" ? axis.scale.getLabel({
+      value: Math.round(value2)
+    }) : value2.toFixed(Math.min(labelPrecision, 20));
+    return isFunction(labelFormatter) ? labelFormatter(value2, valueStr) : isString(labelFormatter) ? labelFormatter.replace("{value}", valueStr) : valueStr;
+  };
+  SliderZoomView2.prototype._showDataInfo = function(isEmphasis) {
+    var handleLabel = this.dataZoomModel.get("handleLabel") || {};
+    var normalShow = handleLabel.show || false;
+    var emphasisHandleLabel = this.dataZoomModel.getModel(["emphasis", "handleLabel"]);
+    var emphasisShow = emphasisHandleLabel.get("show") || false;
+    var toShow = isEmphasis || this._dragging ? emphasisShow : normalShow;
+    var displayables = this._displayables;
+    var handleLabels = displayables.handleLabels;
+    handleLabels[0].attr("invisible", !toShow);
+    handleLabels[1].attr("invisible", !toShow);
+    displayables.moveHandle && this.api[toShow ? "enterEmphasis" : "leaveEmphasis"](displayables.moveHandle, 1);
+  };
+  SliderZoomView2.prototype._onDragMove = function(handleIndex, dx, dy, event) {
+    this._dragging = true;
+    stop(event.event);
+    var barTransform = this._displayables.sliderGroup.getLocalTransform();
+    var vertex = applyTransform2([dx, dy], barTransform, true);
+    var changed = this._updateInterval(handleIndex, vertex[0]);
+    var realtime = this.dataZoomModel.get("realtime");
+    this._updateView(!realtime);
+    changed && realtime && this._dispatchZoomAction(true);
+  };
+  SliderZoomView2.prototype._onDragEnd = function() {
+    this._dragging = false;
+    this._showDataInfo(false);
+    var realtime = this.dataZoomModel.get("realtime");
+    !realtime && this._dispatchZoomAction(false);
+  };
+  SliderZoomView2.prototype._onClickPanel = function(e4) {
+    var size = this._size;
+    var localPoint = this._displayables.sliderGroup.transformCoordToLocal(e4.offsetX, e4.offsetY);
+    if (localPoint[0] < 0 || localPoint[0] > size[0] || localPoint[1] < 0 || localPoint[1] > size[1]) {
+      return;
+    }
+    var handleEnds = this._handleEnds;
+    var center2 = (handleEnds[0] + handleEnds[1]) / 2;
+    var changed = this._updateInterval("all", localPoint[0] - center2);
+    this._updateView();
+    changed && this._dispatchZoomAction(false);
+  };
+  SliderZoomView2.prototype._onBrushStart = function(e4) {
+    var x3 = e4.offsetX;
+    var y3 = e4.offsetY;
+    this._brushStart = new Point_default(x3, y3);
+    this._brushing = true;
+    this._brushStartTime = +new Date;
+  };
+  SliderZoomView2.prototype._onBrushEnd = function(e4) {
+    if (!this._brushing) {
+      return;
+    }
+    var brushRect = this._displayables.brushRect;
+    this._brushing = false;
+    if (!brushRect) {
+      return;
+    }
+    brushRect.attr("ignore", true);
+    var brushShape = brushRect.shape;
+    var brushEndTime = +new Date;
+    if (brushEndTime - this._brushStartTime < 200 && Math.abs(brushShape.width) < 5) {
+      return;
+    }
+    var viewExtend = this._getViewExtent();
+    var percentExtent = [0, 100];
+    this._range = asc([linearMap(brushShape.x, viewExtend, percentExtent, true), linearMap(brushShape.x + brushShape.width, viewExtend, percentExtent, true)]);
+    this._handleEnds = [brushShape.x, brushShape.x + brushShape.width];
+    this._updateView();
+    this._dispatchZoomAction(false);
+  };
+  SliderZoomView2.prototype._onBrush = function(e4) {
+    if (this._brushing) {
+      stop(e4.event);
+      this._updateBrushRect(e4.offsetX, e4.offsetY);
+    }
+  };
+  SliderZoomView2.prototype._updateBrushRect = function(mouseX, mouseY) {
+    var displayables = this._displayables;
+    var dataZoomModel = this.dataZoomModel;
+    var brushRect = displayables.brushRect;
+    if (!brushRect) {
+      brushRect = displayables.brushRect = new Rect2({
+        silent: true,
+        style: dataZoomModel.getModel("brushStyle").getItemStyle()
+      });
+      displayables.sliderGroup.add(brushRect);
+    }
+    brushRect.attr("ignore", false);
+    var brushStart = this._brushStart;
+    var sliderGroup = this._displayables.sliderGroup;
+    var endPoint = sliderGroup.transformCoordToLocal(mouseX, mouseY);
+    var startPoint = sliderGroup.transformCoordToLocal(brushStart.x, brushStart.y);
+    var size = this._size;
+    endPoint[0] = Math.max(Math.min(size[0], endPoint[0]), 0);
+    brushRect.setShape({
+      x: startPoint[0],
+      y: 0,
+      width: endPoint[0] - startPoint[0],
+      height: size[1]
+    });
+  };
+  SliderZoomView2.prototype._dispatchZoomAction = function(realtime) {
+    var range = this._range;
+    this.api.dispatchAction({
+      type: "dataZoom",
+      from: this.uid,
+      dataZoomId: this.dataZoomModel.id,
+      animation: realtime ? REALTIME_ANIMATION_CONFIG : null,
+      start: range[0],
+      end: range[1]
+    });
+  };
+  SliderZoomView2.prototype._findCoordRect = function() {
+    var rect;
+    var coordSysInfoList = collectReferCoordSysModelInfo(this.dataZoomModel).infoList;
+    if (!rect && coordSysInfoList.length) {
+      var coordSys = coordSysInfoList[0].model.coordinateSystem;
+      rect = coordSys.getRect && coordSys.getRect();
+    }
+    if (!rect) {
+      var width = this.api.getWidth();
+      var height = this.api.getHeight();
+      rect = {
+        x: width * 0.2,
+        y: height * 0.2,
+        width: width * 0.6,
+        height: height * 0.6
+      };
+    }
+    return rect;
+  };
+  SliderZoomView2.type = "dataZoom.slider";
+  return SliderZoomView2;
+}(DataZoomView_default);
+function getOtherDim(thisDim) {
+  var map3 = {
+    x: "y",
+    y: "x",
+    radius: "angle",
+    angle: "radius"
+  };
+  return map3[thisDim];
+}
+function getCursor(orient) {
+  return orient === "vertical" ? "ns-resize" : "ew-resize";
+}
+var SliderZoomView_default = SliderZoomView;
+
+// node_modules/echarts/lib/component/dataZoom/installDataZoomSlider.js
+function install21(registers) {
+  registers.registerComponentModel(SliderZoomModel_default);
+  registers.registerComponentView(SliderZoomView_default);
+  installCommon(registers);
+}
+
+// node_modules/echarts/lib/component/dataZoom/install.js
+function install22(registers) {
+  use(install20);
+  use(install21);
+}
+// node_modules/echarts/lib/visual/visualDefault.js
+var visualDefault = {
+  get: function(visualType, key, isCategory2) {
+    var value2 = clone((defaultOption2[visualType] || {})[key]);
+    return isCategory2 ? isArray(value2) ? value2[value2.length - 1] : value2 : value2;
+  }
+};
+var defaultOption2 = {
+  color: {
+    active: ["#006edd", "#e0ffff"],
+    inactive: ["rgba(0,0,0,0)"]
+  },
+  colorHue: {
+    active: [0, 360],
+    inactive: [0, 0]
+  },
+  colorSaturation: {
+    active: [0.3, 1],
+    inactive: [0, 0]
+  },
+  colorLightness: {
+    active: [0.9, 0.5],
+    inactive: [0, 0]
+  },
+  colorAlpha: {
+    active: [0.3, 1],
+    inactive: [0, 0]
+  },
+  opacity: {
+    active: [0.3, 1],
+    inactive: [0, 0]
+  },
+  symbol: {
+    active: ["circle", "roundRect", "diamond"],
+    inactive: ["none"]
+  },
+  symbolSize: {
+    active: [10, 50],
+    inactive: [0, 0]
+  }
+};
+var visualDefault_default = visualDefault;
+
+// node_modules/echarts/lib/component/visualMap/VisualMapModel.js
+var mapVisual = VisualMapping_default.mapVisual;
+var eachVisual = VisualMapping_default.eachVisual;
+var isArray2 = isArray;
+var each9 = each;
+var asc3 = asc;
+var linearMap2 = linearMap;
+var VisualMapModel = function(_super) {
+  __extends(VisualMapModel2, _super);
+  function VisualMapModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = VisualMapModel2.type;
+    _this.stateList = ["inRange", "outOfRange"];
+    _this.replacableOptionKeys = ["inRange", "outOfRange", "target", "controller", "color"];
+    _this.layoutMode = {
+      type: "box",
+      ignoreSize: true
+    };
+    _this.dataBound = [-Infinity, Infinity];
+    _this.targetVisuals = {};
+    _this.controllerVisuals = {};
+    return _this;
+  }
+  VisualMapModel2.prototype.init = function(option, parentModel, ecModel) {
+    this.mergeDefaultAndTheme(option, ecModel);
+  };
+  VisualMapModel2.prototype.optionUpdated = function(newOption, isInit) {
+    var thisOption = this.option;
+    !isInit && replaceVisualOption(thisOption, newOption, this.replacableOptionKeys);
+    this.textStyleModel = this.getModel("textStyle");
+    this.resetItemSize();
+    this.completeVisualOption();
+  };
+  VisualMapModel2.prototype.resetVisual = function(supplementVisualOption) {
+    var stateList = this.stateList;
+    supplementVisualOption = bind(supplementVisualOption, this);
+    this.controllerVisuals = createVisualMappings(this.option.controller, stateList, supplementVisualOption);
+    this.targetVisuals = createVisualMappings(this.option.target, stateList, supplementVisualOption);
+  };
+  VisualMapModel2.prototype.getItemSymbol = function() {
+    return null;
+  };
+  VisualMapModel2.prototype.getTargetSeriesIndices = function() {
+    var optionSeriesIndex = this.option.seriesIndex;
+    var seriesIndices = [];
+    if (optionSeriesIndex == null || optionSeriesIndex === "all") {
+      this.ecModel.eachSeries(function(seriesModel, index) {
+        seriesIndices.push(index);
+      });
+    } else {
+      seriesIndices = normalizeToArray(optionSeriesIndex);
+    }
+    return seriesIndices;
+  };
+  VisualMapModel2.prototype.eachTargetSeries = function(callback, context) {
+    each(this.getTargetSeriesIndices(), function(seriesIndex) {
+      var seriesModel = this.ecModel.getSeriesByIndex(seriesIndex);
+      if (seriesModel) {
+        callback.call(context, seriesModel);
+      }
+    }, this);
+  };
+  VisualMapModel2.prototype.isTargetSeries = function(seriesModel) {
+    var is = false;
+    this.eachTargetSeries(function(model) {
+      model === seriesModel && (is = true);
+    });
+    return is;
+  };
+  VisualMapModel2.prototype.formatValueText = function(value2, isCategory2, edgeSymbols) {
+    var option = this.option;
+    var precision = option.precision;
+    var dataBound = this.dataBound;
+    var formatter = option.formatter;
+    var isMinMax;
+    edgeSymbols = edgeSymbols || ["<", ">"];
+    if (isArray(value2)) {
+      value2 = value2.slice();
+      isMinMax = true;
+    }
+    var textValue = isCategory2 ? value2 : isMinMax ? [toFixed(value2[0]), toFixed(value2[1])] : toFixed(value2);
+    if (isString(formatter)) {
+      return formatter.replace("{value}", isMinMax ? textValue[0] : textValue).replace("{value2}", isMinMax ? textValue[1] : textValue);
+    } else if (isFunction(formatter)) {
+      return isMinMax ? formatter(value2[0], value2[1]) : formatter(value2);
+    }
+    if (isMinMax) {
+      if (value2[0] === dataBound[0]) {
+        return edgeSymbols[0] + " " + textValue[1];
+      } else if (value2[1] === dataBound[1]) {
+        return edgeSymbols[1] + " " + textValue[0];
+      } else {
+        return textValue[0] + " - " + textValue[1];
+      }
+    } else {
+      return textValue;
+    }
+    function toFixed(val) {
+      return val === dataBound[0] ? "min" : val === dataBound[1] ? "max" : (+val).toFixed(Math.min(precision, 20));
+    }
+  };
+  VisualMapModel2.prototype.resetExtent = function() {
+    var thisOption = this.option;
+    var extent3 = asc3([thisOption.min, thisOption.max]);
+    this._dataExtent = extent3;
+  };
+  VisualMapModel2.prototype.getDataDimensionIndex = function(data) {
+    var optDim = this.option.dimension;
+    if (optDim != null) {
+      return data.getDimensionIndex(optDim);
+    }
+    var dimNames = data.dimensions;
+    for (var i3 = dimNames.length - 1;i3 >= 0; i3--) {
+      var dimName = dimNames[i3];
+      var dimInfo = data.getDimensionInfo(dimName);
+      if (!dimInfo.isCalculationCoord) {
+        return dimInfo.storeDimIndex;
+      }
+    }
+  };
+  VisualMapModel2.prototype.getExtent = function() {
+    return this._dataExtent.slice();
+  };
+  VisualMapModel2.prototype.completeVisualOption = function() {
+    var ecModel = this.ecModel;
+    var thisOption = this.option;
+    var base2 = {
+      inRange: thisOption.inRange,
+      outOfRange: thisOption.outOfRange
+    };
+    var target = thisOption.target || (thisOption.target = {});
+    var controller = thisOption.controller || (thisOption.controller = {});
+    merge(target, base2);
+    merge(controller, base2);
+    var isCategory2 = this.isCategory();
+    completeSingle.call(this, target);
+    completeSingle.call(this, controller);
+    completeInactive.call(this, target, "inRange", "outOfRange");
+    completeController.call(this, controller);
+    function completeSingle(base3) {
+      if (isArray2(thisOption.color) && !base3.inRange) {
+        base3.inRange = {
+          color: thisOption.color.slice().reverse()
+        };
+      }
+      base3.inRange = base3.inRange || {
+        color: ecModel.get("gradientColor")
+      };
+    }
+    function completeInactive(base3, stateExist, stateAbsent) {
+      var optExist = base3[stateExist];
+      var optAbsent = base3[stateAbsent];
+      if (optExist && !optAbsent) {
+        optAbsent = base3[stateAbsent] = {};
+        each9(optExist, function(visualData, visualType) {
+          if (!VisualMapping_default.isValidType(visualType)) {
+            return;
+          }
+          var defa = visualDefault_default.get(visualType, "inactive", isCategory2);
+          if (defa != null) {
+            optAbsent[visualType] = defa;
+            if (visualType === "color" && !optAbsent.hasOwnProperty("opacity") && !optAbsent.hasOwnProperty("colorAlpha")) {
+              optAbsent.opacity = [0, 0];
+            }
+          }
+        });
+      }
+    }
+    function completeController(controller2) {
+      var symbolExists = (controller2.inRange || {}).symbol || (controller2.outOfRange || {}).symbol;
+      var symbolSizeExists = (controller2.inRange || {}).symbolSize || (controller2.outOfRange || {}).symbolSize;
+      var inactiveColor = this.get("inactiveColor");
+      var itemSymbol = this.getItemSymbol();
+      var defaultSymbol = itemSymbol || "roundRect";
+      each9(this.stateList, function(state) {
+        var itemSize = this.itemSize;
+        var visuals = controller2[state];
+        if (!visuals) {
+          visuals = controller2[state] = {
+            color: isCategory2 ? inactiveColor : [inactiveColor]
+          };
+        }
+        if (visuals.symbol == null) {
+          visuals.symbol = symbolExists && clone(symbolExists) || (isCategory2 ? defaultSymbol : [defaultSymbol]);
+        }
+        if (visuals.symbolSize == null) {
+          visuals.symbolSize = symbolSizeExists && clone(symbolSizeExists) || (isCategory2 ? itemSize[0] : [itemSize[0], itemSize[0]]);
+        }
+        visuals.symbol = mapVisual(visuals.symbol, function(symbol) {
+          return symbol === "none" ? defaultSymbol : symbol;
+        });
+        var symbolSize = visuals.symbolSize;
+        if (symbolSize != null) {
+          var max_1 = -Infinity;
+          eachVisual(symbolSize, function(value2) {
+            value2 > max_1 && (max_1 = value2);
+          });
+          visuals.symbolSize = mapVisual(symbolSize, function(value2) {
+            return linearMap2(value2, [0, max_1], [0, itemSize[0]], true);
+          });
+        }
+      }, this);
+    }
+  };
+  VisualMapModel2.prototype.resetItemSize = function() {
+    this.itemSize = [parseFloat(this.get("itemWidth")), parseFloat(this.get("itemHeight"))];
+  };
+  VisualMapModel2.prototype.isCategory = function() {
+    return !!this.option.categories;
+  };
+  VisualMapModel2.prototype.setSelected = function(selected) {};
+  VisualMapModel2.prototype.getSelected = function() {
+    return null;
+  };
+  VisualMapModel2.prototype.getValueState = function(value2) {
+    return null;
+  };
+  VisualMapModel2.prototype.getVisualMeta = function(getColorVisual) {
+    return null;
+  };
+  VisualMapModel2.type = "visualMap";
+  VisualMapModel2.dependencies = ["series"];
+  VisualMapModel2.defaultOption = {
+    show: true,
+    z: 4,
+    seriesIndex: "all",
+    min: 0,
+    max: 200,
+    left: 0,
+    right: null,
+    top: null,
+    bottom: 0,
+    itemWidth: null,
+    itemHeight: null,
+    inverse: false,
+    orient: "vertical",
+    backgroundColor: "rgba(0,0,0,0)",
+    borderColor: "#ccc",
+    contentColor: "#5793f3",
+    inactiveColor: "#aaa",
+    borderWidth: 0,
+    padding: 5,
+    textGap: 10,
+    precision: 0,
+    textStyle: {
+      color: "#333"
+    }
+  };
+  return VisualMapModel2;
+}(Component_default);
+var VisualMapModel_default = VisualMapModel;
+
+// node_modules/echarts/lib/component/visualMap/ContinuousModel.js
+var DEFAULT_BAR_BOUND = [20, 140];
+var ContinuousModel = function(_super) {
+  __extends(ContinuousModel2, _super);
+  function ContinuousModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = ContinuousModel2.type;
+    return _this;
+  }
+  ContinuousModel2.prototype.optionUpdated = function(newOption, isInit) {
+    _super.prototype.optionUpdated.apply(this, arguments);
+    this.resetExtent();
+    this.resetVisual(function(mappingOption) {
+      mappingOption.mappingMethod = "linear";
+      mappingOption.dataExtent = this.getExtent();
+    });
+    this._resetRange();
+  };
+  ContinuousModel2.prototype.resetItemSize = function() {
+    _super.prototype.resetItemSize.apply(this, arguments);
+    var itemSize = this.itemSize;
+    (itemSize[0] == null || isNaN(itemSize[0])) && (itemSize[0] = DEFAULT_BAR_BOUND[0]);
+    (itemSize[1] == null || isNaN(itemSize[1])) && (itemSize[1] = DEFAULT_BAR_BOUND[1]);
+  };
+  ContinuousModel2.prototype._resetRange = function() {
+    var dataExtent = this.getExtent();
+    var range = this.option.range;
+    if (!range || range.auto) {
+      dataExtent.auto = 1;
+      this.option.range = dataExtent;
+    } else if (isArray(range)) {
+      if (range[0] > range[1]) {
+        range.reverse();
+      }
+      range[0] = Math.max(range[0], dataExtent[0]);
+      range[1] = Math.min(range[1], dataExtent[1]);
+    }
+  };
+  ContinuousModel2.prototype.completeVisualOption = function() {
+    _super.prototype.completeVisualOption.apply(this, arguments);
+    each(this.stateList, function(state) {
+      var symbolSize = this.option.controller[state].symbolSize;
+      if (symbolSize && symbolSize[0] !== symbolSize[1]) {
+        symbolSize[0] = symbolSize[1] / 3;
+      }
+    }, this);
+  };
+  ContinuousModel2.prototype.setSelected = function(selected) {
+    this.option.range = selected.slice();
+    this._resetRange();
+  };
+  ContinuousModel2.prototype.getSelected = function() {
+    var dataExtent = this.getExtent();
+    var dataInterval = asc((this.get("range") || []).slice());
+    dataInterval[0] > dataExtent[1] && (dataInterval[0] = dataExtent[1]);
+    dataInterval[1] > dataExtent[1] && (dataInterval[1] = dataExtent[1]);
+    dataInterval[0] < dataExtent[0] && (dataInterval[0] = dataExtent[0]);
+    dataInterval[1] < dataExtent[0] && (dataInterval[1] = dataExtent[0]);
+    return dataInterval;
+  };
+  ContinuousModel2.prototype.getValueState = function(value2) {
+    var range = this.option.range;
+    var dataExtent = this.getExtent();
+    return (range[0] <= dataExtent[0] || range[0] <= value2) && (range[1] >= dataExtent[1] || value2 <= range[1]) ? "inRange" : "outOfRange";
+  };
+  ContinuousModel2.prototype.findTargetDataIndices = function(range) {
+    var result = [];
+    this.eachTargetSeries(function(seriesModel) {
+      var dataIndices = [];
+      var data = seriesModel.getData();
+      data.each(this.getDataDimensionIndex(data), function(value2, dataIndex) {
+        range[0] <= value2 && value2 <= range[1] && dataIndices.push(dataIndex);
+      }, this);
+      result.push({
+        seriesId: seriesModel.id,
+        dataIndex: dataIndices
+      });
+    }, this);
+    return result;
+  };
+  ContinuousModel2.prototype.getVisualMeta = function(getColorVisual) {
+    var oVals = getColorStopValues(this, "outOfRange", this.getExtent());
+    var iVals = getColorStopValues(this, "inRange", this.option.range.slice());
+    var stops = [];
+    function setStop(value2, valueState) {
+      stops.push({
+        value: value2,
+        color: getColorVisual(value2, valueState)
+      });
+    }
+    var iIdx = 0;
+    var oIdx = 0;
+    var iLen = iVals.length;
+    var oLen = oVals.length;
+    for (;oIdx < oLen && (!iVals.length || oVals[oIdx] <= iVals[0]); oIdx++) {
+      if (oVals[oIdx] < iVals[iIdx]) {
+        setStop(oVals[oIdx], "outOfRange");
+      }
+    }
+    for (var first = 1;iIdx < iLen; iIdx++, first = 0) {
+      first && stops.length && setStop(iVals[iIdx], "outOfRange");
+      setStop(iVals[iIdx], "inRange");
+    }
+    for (var first = 1;oIdx < oLen; oIdx++) {
+      if (!iVals.length || iVals[iVals.length - 1] < oVals[oIdx]) {
+        if (first) {
+          stops.length && setStop(stops[stops.length - 1].value, "outOfRange");
+          first = 0;
+        }
+        setStop(oVals[oIdx], "outOfRange");
+      }
+    }
+    var stopsLen = stops.length;
+    return {
+      stops,
+      outerColors: [stopsLen ? stops[0].color : "transparent", stopsLen ? stops[stopsLen - 1].color : "transparent"]
+    };
+  };
+  ContinuousModel2.type = "visualMap.continuous";
+  ContinuousModel2.defaultOption = inheritDefaultOption(VisualMapModel_default.defaultOption, {
+    align: "auto",
+    calculable: false,
+    hoverLink: true,
+    realtime: true,
+    handleIcon: "path://M-11.39,9.77h0a3.5,3.5,0,0,1-3.5,3.5h-22a3.5,3.5,0,0,1-3.5-3.5h0a3.5,3.5,0,0,1,3.5-3.5h22A3.5,3.5,0,0,1-11.39,9.77Z",
+    handleSize: "120%",
+    handleStyle: {
+      borderColor: "#fff",
+      borderWidth: 1
+    },
+    indicatorIcon: "circle",
+    indicatorSize: "50%",
+    indicatorStyle: {
+      borderColor: "#fff",
+      borderWidth: 2,
+      shadowBlur: 2,
+      shadowOffsetX: 1,
+      shadowOffsetY: 1,
+      shadowColor: "rgba(0,0,0,0.2)"
+    }
+  });
+  return ContinuousModel2;
+}(VisualMapModel_default);
+function getColorStopValues(visualMapModel, valueState, dataExtent) {
+  if (dataExtent[0] === dataExtent[1]) {
+    return dataExtent.slice();
+  }
+  var count = 200;
+  var step = (dataExtent[1] - dataExtent[0]) / count;
+  var value2 = dataExtent[0];
+  var stopValues = [];
+  for (var i3 = 0;i3 <= count && value2 < dataExtent[1]; i3++) {
+    stopValues.push(value2);
+    value2 += step;
+  }
+  stopValues.push(dataExtent[1]);
+  return stopValues;
+}
+var ContinuousModel_default = ContinuousModel;
+
+// node_modules/echarts/lib/component/visualMap/VisualMapView.js
+var VisualMapView = function(_super) {
+  __extends(VisualMapView2, _super);
+  function VisualMapView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = VisualMapView2.type;
+    _this.autoPositionValues = {
+      left: 1,
+      right: 1,
+      top: 1,
+      bottom: 1
+    };
+    return _this;
+  }
+  VisualMapView2.prototype.init = function(ecModel, api) {
+    this.ecModel = ecModel;
+    this.api = api;
+  };
+  VisualMapView2.prototype.render = function(visualMapModel, ecModel, api, payload) {
+    this.visualMapModel = visualMapModel;
+    if (visualMapModel.get("show") === false) {
+      this.group.removeAll();
+      return;
+    }
+    this.doRender(visualMapModel, ecModel, api, payload);
+  };
+  VisualMapView2.prototype.renderBackground = function(group) {
+    var visualMapModel = this.visualMapModel;
+    var padding = normalizeCssArray2(visualMapModel.get("padding") || 0);
+    var rect = group.getBoundingRect();
+    group.add(new Rect_default({
+      z2: -1,
+      silent: true,
+      shape: {
+        x: rect.x - padding[3],
+        y: rect.y - padding[0],
+        width: rect.width + padding[3] + padding[1],
+        height: rect.height + padding[0] + padding[2]
+      },
+      style: {
+        fill: visualMapModel.get("backgroundColor"),
+        stroke: visualMapModel.get("borderColor"),
+        lineWidth: visualMapModel.get("borderWidth")
+      }
+    }));
+  };
+  VisualMapView2.prototype.getControllerVisual = function(targetValue, visualCluster, opts) {
+    opts = opts || {};
+    var forceState = opts.forceState;
+    var visualMapModel = this.visualMapModel;
+    var visualObj = {};
+    if (visualCluster === "color") {
+      var defaultColor = visualMapModel.get("contentColor");
+      visualObj.color = defaultColor;
+    }
+    function getter(key) {
+      return visualObj[key];
+    }
+    function setter(key, value2) {
+      visualObj[key] = value2;
+    }
+    var mappings = visualMapModel.controllerVisuals[forceState || visualMapModel.getValueState(targetValue)];
+    var visualTypes = VisualMapping_default.prepareVisualTypes(mappings);
+    each(visualTypes, function(type) {
+      var visualMapping = mappings[type];
+      if (opts.convertOpacityToAlpha && type === "opacity") {
+        type = "colorAlpha";
+        visualMapping = mappings.__alphaForOpacity;
+      }
+      if (VisualMapping_default.dependsOn(type, visualCluster)) {
+        visualMapping && visualMapping.applyVisual(targetValue, getter, setter);
+      }
+    });
+    return visualObj[visualCluster];
+  };
+  VisualMapView2.prototype.positionGroup = function(group) {
+    var model = this.visualMapModel;
+    var api = this.api;
+    positionElement(group, model.getBoxLayoutParams(), {
+      width: api.getWidth(),
+      height: api.getHeight()
+    });
+  };
+  VisualMapView2.prototype.doRender = function(visualMapModel, ecModel, api, payload) {};
+  VisualMapView2.type = "visualMap";
+  return VisualMapView2;
+}(Component_default2);
+var VisualMapView_default = VisualMapView;
+
+// node_modules/echarts/lib/component/visualMap/helper.js
+var paramsSet = [["left", "right", "width"], ["top", "bottom", "height"]];
+function getItemAlign(visualMapModel, api, itemSize) {
+  var modelOption = visualMapModel.option;
+  var itemAlign = modelOption.align;
+  if (itemAlign != null && itemAlign !== "auto") {
+    return itemAlign;
+  }
+  var ecSize = {
+    width: api.getWidth(),
+    height: api.getHeight()
+  };
+  var realIndex = modelOption.orient === "horizontal" ? 1 : 0;
+  var reals = paramsSet[realIndex];
+  var fakeValue = [0, null, 10];
+  var layoutInput = {};
+  for (var i3 = 0;i3 < 3; i3++) {
+    layoutInput[paramsSet[1 - realIndex][i3]] = fakeValue[i3];
+    layoutInput[reals[i3]] = i3 === 2 ? itemSize[0] : modelOption[reals[i3]];
+  }
+  var rParam = [["x", "width", 3], ["y", "height", 0]][realIndex];
+  var rect = getLayoutRect(layoutInput, ecSize, modelOption.padding);
+  return reals[(rect.margin[rParam[2]] || 0) + rect[rParam[0]] + rect[rParam[1]] * 0.5 < ecSize[rParam[1]] * 0.5 ? 0 : 1];
+}
+function makeHighDownBatch(batch, visualMapModel) {
+  each(batch || [], function(batchItem) {
+    if (batchItem.dataIndex != null) {
+      batchItem.dataIndexInside = batchItem.dataIndex;
+      batchItem.dataIndex = null;
+    }
+    batchItem.highlightKey = "visualMap" + (visualMapModel ? visualMapModel.componentIndex : "");
+  });
+  return batch;
+}
+
+// node_modules/echarts/lib/component/visualMap/ContinuousView.js
+var linearMap3 = linearMap;
+var each10 = each;
+var mathMin8 = Math.min;
+var mathMax8 = Math.max;
+var HOVER_LINK_SIZE = 12;
+var HOVER_LINK_OUT = 6;
+var ContinuousView = function(_super) {
+  __extends(ContinuousView2, _super);
+  function ContinuousView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = ContinuousView2.type;
+    _this._shapes = {};
+    _this._dataInterval = [];
+    _this._handleEnds = [];
+    _this._hoverLinkDataIndices = [];
+    return _this;
+  }
+  ContinuousView2.prototype.init = function(ecModel, api) {
+    _super.prototype.init.call(this, ecModel, api);
+    this._hoverLinkFromSeriesMouseOver = bind(this._hoverLinkFromSeriesMouseOver, this);
+    this._hideIndicator = bind(this._hideIndicator, this);
+  };
+  ContinuousView2.prototype.doRender = function(visualMapModel, ecModel, api, payload) {
+    if (!payload || payload.type !== "selectDataRange" || payload.from !== this.uid) {
+      this._buildView();
+    }
+  };
+  ContinuousView2.prototype._buildView = function() {
+    this.group.removeAll();
+    var visualMapModel = this.visualMapModel;
+    var thisGroup = this.group;
+    this._orient = visualMapModel.get("orient");
+    this._useHandle = visualMapModel.get("calculable");
+    this._resetInterval();
+    this._renderBar(thisGroup);
+    var dataRangeText = visualMapModel.get("text");
+    this._renderEndsText(thisGroup, dataRangeText, 0);
+    this._renderEndsText(thisGroup, dataRangeText, 1);
+    this._updateView(true);
+    this.renderBackground(thisGroup);
+    this._updateView();
+    this._enableHoverLinkToSeries();
+    this._enableHoverLinkFromSeries();
+    this.positionGroup(thisGroup);
+  };
+  ContinuousView2.prototype._renderEndsText = function(group, dataRangeText, endsIndex) {
+    if (!dataRangeText) {
+      return;
+    }
+    var text = dataRangeText[1 - endsIndex];
+    text = text != null ? text + "" : "";
+    var visualMapModel = this.visualMapModel;
+    var textGap = visualMapModel.get("textGap");
+    var itemSize = visualMapModel.itemSize;
+    var barGroup = this._shapes.mainGroup;
+    var position = this._applyTransform([itemSize[0] / 2, endsIndex === 0 ? -textGap : itemSize[1] + textGap], barGroup);
+    var align = this._applyTransform(endsIndex === 0 ? "bottom" : "top", barGroup);
+    var orient = this._orient;
+    var textStyleModel = this.visualMapModel.textStyleModel;
+    this.group.add(new Text_default({
+      style: createTextStyle(textStyleModel, {
+        x: position[0],
+        y: position[1],
+        verticalAlign: orient === "horizontal" ? "middle" : align,
+        align: orient === "horizontal" ? align : "center",
+        text
+      })
+    }));
+  };
+  ContinuousView2.prototype._renderBar = function(targetGroup) {
+    var visualMapModel = this.visualMapModel;
+    var shapes = this._shapes;
+    var itemSize = visualMapModel.itemSize;
+    var orient = this._orient;
+    var useHandle = this._useHandle;
+    var itemAlign = getItemAlign(visualMapModel, this.api, itemSize);
+    var mainGroup = shapes.mainGroup = this._createBarGroup(itemAlign);
+    var gradientBarGroup = new Group_default;
+    mainGroup.add(gradientBarGroup);
+    gradientBarGroup.add(shapes.outOfRange = createPolygon());
+    gradientBarGroup.add(shapes.inRange = createPolygon(null, useHandle ? getCursor2(this._orient) : null, bind(this._dragHandle, this, "all", false), bind(this._dragHandle, this, "all", true)));
+    gradientBarGroup.setClipPath(new Rect_default({
+      shape: {
+        x: 0,
+        y: 0,
+        width: itemSize[0],
+        height: itemSize[1],
+        r: 3
+      }
+    }));
+    var textRect = visualMapModel.textStyleModel.getTextRect("国");
+    var textSize = mathMax8(textRect.width, textRect.height);
+    if (useHandle) {
+      shapes.handleThumbs = [];
+      shapes.handleLabels = [];
+      shapes.handleLabelPoints = [];
+      this._createHandle(visualMapModel, mainGroup, 0, itemSize, textSize, orient);
+      this._createHandle(visualMapModel, mainGroup, 1, itemSize, textSize, orient);
+    }
+    this._createIndicator(visualMapModel, mainGroup, itemSize, textSize, orient);
+    targetGroup.add(mainGroup);
+  };
+  ContinuousView2.prototype._createHandle = function(visualMapModel, mainGroup, handleIndex, itemSize, textSize, orient) {
+    var onDrift = bind(this._dragHandle, this, handleIndex, false);
+    var onDragEnd = bind(this._dragHandle, this, handleIndex, true);
+    var handleSize = parsePercent(visualMapModel.get("handleSize"), itemSize[0]);
+    var handleThumb = createSymbol(visualMapModel.get("handleIcon"), -handleSize / 2, -handleSize / 2, handleSize, handleSize, null, true);
+    var cursor = getCursor2(this._orient);
+    handleThumb.attr({
+      cursor,
+      draggable: true,
+      drift: onDrift,
+      ondragend: onDragEnd,
+      onmousemove: function(e4) {
+        stop(e4.event);
+      }
+    });
+    handleThumb.x = itemSize[0] / 2;
+    handleThumb.useStyle(visualMapModel.getModel("handleStyle").getItemStyle());
+    handleThumb.setStyle({
+      strokeNoScale: true,
+      strokeFirst: true
+    });
+    handleThumb.style.lineWidth *= 2;
+    handleThumb.ensureState("emphasis").style = visualMapModel.getModel(["emphasis", "handleStyle"]).getItemStyle();
+    setAsHighDownDispatcher(handleThumb, true);
+    mainGroup.add(handleThumb);
+    var textStyleModel = this.visualMapModel.textStyleModel;
+    var handleLabel = new Text_default({
+      cursor,
+      draggable: true,
+      drift: onDrift,
+      onmousemove: function(e4) {
+        stop(e4.event);
+      },
+      ondragend: onDragEnd,
+      style: createTextStyle(textStyleModel, {
+        x: 0,
+        y: 0,
+        text: ""
+      })
+    });
+    handleLabel.ensureState("blur").style = {
+      opacity: 0.1
+    };
+    handleLabel.stateTransition = {
+      duration: 200
+    };
+    this.group.add(handleLabel);
+    var handleLabelPoint = [handleSize, 0];
+    var shapes = this._shapes;
+    shapes.handleThumbs[handleIndex] = handleThumb;
+    shapes.handleLabelPoints[handleIndex] = handleLabelPoint;
+    shapes.handleLabels[handleIndex] = handleLabel;
+  };
+  ContinuousView2.prototype._createIndicator = function(visualMapModel, mainGroup, itemSize, textSize, orient) {
+    var scale4 = parsePercent(visualMapModel.get("indicatorSize"), itemSize[0]);
+    var indicator = createSymbol(visualMapModel.get("indicatorIcon"), -scale4 / 2, -scale4 / 2, scale4, scale4, null, true);
+    indicator.attr({
+      cursor: "move",
+      invisible: true,
+      silent: true,
+      x: itemSize[0] / 2
+    });
+    var indicatorStyle = visualMapModel.getModel("indicatorStyle").getItemStyle();
+    if (indicator instanceof Image_default) {
+      var pathStyle = indicator.style;
+      indicator.useStyle(extend({
+        image: pathStyle.image,
+        x: pathStyle.x,
+        y: pathStyle.y,
+        width: pathStyle.width,
+        height: pathStyle.height
+      }, indicatorStyle));
+    } else {
+      indicator.useStyle(indicatorStyle);
+    }
+    mainGroup.add(indicator);
+    var textStyleModel = this.visualMapModel.textStyleModel;
+    var indicatorLabel = new Text_default({
+      silent: true,
+      invisible: true,
+      style: createTextStyle(textStyleModel, {
+        x: 0,
+        y: 0,
+        text: ""
+      })
+    });
+    this.group.add(indicatorLabel);
+    var indicatorLabelPoint = [(orient === "horizontal" ? textSize / 2 : HOVER_LINK_OUT) + itemSize[0] / 2, 0];
+    var shapes = this._shapes;
+    shapes.indicator = indicator;
+    shapes.indicatorLabel = indicatorLabel;
+    shapes.indicatorLabelPoint = indicatorLabelPoint;
+    this._firstShowIndicator = true;
+  };
+  ContinuousView2.prototype._dragHandle = function(handleIndex, isEnd, dx, dy) {
+    if (!this._useHandle) {
+      return;
+    }
+    this._dragging = !isEnd;
+    if (!isEnd) {
+      var vertex = this._applyTransform([dx, dy], this._shapes.mainGroup, true);
+      this._updateInterval(handleIndex, vertex[1]);
+      this._hideIndicator();
+      this._updateView();
+    }
+    if (isEnd === !this.visualMapModel.get("realtime")) {
+      this.api.dispatchAction({
+        type: "selectDataRange",
+        from: this.uid,
+        visualMapId: this.visualMapModel.id,
+        selected: this._dataInterval.slice()
+      });
+    }
+    if (isEnd) {
+      !this._hovering && this._clearHoverLinkToSeries();
+    } else if (useHoverLinkOnHandle(this.visualMapModel)) {
+      this._doHoverLinkToSeries(this._handleEnds[handleIndex], false);
+    }
+  };
+  ContinuousView2.prototype._resetInterval = function() {
+    var visualMapModel = this.visualMapModel;
+    var dataInterval = this._dataInterval = visualMapModel.getSelected();
+    var dataExtent = visualMapModel.getExtent();
+    var sizeExtent = [0, visualMapModel.itemSize[1]];
+    this._handleEnds = [linearMap3(dataInterval[0], dataExtent, sizeExtent, true), linearMap3(dataInterval[1], dataExtent, sizeExtent, true)];
+  };
+  ContinuousView2.prototype._updateInterval = function(handleIndex, delta) {
+    delta = delta || 0;
+    var visualMapModel = this.visualMapModel;
+    var handleEnds = this._handleEnds;
+    var sizeExtent = [0, visualMapModel.itemSize[1]];
+    sliderMove(delta, handleEnds, sizeExtent, handleIndex, 0);
+    var dataExtent = visualMapModel.getExtent();
+    this._dataInterval = [linearMap3(handleEnds[0], sizeExtent, dataExtent, true), linearMap3(handleEnds[1], sizeExtent, dataExtent, true)];
+  };
+  ContinuousView2.prototype._updateView = function(forSketch) {
+    var visualMapModel = this.visualMapModel;
+    var dataExtent = visualMapModel.getExtent();
+    var shapes = this._shapes;
+    var outOfRangeHandleEnds = [0, visualMapModel.itemSize[1]];
+    var inRangeHandleEnds = forSketch ? outOfRangeHandleEnds : this._handleEnds;
+    var visualInRange = this._createBarVisual(this._dataInterval, dataExtent, inRangeHandleEnds, "inRange");
+    var visualOutOfRange = this._createBarVisual(dataExtent, dataExtent, outOfRangeHandleEnds, "outOfRange");
+    shapes.inRange.setStyle({
+      fill: visualInRange.barColor
+    }).setShape("points", visualInRange.barPoints);
+    shapes.outOfRange.setStyle({
+      fill: visualOutOfRange.barColor
+    }).setShape("points", visualOutOfRange.barPoints);
+    this._updateHandle(inRangeHandleEnds, visualInRange);
+  };
+  ContinuousView2.prototype._createBarVisual = function(dataInterval, dataExtent, handleEnds, forceState) {
+    var opts = {
+      forceState,
+      convertOpacityToAlpha: true
+    };
+    var colorStops = this._makeColorGradient(dataInterval, opts);
+    var symbolSizes = [this.getControllerVisual(dataInterval[0], "symbolSize", opts), this.getControllerVisual(dataInterval[1], "symbolSize", opts)];
+    var barPoints = this._createBarPoints(handleEnds, symbolSizes);
+    return {
+      barColor: new LinearGradient_default(0, 0, 0, 1, colorStops),
+      barPoints,
+      handlesColor: [colorStops[0].color, colorStops[colorStops.length - 1].color]
+    };
+  };
+  ContinuousView2.prototype._makeColorGradient = function(dataInterval, opts) {
+    var sampleNumber = 100;
+    var colorStops = [];
+    var step = (dataInterval[1] - dataInterval[0]) / sampleNumber;
+    colorStops.push({
+      color: this.getControllerVisual(dataInterval[0], "color", opts),
+      offset: 0
+    });
+    for (var i3 = 1;i3 < sampleNumber; i3++) {
+      var currValue = dataInterval[0] + step * i3;
+      if (currValue > dataInterval[1]) {
+        break;
+      }
+      colorStops.push({
+        color: this.getControllerVisual(currValue, "color", opts),
+        offset: i3 / sampleNumber
+      });
+    }
+    colorStops.push({
+      color: this.getControllerVisual(dataInterval[1], "color", opts),
+      offset: 1
+    });
+    return colorStops;
+  };
+  ContinuousView2.prototype._createBarPoints = function(handleEnds, symbolSizes) {
+    var itemSize = this.visualMapModel.itemSize;
+    return [[itemSize[0] - symbolSizes[0], handleEnds[0]], [itemSize[0], handleEnds[0]], [itemSize[0], handleEnds[1]], [itemSize[0] - symbolSizes[1], handleEnds[1]]];
+  };
+  ContinuousView2.prototype._createBarGroup = function(itemAlign) {
+    var orient = this._orient;
+    var inverse = this.visualMapModel.get("inverse");
+    return new Group_default(orient === "horizontal" && !inverse ? {
+      scaleX: itemAlign === "bottom" ? 1 : -1,
+      rotation: Math.PI / 2
+    } : orient === "horizontal" && inverse ? {
+      scaleX: itemAlign === "bottom" ? -1 : 1,
+      rotation: -Math.PI / 2
+    } : orient === "vertical" && !inverse ? {
+      scaleX: itemAlign === "left" ? 1 : -1,
+      scaleY: -1
+    } : {
+      scaleX: itemAlign === "left" ? 1 : -1
+    });
+  };
+  ContinuousView2.prototype._updateHandle = function(handleEnds, visualInRange) {
+    if (!this._useHandle) {
+      return;
+    }
+    var shapes = this._shapes;
+    var visualMapModel = this.visualMapModel;
+    var handleThumbs = shapes.handleThumbs;
+    var handleLabels = shapes.handleLabels;
+    var itemSize = visualMapModel.itemSize;
+    var dataExtent = visualMapModel.getExtent();
+    var align = this._applyTransform("left", shapes.mainGroup);
+    each10([0, 1], function(handleIndex) {
+      var handleThumb = handleThumbs[handleIndex];
+      handleThumb.setStyle("fill", visualInRange.handlesColor[handleIndex]);
+      handleThumb.y = handleEnds[handleIndex];
+      var val = linearMap3(handleEnds[handleIndex], [0, itemSize[1]], dataExtent, true);
+      var symbolSize = this.getControllerVisual(val, "symbolSize");
+      handleThumb.scaleX = handleThumb.scaleY = symbolSize / itemSize[0];
+      handleThumb.x = itemSize[0] - symbolSize / 2;
+      var textPoint = applyTransform2(shapes.handleLabelPoints[handleIndex], getTransform(handleThumb, this.group));
+      if (this._orient === "horizontal") {
+        var minimumOffset = align === "left" || align === "top" ? (itemSize[0] - symbolSize) / 2 : (itemSize[0] - symbolSize) / -2;
+        textPoint[1] += minimumOffset;
+      }
+      handleLabels[handleIndex].setStyle({
+        x: textPoint[0],
+        y: textPoint[1],
+        text: visualMapModel.formatValueText(this._dataInterval[handleIndex]),
+        verticalAlign: "middle",
+        align: this._orient === "vertical" ? this._applyTransform("left", shapes.mainGroup) : "center"
+      });
+    }, this);
+  };
+  ContinuousView2.prototype._showIndicator = function(cursorValue, textValue, rangeSymbol, halfHoverLinkSize) {
+    var visualMapModel = this.visualMapModel;
+    var dataExtent = visualMapModel.getExtent();
+    var itemSize = visualMapModel.itemSize;
+    var sizeExtent = [0, itemSize[1]];
+    var shapes = this._shapes;
+    var indicator = shapes.indicator;
+    if (!indicator) {
+      return;
+    }
+    indicator.attr("invisible", false);
+    var opts = {
+      convertOpacityToAlpha: true
+    };
+    var color = this.getControllerVisual(cursorValue, "color", opts);
+    var symbolSize = this.getControllerVisual(cursorValue, "symbolSize");
+    var y3 = linearMap3(cursorValue, dataExtent, sizeExtent, true);
+    var x3 = itemSize[0] - symbolSize / 2;
+    var oldIndicatorPos = {
+      x: indicator.x,
+      y: indicator.y
+    };
+    indicator.y = y3;
+    indicator.x = x3;
+    var textPoint = applyTransform2(shapes.indicatorLabelPoint, getTransform(indicator, this.group));
+    var indicatorLabel = shapes.indicatorLabel;
+    indicatorLabel.attr("invisible", false);
+    var align = this._applyTransform("left", shapes.mainGroup);
+    var orient = this._orient;
+    var isHorizontal = orient === "horizontal";
+    indicatorLabel.setStyle({
+      text: (rangeSymbol ? rangeSymbol : "") + visualMapModel.formatValueText(textValue),
+      verticalAlign: isHorizontal ? align : "middle",
+      align: isHorizontal ? "center" : align
+    });
+    var indicatorNewProps = {
+      x: x3,
+      y: y3,
+      style: {
+        fill: color
+      }
+    };
+    var labelNewProps = {
+      style: {
+        x: textPoint[0],
+        y: textPoint[1]
+      }
+    };
+    if (visualMapModel.ecModel.isAnimationEnabled() && !this._firstShowIndicator) {
+      var animationCfg = {
+        duration: 100,
+        easing: "cubicInOut",
+        additive: true
+      };
+      indicator.x = oldIndicatorPos.x;
+      indicator.y = oldIndicatorPos.y;
+      indicator.animateTo(indicatorNewProps, animationCfg);
+      indicatorLabel.animateTo(labelNewProps, animationCfg);
+    } else {
+      indicator.attr(indicatorNewProps);
+      indicatorLabel.attr(labelNewProps);
+    }
+    this._firstShowIndicator = false;
+    var handleLabels = this._shapes.handleLabels;
+    if (handleLabels) {
+      for (var i3 = 0;i3 < handleLabels.length; i3++) {
+        this.api.enterBlur(handleLabels[i3]);
+      }
+    }
+  };
+  ContinuousView2.prototype._enableHoverLinkToSeries = function() {
+    var self2 = this;
+    this._shapes.mainGroup.on("mousemove", function(e4) {
+      self2._hovering = true;
+      if (!self2._dragging) {
+        var itemSize = self2.visualMapModel.itemSize;
+        var pos = self2._applyTransform([e4.offsetX, e4.offsetY], self2._shapes.mainGroup, true, true);
+        pos[1] = mathMin8(mathMax8(0, pos[1]), itemSize[1]);
+        self2._doHoverLinkToSeries(pos[1], 0 <= pos[0] && pos[0] <= itemSize[0]);
+      }
+    }).on("mouseout", function() {
+      self2._hovering = false;
+      !self2._dragging && self2._clearHoverLinkToSeries();
+    });
+  };
+  ContinuousView2.prototype._enableHoverLinkFromSeries = function() {
+    var zr = this.api.getZr();
+    if (this.visualMapModel.option.hoverLink) {
+      zr.on("mouseover", this._hoverLinkFromSeriesMouseOver, this);
+      zr.on("mouseout", this._hideIndicator, this);
+    } else {
+      this._clearHoverLinkFromSeries();
+    }
+  };
+  ContinuousView2.prototype._doHoverLinkToSeries = function(cursorPos, hoverOnBar) {
+    var visualMapModel = this.visualMapModel;
+    var itemSize = visualMapModel.itemSize;
+    if (!visualMapModel.option.hoverLink) {
+      return;
+    }
+    var sizeExtent = [0, itemSize[1]];
+    var dataExtent = visualMapModel.getExtent();
+    cursorPos = mathMin8(mathMax8(sizeExtent[0], cursorPos), sizeExtent[1]);
+    var halfHoverLinkSize = getHalfHoverLinkSize(visualMapModel, dataExtent, sizeExtent);
+    var hoverRange = [cursorPos - halfHoverLinkSize, cursorPos + halfHoverLinkSize];
+    var cursorValue = linearMap3(cursorPos, sizeExtent, dataExtent, true);
+    var valueRange = [linearMap3(hoverRange[0], sizeExtent, dataExtent, true), linearMap3(hoverRange[1], sizeExtent, dataExtent, true)];
+    hoverRange[0] < sizeExtent[0] && (valueRange[0] = -Infinity);
+    hoverRange[1] > sizeExtent[1] && (valueRange[1] = Infinity);
+    if (hoverOnBar) {
+      if (valueRange[0] === -Infinity) {
+        this._showIndicator(cursorValue, valueRange[1], "< ", halfHoverLinkSize);
+      } else if (valueRange[1] === Infinity) {
+        this._showIndicator(cursorValue, valueRange[0], "> ", halfHoverLinkSize);
+      } else {
+        this._showIndicator(cursorValue, cursorValue, "≈ ", halfHoverLinkSize);
+      }
+    }
+    var oldBatch = this._hoverLinkDataIndices;
+    var newBatch = [];
+    if (hoverOnBar || useHoverLinkOnHandle(visualMapModel)) {
+      newBatch = this._hoverLinkDataIndices = visualMapModel.findTargetDataIndices(valueRange);
+    }
+    var resultBatches = compressBatches(oldBatch, newBatch);
+    this._dispatchHighDown("downplay", makeHighDownBatch(resultBatches[0], visualMapModel));
+    this._dispatchHighDown("highlight", makeHighDownBatch(resultBatches[1], visualMapModel));
+  };
+  ContinuousView2.prototype._hoverLinkFromSeriesMouseOver = function(e4) {
+    var ecData;
+    findEventDispatcher(e4.target, function(target) {
+      var currECData = getECData(target);
+      if (currECData.dataIndex != null) {
+        ecData = currECData;
+        return true;
+      }
+    }, true);
+    if (!ecData) {
+      return;
+    }
+    var dataModel = this.ecModel.getSeriesByIndex(ecData.seriesIndex);
+    var visualMapModel = this.visualMapModel;
+    if (!visualMapModel.isTargetSeries(dataModel)) {
+      return;
+    }
+    var data = dataModel.getData(ecData.dataType);
+    var value2 = data.getStore().get(visualMapModel.getDataDimensionIndex(data), ecData.dataIndex);
+    if (!isNaN(value2)) {
+      this._showIndicator(value2, value2);
+    }
+  };
+  ContinuousView2.prototype._hideIndicator = function() {
+    var shapes = this._shapes;
+    shapes.indicator && shapes.indicator.attr("invisible", true);
+    shapes.indicatorLabel && shapes.indicatorLabel.attr("invisible", true);
+    var handleLabels = this._shapes.handleLabels;
+    if (handleLabels) {
+      for (var i3 = 0;i3 < handleLabels.length; i3++) {
+        this.api.leaveBlur(handleLabels[i3]);
+      }
+    }
+  };
+  ContinuousView2.prototype._clearHoverLinkToSeries = function() {
+    this._hideIndicator();
+    var indices = this._hoverLinkDataIndices;
+    this._dispatchHighDown("downplay", makeHighDownBatch(indices, this.visualMapModel));
+    indices.length = 0;
+  };
+  ContinuousView2.prototype._clearHoverLinkFromSeries = function() {
+    this._hideIndicator();
+    var zr = this.api.getZr();
+    zr.off("mouseover", this._hoverLinkFromSeriesMouseOver);
+    zr.off("mouseout", this._hideIndicator);
+  };
+  ContinuousView2.prototype._applyTransform = function(vertex, element, inverse, global2) {
+    var transform = getTransform(element, global2 ? null : this.group);
+    return isArray(vertex) ? applyTransform2(vertex, transform, inverse) : transformDirection(vertex, transform, inverse);
+  };
+  ContinuousView2.prototype._dispatchHighDown = function(type, batch) {
+    batch && batch.length && this.api.dispatchAction({
+      type,
+      batch
+    });
+  };
+  ContinuousView2.prototype.dispose = function() {
+    this._clearHoverLinkFromSeries();
+    this._clearHoverLinkToSeries();
+  };
+  ContinuousView2.type = "visualMap.continuous";
+  return ContinuousView2;
+}(VisualMapView_default);
+function createPolygon(points2, cursor, onDrift, onDragEnd) {
+  return new Polygon_default({
+    shape: {
+      points: points2
+    },
+    draggable: !!onDrift,
+    cursor,
+    drift: onDrift,
+    onmousemove: function(e4) {
+      stop(e4.event);
+    },
+    ondragend: onDragEnd
+  });
+}
+function getHalfHoverLinkSize(visualMapModel, dataExtent, sizeExtent) {
+  var halfHoverLinkSize = HOVER_LINK_SIZE / 2;
+  var hoverLinkDataSize = visualMapModel.get("hoverLinkDataSize");
+  if (hoverLinkDataSize) {
+    halfHoverLinkSize = linearMap3(hoverLinkDataSize, dataExtent, sizeExtent, true) / 2;
+  }
+  return halfHoverLinkSize;
+}
+function useHoverLinkOnHandle(visualMapModel) {
+  var hoverLinkOnHandle = visualMapModel.get("hoverLinkOnHandle");
+  return !!(hoverLinkOnHandle == null ? visualMapModel.get("realtime") : hoverLinkOnHandle);
+}
+function getCursor2(orient) {
+  return orient === "vertical" ? "ns-resize" : "ew-resize";
+}
+var ContinuousView_default = ContinuousView;
+
+// node_modules/echarts/lib/component/visualMap/visualMapAction.js
+var visualMapActionInfo = {
+  type: "selectDataRange",
+  event: "dataRangeSelected",
+  update: "update"
+};
+var visualMapActionHander = function(payload, ecModel) {
+  ecModel.eachComponent({
+    mainType: "visualMap",
+    query: payload
+  }, function(model) {
+    model.setSelected(payload.selected);
+  });
+};
+
+// node_modules/echarts/lib/component/visualMap/visualEncoding.js
+var visualMapEncodingHandlers = [
+  {
+    createOnAllSeries: true,
+    reset: function(seriesModel, ecModel) {
+      var resetDefines = [];
+      ecModel.eachComponent("visualMap", function(visualMapModel) {
+        var pipelineContext = seriesModel.pipelineContext;
+        if (!visualMapModel.isTargetSeries(seriesModel) || pipelineContext && pipelineContext.large) {
+          return;
+        }
+        resetDefines.push(incrementalApplyVisual(visualMapModel.stateList, visualMapModel.targetVisuals, bind(visualMapModel.getValueState, visualMapModel), visualMapModel.getDataDimensionIndex(seriesModel.getData())));
+      });
+      return resetDefines;
+    }
+  },
+  {
+    createOnAllSeries: true,
+    reset: function(seriesModel, ecModel) {
+      var data = seriesModel.getData();
+      var visualMetaList = [];
+      ecModel.eachComponent("visualMap", function(visualMapModel) {
+        if (visualMapModel.isTargetSeries(seriesModel)) {
+          var visualMeta = visualMapModel.getVisualMeta(bind(getColorVisual, null, seriesModel, visualMapModel)) || {
+            stops: [],
+            outerColors: []
+          };
+          var dimIdx = visualMapModel.getDataDimensionIndex(data);
+          if (dimIdx >= 0) {
+            visualMeta.dimension = dimIdx;
+            visualMetaList.push(visualMeta);
+          }
+        }
+      });
+      seriesModel.getData().setVisual("visualMeta", visualMetaList);
+    }
+  }
+];
+function getColorVisual(seriesModel, visualMapModel, value2, valueState) {
+  var mappings = visualMapModel.targetVisuals[valueState];
+  var visualTypes = VisualMapping_default.prepareVisualTypes(mappings);
+  var resultVisual = {
+    color: getVisualFromData(seriesModel.getData(), "color")
+  };
+  for (var i3 = 0, len2 = visualTypes.length;i3 < len2; i3++) {
+    var type = visualTypes[i3];
+    var mapping = mappings[type === "opacity" ? "__alphaForOpacity" : type];
+    mapping && mapping.applyVisual(value2, getVisual, setVisual);
+  }
+  return resultVisual.color;
+  function getVisual(key) {
+    return resultVisual[key];
+  }
+  function setVisual(key, value3) {
+    resultVisual[key] = value3;
+  }
+}
+
+// node_modules/echarts/lib/component/visualMap/preprocessor.js
+var each11 = each;
+function visualMapPreprocessor(option) {
+  var visualMap = option && option.visualMap;
+  if (!isArray(visualMap)) {
+    visualMap = visualMap ? [visualMap] : [];
+  }
+  each11(visualMap, function(opt) {
+    if (!opt) {
+      return;
+    }
+    if (has(opt, "splitList") && !has(opt, "pieces")) {
+      opt.pieces = opt.splitList;
+      delete opt.splitList;
+    }
+    var pieces = opt.pieces;
+    if (pieces && isArray(pieces)) {
+      each11(pieces, function(piece) {
+        if (isObject2(piece)) {
+          if (has(piece, "start") && !has(piece, "min")) {
+            piece.min = piece.start;
+          }
+          if (has(piece, "end") && !has(piece, "max")) {
+            piece.max = piece.end;
+          }
+        }
+      });
+    }
+  });
+}
+function has(obj, name) {
+  return obj && obj.hasOwnProperty && obj.hasOwnProperty(name);
+}
+
+// node_modules/echarts/lib/component/visualMap/installCommon.js
+var installed2 = false;
+function installCommon2(registers) {
+  if (installed2) {
+    return;
+  }
+  installed2 = true;
+  registers.registerSubTypeDefaulter("visualMap", function(option) {
+    return !option.categories && (!(option.pieces ? option.pieces.length > 0 : option.splitNumber > 0) || option.calculable) ? "continuous" : "piecewise";
+  });
+  registers.registerAction(visualMapActionInfo, visualMapActionHander);
+  each(visualMapEncodingHandlers, function(handler) {
+    registers.registerVisual(registers.PRIORITY.VISUAL.COMPONENT, handler);
+  });
+  registers.registerPreprocessor(visualMapPreprocessor);
+}
+
+// node_modules/echarts/lib/component/visualMap/installVisualMapContinuous.js
+function install23(registers) {
+  registers.registerComponentModel(ContinuousModel_default);
+  registers.registerComponentView(ContinuousView_default);
+  installCommon2(registers);
+}
+
+// node_modules/echarts/lib/component/visualMap/PiecewiseModel.js
+var PiecewiseModel = function(_super) {
+  __extends(PiecewiseModel2, _super);
+  function PiecewiseModel2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = PiecewiseModel2.type;
+    _this._pieceList = [];
+    return _this;
+  }
+  PiecewiseModel2.prototype.optionUpdated = function(newOption, isInit) {
+    _super.prototype.optionUpdated.apply(this, arguments);
+    this.resetExtent();
+    var mode = this._mode = this._determineMode();
+    this._pieceList = [];
+    resetMethods[this._mode].call(this, this._pieceList);
+    this._resetSelected(newOption, isInit);
+    var categories = this.option.categories;
+    this.resetVisual(function(mappingOption, state) {
+      if (mode === "categories") {
+        mappingOption.mappingMethod = "category";
+        mappingOption.categories = clone(categories);
+      } else {
+        mappingOption.dataExtent = this.getExtent();
+        mappingOption.mappingMethod = "piecewise";
+        mappingOption.pieceList = map(this._pieceList, function(piece) {
+          piece = clone(piece);
+          if (state !== "inRange") {
+            piece.visual = null;
+          }
+          return piece;
+        });
+      }
+    });
+  };
+  PiecewiseModel2.prototype.completeVisualOption = function() {
+    var option = this.option;
+    var visualTypesInPieces = {};
+    var visualTypes = VisualMapping_default.listVisualTypes();
+    var isCategory2 = this.isCategory();
+    each(option.pieces, function(piece) {
+      each(visualTypes, function(visualType) {
+        if (piece.hasOwnProperty(visualType)) {
+          visualTypesInPieces[visualType] = 1;
+        }
+      });
+    });
+    each(visualTypesInPieces, function(v3, visualType) {
+      var exists = false;
+      each(this.stateList, function(state) {
+        exists = exists || has2(option, state, visualType) || has2(option.target, state, visualType);
+      }, this);
+      !exists && each(this.stateList, function(state) {
+        (option[state] || (option[state] = {}))[visualType] = visualDefault_default.get(visualType, state === "inRange" ? "active" : "inactive", isCategory2);
+      });
+    }, this);
+    function has2(obj, state, visualType) {
+      return obj && obj[state] && obj[state].hasOwnProperty(visualType);
+    }
+    _super.prototype.completeVisualOption.apply(this, arguments);
+  };
+  PiecewiseModel2.prototype._resetSelected = function(newOption, isInit) {
+    var thisOption = this.option;
+    var pieceList = this._pieceList;
+    var selected = (isInit ? thisOption : newOption).selected || {};
+    thisOption.selected = selected;
+    each(pieceList, function(piece, index) {
+      var key = this.getSelectedMapKey(piece);
+      if (!selected.hasOwnProperty(key)) {
+        selected[key] = true;
+      }
+    }, this);
+    if (thisOption.selectedMode === "single") {
+      var hasSel_1 = false;
+      each(pieceList, function(piece, index) {
+        var key = this.getSelectedMapKey(piece);
+        if (selected[key]) {
+          hasSel_1 ? selected[key] = false : hasSel_1 = true;
+        }
+      }, this);
+    }
+  };
+  PiecewiseModel2.prototype.getItemSymbol = function() {
+    return this.get("itemSymbol");
+  };
+  PiecewiseModel2.prototype.getSelectedMapKey = function(piece) {
+    return this._mode === "categories" ? piece.value + "" : piece.index + "";
+  };
+  PiecewiseModel2.prototype.getPieceList = function() {
+    return this._pieceList;
+  };
+  PiecewiseModel2.prototype._determineMode = function() {
+    var option = this.option;
+    return option.pieces && option.pieces.length > 0 ? "pieces" : this.option.categories ? "categories" : "splitNumber";
+  };
+  PiecewiseModel2.prototype.setSelected = function(selected) {
+    this.option.selected = clone(selected);
+  };
+  PiecewiseModel2.prototype.getValueState = function(value2) {
+    var index = VisualMapping_default.findPieceIndex(value2, this._pieceList);
+    return index != null ? this.option.selected[this.getSelectedMapKey(this._pieceList[index])] ? "inRange" : "outOfRange" : "outOfRange";
+  };
+  PiecewiseModel2.prototype.findTargetDataIndices = function(pieceIndex) {
+    var result = [];
+    var pieceList = this._pieceList;
+    this.eachTargetSeries(function(seriesModel) {
+      var dataIndices = [];
+      var data = seriesModel.getData();
+      data.each(this.getDataDimensionIndex(data), function(value2, dataIndex) {
+        var pIdx = VisualMapping_default.findPieceIndex(value2, pieceList);
+        pIdx === pieceIndex && dataIndices.push(dataIndex);
+      }, this);
+      result.push({
+        seriesId: seriesModel.id,
+        dataIndex: dataIndices
+      });
+    }, this);
+    return result;
+  };
+  PiecewiseModel2.prototype.getRepresentValue = function(piece) {
+    var representValue;
+    if (this.isCategory()) {
+      representValue = piece.value;
+    } else {
+      if (piece.value != null) {
+        representValue = piece.value;
+      } else {
+        var pieceInterval = piece.interval || [];
+        representValue = pieceInterval[0] === -Infinity && pieceInterval[1] === Infinity ? 0 : (pieceInterval[0] + pieceInterval[1]) / 2;
+      }
+    }
+    return representValue;
+  };
+  PiecewiseModel2.prototype.getVisualMeta = function(getColorVisual2) {
+    if (this.isCategory()) {
+      return;
+    }
+    var stops = [];
+    var outerColors = ["", ""];
+    var visualMapModel = this;
+    function setStop(interval, valueState) {
+      var representValue = visualMapModel.getRepresentValue({
+        interval
+      });
+      if (!valueState) {
+        valueState = visualMapModel.getValueState(representValue);
+      }
+      var color = getColorVisual2(representValue, valueState);
+      if (interval[0] === -Infinity) {
+        outerColors[0] = color;
+      } else if (interval[1] === Infinity) {
+        outerColors[1] = color;
+      } else {
+        stops.push({
+          value: interval[0],
+          color
+        }, {
+          value: interval[1],
+          color
+        });
+      }
+    }
+    var pieceList = this._pieceList.slice();
+    if (!pieceList.length) {
+      pieceList.push({
+        interval: [-Infinity, Infinity]
+      });
+    } else {
+      var edge = pieceList[0].interval[0];
+      edge !== -Infinity && pieceList.unshift({
+        interval: [-Infinity, edge]
+      });
+      edge = pieceList[pieceList.length - 1].interval[1];
+      edge !== Infinity && pieceList.push({
+        interval: [edge, Infinity]
+      });
+    }
+    var curr = -Infinity;
+    each(pieceList, function(piece) {
+      var interval = piece.interval;
+      if (interval) {
+        interval[0] > curr && setStop([curr, interval[0]], "outOfRange");
+        setStop(interval.slice());
+        curr = interval[1];
+      }
+    }, this);
+    return {
+      stops,
+      outerColors
+    };
+  };
+  PiecewiseModel2.type = "visualMap.piecewise";
+  PiecewiseModel2.defaultOption = inheritDefaultOption(VisualMapModel_default.defaultOption, {
+    selected: null,
+    minOpen: false,
+    maxOpen: false,
+    align: "auto",
+    itemWidth: 20,
+    itemHeight: 14,
+    itemSymbol: "roundRect",
+    pieces: null,
+    categories: null,
+    splitNumber: 5,
+    selectedMode: "multiple",
+    itemGap: 10,
+    hoverLink: true
+  });
+  return PiecewiseModel2;
+}(VisualMapModel_default);
+var resetMethods = {
+  splitNumber: function(outPieceList) {
+    var thisOption = this.option;
+    var precision = Math.min(thisOption.precision, 20);
+    var dataExtent = this.getExtent();
+    var splitNumber = thisOption.splitNumber;
+    splitNumber = Math.max(parseInt(splitNumber, 10), 1);
+    thisOption.splitNumber = splitNumber;
+    var splitStep = (dataExtent[1] - dataExtent[0]) / splitNumber;
+    while (+splitStep.toFixed(precision) !== splitStep && precision < 5) {
+      precision++;
+    }
+    thisOption.precision = precision;
+    splitStep = +splitStep.toFixed(precision);
+    if (thisOption.minOpen) {
+      outPieceList.push({
+        interval: [-Infinity, dataExtent[0]],
+        close: [0, 0]
+      });
+    }
+    for (var index = 0, curr = dataExtent[0];index < splitNumber; curr += splitStep, index++) {
+      var max3 = index === splitNumber - 1 ? dataExtent[1] : curr + splitStep;
+      outPieceList.push({
+        interval: [curr, max3],
+        close: [1, 1]
+      });
+    }
+    if (thisOption.maxOpen) {
+      outPieceList.push({
+        interval: [dataExtent[1], Infinity],
+        close: [0, 0]
+      });
+    }
+    reformIntervals(outPieceList);
+    each(outPieceList, function(piece, index2) {
+      piece.index = index2;
+      piece.text = this.formatValueText(piece.interval);
+    }, this);
+  },
+  categories: function(outPieceList) {
+    var thisOption = this.option;
+    each(thisOption.categories, function(cate) {
+      outPieceList.push({
+        text: this.formatValueText(cate, true),
+        value: cate
+      });
+    }, this);
+    normalizeReverse(thisOption, outPieceList);
+  },
+  pieces: function(outPieceList) {
+    var thisOption = this.option;
+    each(thisOption.pieces, function(pieceListItem, index) {
+      if (!isObject2(pieceListItem)) {
+        pieceListItem = {
+          value: pieceListItem
+        };
+      }
+      var item = {
+        text: "",
+        index
+      };
+      if (pieceListItem.label != null) {
+        item.text = pieceListItem.label;
+      }
+      if (pieceListItem.hasOwnProperty("value")) {
+        var value2 = item.value = pieceListItem.value;
+        item.interval = [value2, value2];
+        item.close = [1, 1];
+      } else {
+        var interval = item.interval = [];
+        var close_1 = item.close = [0, 0];
+        var closeList = [1, 0, 1];
+        var infinityList = [-Infinity, Infinity];
+        var useMinMax = [];
+        for (var lg = 0;lg < 2; lg++) {
+          var names = [["gte", "gt", "min"], ["lte", "lt", "max"]][lg];
+          for (var i3 = 0;i3 < 3 && interval[lg] == null; i3++) {
+            interval[lg] = pieceListItem[names[i3]];
+            close_1[lg] = closeList[i3];
+            useMinMax[lg] = i3 === 2;
+          }
+          interval[lg] == null && (interval[lg] = infinityList[lg]);
+        }
+        useMinMax[0] && interval[1] === Infinity && (close_1[0] = 0);
+        useMinMax[1] && interval[0] === -Infinity && (close_1[1] = 0);
+        if (true) {
+          if (interval[0] > interval[1]) {
+            console.warn("Piece " + index + "is illegal: " + interval + " lower bound should not greater then uppper bound.");
+          }
+        }
+        if (interval[0] === interval[1] && close_1[0] && close_1[1]) {
+          item.value = interval[0];
+        }
+      }
+      item.visual = VisualMapping_default.retrieveVisuals(pieceListItem);
+      outPieceList.push(item);
+    }, this);
+    normalizeReverse(thisOption, outPieceList);
+    reformIntervals(outPieceList);
+    each(outPieceList, function(piece) {
+      var close = piece.close;
+      var edgeSymbols = [["<", "≤"][close[1]], [">", "≥"][close[0]]];
+      piece.text = piece.text || this.formatValueText(piece.value != null ? piece.value : piece.interval, false, edgeSymbols);
+    }, this);
+  }
+};
+function normalizeReverse(thisOption, pieceList) {
+  var inverse = thisOption.inverse;
+  if (thisOption.orient === "vertical" ? !inverse : inverse) {
+    pieceList.reverse();
+  }
+}
+var PiecewiseModel_default = PiecewiseModel;
+
+// node_modules/echarts/lib/component/visualMap/PiecewiseView.js
+var PiecewiseVisualMapView = function(_super) {
+  __extends(PiecewiseVisualMapView2, _super);
+  function PiecewiseVisualMapView2() {
+    var _this = _super !== null && _super.apply(this, arguments) || this;
+    _this.type = PiecewiseVisualMapView2.type;
+    return _this;
+  }
+  PiecewiseVisualMapView2.prototype.doRender = function() {
+    var thisGroup = this.group;
+    thisGroup.removeAll();
+    var visualMapModel = this.visualMapModel;
+    var textGap = visualMapModel.get("textGap");
+    var textStyleModel = visualMapModel.textStyleModel;
+    var textFont = textStyleModel.getFont();
+    var textFill = textStyleModel.getTextColor();
+    var itemAlign = this._getItemAlign();
+    var itemSize = visualMapModel.itemSize;
+    var viewData = this._getViewData();
+    var endsText = viewData.endsText;
+    var showLabel = retrieve(visualMapModel.get("showLabel", true), !endsText);
+    var silent = !visualMapModel.get("selectedMode");
+    endsText && this._renderEndsText(thisGroup, endsText[0], itemSize, showLabel, itemAlign);
+    each(viewData.viewPieceList, function(item) {
+      var piece = item.piece;
+      var itemGroup = new Group_default;
+      itemGroup.onclick = bind(this._onItemClick, this, piece);
+      this._enableHoverLink(itemGroup, item.indexInModelPieceList);
+      var representValue = visualMapModel.getRepresentValue(piece);
+      this._createItemSymbol(itemGroup, representValue, [0, 0, itemSize[0], itemSize[1]], silent);
+      if (showLabel) {
+        var visualState = this.visualMapModel.getValueState(representValue);
+        itemGroup.add(new Text_default({
+          style: {
+            x: itemAlign === "right" ? -textGap : itemSize[0] + textGap,
+            y: itemSize[1] / 2,
+            text: piece.text,
+            verticalAlign: "middle",
+            align: itemAlign,
+            font: textFont,
+            fill: textFill,
+            opacity: visualState === "outOfRange" ? 0.5 : 1
+          },
+          silent
+        }));
+      }
+      thisGroup.add(itemGroup);
+    }, this);
+    endsText && this._renderEndsText(thisGroup, endsText[1], itemSize, showLabel, itemAlign);
+    box(visualMapModel.get("orient"), thisGroup, visualMapModel.get("itemGap"));
+    this.renderBackground(thisGroup);
+    this.positionGroup(thisGroup);
+  };
+  PiecewiseVisualMapView2.prototype._enableHoverLink = function(itemGroup, pieceIndex) {
+    var _this = this;
+    itemGroup.on("mouseover", function() {
+      return onHoverLink("highlight");
+    }).on("mouseout", function() {
+      return onHoverLink("downplay");
+    });
+    var onHoverLink = function(method) {
+      var visualMapModel = _this.visualMapModel;
+      visualMapModel.option.hoverLink && _this.api.dispatchAction({
+        type: method,
+        batch: makeHighDownBatch(visualMapModel.findTargetDataIndices(pieceIndex), visualMapModel)
+      });
+    };
+  };
+  PiecewiseVisualMapView2.prototype._getItemAlign = function() {
+    var visualMapModel = this.visualMapModel;
+    var modelOption = visualMapModel.option;
+    if (modelOption.orient === "vertical") {
+      return getItemAlign(visualMapModel, this.api, visualMapModel.itemSize);
+    } else {
+      var align = modelOption.align;
+      if (!align || align === "auto") {
+        align = "left";
+      }
+      return align;
+    }
+  };
+  PiecewiseVisualMapView2.prototype._renderEndsText = function(group, text, itemSize, showLabel, itemAlign) {
+    if (!text) {
+      return;
+    }
+    var itemGroup = new Group_default;
+    var textStyleModel = this.visualMapModel.textStyleModel;
+    itemGroup.add(new Text_default({
+      style: createTextStyle(textStyleModel, {
+        x: showLabel ? itemAlign === "right" ? itemSize[0] : 0 : itemSize[0] / 2,
+        y: itemSize[1] / 2,
+        verticalAlign: "middle",
+        align: showLabel ? itemAlign : "center",
+        text
+      })
+    }));
+    group.add(itemGroup);
+  };
+  PiecewiseVisualMapView2.prototype._getViewData = function() {
+    var visualMapModel = this.visualMapModel;
+    var viewPieceList = map(visualMapModel.getPieceList(), function(piece, index) {
+      return {
+        piece,
+        indexInModelPieceList: index
+      };
+    });
+    var endsText = visualMapModel.get("text");
+    var orient = visualMapModel.get("orient");
+    var inverse = visualMapModel.get("inverse");
+    if (orient === "horizontal" ? inverse : !inverse) {
+      viewPieceList.reverse();
+    } else if (endsText) {
+      endsText = endsText.slice().reverse();
+    }
+    return {
+      viewPieceList,
+      endsText
+    };
+  };
+  PiecewiseVisualMapView2.prototype._createItemSymbol = function(group, representValue, shapeParam, silent) {
+    var itemSymbol = createSymbol(this.getControllerVisual(representValue, "symbol"), shapeParam[0], shapeParam[1], shapeParam[2], shapeParam[3], this.getControllerVisual(representValue, "color"));
+    itemSymbol.silent = silent;
+    group.add(itemSymbol);
+  };
+  PiecewiseVisualMapView2.prototype._onItemClick = function(piece) {
+    var visualMapModel = this.visualMapModel;
+    var option = visualMapModel.option;
+    var selectedMode = option.selectedMode;
+    if (!selectedMode) {
+      return;
+    }
+    var selected = clone(option.selected);
+    var newKey = visualMapModel.getSelectedMapKey(piece);
+    if (selectedMode === "single" || selectedMode === true) {
+      selected[newKey] = true;
+      each(selected, function(o3, key) {
+        selected[key] = key === newKey;
+      });
+    } else {
+      selected[newKey] = !selected[newKey];
+    }
+    this.api.dispatchAction({
+      type: "selectDataRange",
+      from: this.uid,
+      visualMapId: this.visualMapModel.id,
+      selected
+    });
+  };
+  PiecewiseVisualMapView2.type = "visualMap.piecewise";
+  return PiecewiseVisualMapView2;
+}(VisualMapView_default);
+var PiecewiseView_default = PiecewiseVisualMapView;
+
+// node_modules/echarts/lib/component/visualMap/installVisualMapPiecewise.js
+function install24(registers) {
+  registers.registerComponentModel(PiecewiseModel_default);
+  registers.registerComponentView(PiecewiseView_default);
+  installCommon2(registers);
+}
+
+// node_modules/echarts/lib/component/visualMap/install.js
+function install25(registers) {
+  use(install23);
+  use(install24);
 }
 // src/preact/components/widgets/chart.ts
 var import_dayjs = __toESM(require_dayjs_min(), 1);
@@ -46637,11 +53522,17 @@ registerEChartsModules([
   install,
   install2,
   install3,
-  install6,
+  install7,
+  install5,
+  install9,
   install10,
+  install13,
+  install19,
+  install14,
   install15,
-  install11,
-  install12
+  install25,
+  install22,
+  install16
 ]);
 import_dayjs.default.extend(import_utc.default);
 var DEFAULT_COLORS = [
@@ -46673,6 +53564,12 @@ function normalizeLook(look) {
     return "polar-area";
   if (l3 === "radar")
     return "radar";
+  if (l3 === "scatter")
+    return "scatter";
+  if (l3 === "funnel")
+    return "funnel";
+  if (l3 === "heatmap" || l3 === "heat-map")
+    return "heatmap";
   return "line";
 }
 function toNumber4(value2) {
@@ -46686,6 +53583,76 @@ function toPositiveNumber(value2) {
 function toOptionalNumber(value2) {
   const n3 = Number(value2);
   return Number.isFinite(n3) ? n3 : undefined;
+}
+function buildDataZoom(control, look) {
+  if (!control.dataZoom)
+    return;
+  const zoomType = control.dataZoomType || "slider";
+  const start2 = toOptionalNumber(control.dataZoomStart) ?? 0;
+  const end2 = toOptionalNumber(control.dataZoomEnd) ?? 100;
+  const isHorizontal = look !== "horizontalBar";
+  const result = [];
+  if (zoomType === "slider" || zoomType === "both") {
+    result.push({
+      type: "slider",
+      xAxisIndex: isHorizontal ? 0 : undefined,
+      yAxisIndex: isHorizontal ? undefined : 0,
+      start: start2,
+      end: end2,
+      height: isHorizontal ? 20 : undefined,
+      width: isHorizontal ? undefined : 20,
+      bottom: isHorizontal ? 0 : undefined,
+      right: isHorizontal ? undefined : 0,
+      borderColor: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))",
+      backgroundColor: "var(--nr-dashboard-chartSplitAreaLow, rgba(0,0,0,0.05))",
+      fillerColor: "var(--nr-dashboard-widgetColor, rgba(31,119,180,0.2))",
+      handleStyle: { color: "var(--nr-dashboard-widgetColor, #1F77B4)" },
+      textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+      dataBackground: {
+        lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" },
+        areaStyle: { color: "var(--nr-dashboard-chartSplitAreaHigh, rgba(0,0,0,0.1))" }
+      }
+    });
+  }
+  if (zoomType === "inside" || zoomType === "both") {
+    result.push({
+      type: "inside",
+      xAxisIndex: isHorizontal ? 0 : undefined,
+      yAxisIndex: isHorizontal ? undefined : 0,
+      start: start2,
+      end: end2,
+      zoomOnMouseWheel: true,
+      moveOnMouseMove: true,
+      moveOnMouseWheel: false
+    });
+  }
+  return result.length > 0 ? result : undefined;
+}
+function buildMarkLine(markLines, look) {
+  if (!markLines || markLines.length === 0)
+    return;
+  const isHorizontal = look !== "horizontalBar";
+  return {
+    silent: true,
+    symbol: "none",
+    data: markLines.map((ml) => {
+      const isYAxis = ml.axis === "y" || ml.axis == null && isHorizontal;
+      return {
+        [isYAxis ? "yAxis" : "xAxis"]: ml.value,
+        label: {
+          show: Boolean(ml.label),
+          formatter: ml.label || String(ml.value),
+          position: isYAxis ? "end" : "start",
+          color: ml.color || "var(--nr-dashboard-widgetTextColor, #000)"
+        },
+        lineStyle: {
+          color: ml.color || "var(--nr-dashboard-chartColor5, #D62728)",
+          type: ml.lineStyle || "dashed",
+          width: 2
+        }
+      };
+    })
+  };
 }
 function cloneData(data) {
   return {
@@ -46804,13 +53771,18 @@ function buildLineSeries(control, data) {
     return series;
   });
 }
-function buildBarSeries(look, data, stacked, stackKey, stackMap, showStackLabel, valueFormatter) {
+function buildBarSeries(look, data, stacked, stackKey, stackMap, showStackLabel, valueFormatter, useOneColor, colors) {
   const stackName = stackKey || (stacked ? "stack" : undefined);
+  const applyPerBarColor = !useOneColor && data.series.length === 1;
   return data.series.map((s3) => {
+    const seriesData = applyPerBarColor ? s3.data.map((val, i3) => ({
+      value: val,
+      itemStyle: { color: colors[i3 % colors.length] }
+    })) : s3.data;
     const series = {
       type: "bar",
       name: s3.name,
-      data: s3.data,
+      data: seriesData,
       label: showStackLabel ? {
         show: true,
         position: "inside",
@@ -46859,6 +53831,80 @@ function buildRadarSeries(data) {
     name: s3.name,
     data: [{ value: s3.data }]
   }));
+}
+function buildScatterSeries(data, control) {
+  const symbolSize = toOptionalNumber(control.symbolSize) ?? 10;
+  return data.series.map((s3) => ({
+    type: "scatter",
+    name: s3.name,
+    data: s3.data,
+    symbolSize
+  }));
+}
+function buildFunnelSeries(data, control, colors) {
+  const sort2 = control.funnelSort === "ascending" ? "ascending" : control.funnelSort === "none" ? "none" : "descending";
+  const align = control.funnelAlign === "left" ? "left" : control.funnelAlign === "right" ? "right" : "center";
+  const gap = toOptionalNumber(control.funnelGap) ?? 2;
+  const funnelData = data.labels.map((label, i3) => {
+    const val = data.series[0]?.data[i3];
+    const value2 = typeof val === "number" ? val : Array.isArray(val) ? val[1] ?? val[0] : 0;
+    return { name: label, value: value2, itemStyle: { color: colors[i3 % colors.length] } };
+  });
+  return [
+    {
+      type: "funnel",
+      data: funnelData,
+      sort: sort2,
+      funnelAlign: align,
+      gap,
+      left: "10%",
+      right: "10%",
+      top: 40,
+      bottom: 20,
+      label: {
+        show: true,
+        position: "inside",
+        formatter: "{b}: {c}",
+        color: "var(--nr-dashboard-widgetTextColor, #fff)"
+      },
+      labelLine: { show: false },
+      itemStyle: {
+        borderColor: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2))",
+        borderWidth: 1
+      }
+    }
+  ];
+}
+function buildHeatmapSeries(data) {
+  const heatmapData = data.heatmapData ?? [];
+  if (heatmapData.length === 0 && data.series.length > 0) {
+    data.series.forEach((s3, yIdx) => {
+      s3.data.forEach((val, xIdx) => {
+        const v3 = typeof val === "number" ? val : Array.isArray(val) && val.length >= 3 ? val[2] : Array.isArray(val) ? val[1] ?? val[0] : 0;
+        heatmapData.push([xIdx, yIdx, v3]);
+      });
+    });
+  }
+  return [
+    {
+      type: "heatmap",
+      data: heatmapData,
+      label: {
+        show: true,
+        color: "var(--nr-dashboard-widgetTextColor, #000)",
+        formatter: ({ value: value2 }) => {
+          const arr = value2;
+          return arr && arr[2] != null ? String(arr[2]) : "";
+        }
+      },
+      emphasis: {
+        itemStyle: {
+          shadowBlur: 10,
+          shadowColor: "rgba(0, 0, 0, 0.5)"
+        }
+      }
+    }
+  ];
 }
 function buildChartOption(control, data, lang, t4, hiddenSeries) {
   const look = normalizeLook(control.look);
@@ -46950,8 +53996,18 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       option.xAxis = categoryAxis2;
       option.yAxis = valueAxis2;
     }
-    option.grid = { left: 10, right: 10, top: 24, bottom: 20, containLabel: true };
-    option.series = look === "line" ? buildLineSeries(control, data) : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter);
+    option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
+    const useOneColor = Boolean(control.useOneColor);
+    const baseSeries = look === "line" ? buildLineSeries(control, data) : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter, useOneColor, colors);
+    const markLine = buildMarkLine(control.markLines, look);
+    if (markLine && Array.isArray(baseSeries) && baseSeries.length > 0) {
+      baseSeries[0].markLine = markLine;
+    }
+    option.series = baseSeries;
+    const dataZoom = buildDataZoom(control, look);
+    if (dataZoom) {
+      option.dataZoom = dataZoom;
+    }
   } else if (look === "pie" || look === "polar-area") {
     option.series = buildPieSeries(look, control, data, colors);
   } else if (look === "radar") {
@@ -46976,12 +54032,84 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
     };
     option.series = buildRadarSeries(data);
+  } else if (look === "scatter") {
+    const xAxis = {
+      type: data.isTimeSeries ? "time" : "value",
+      axisLabel: {
+        formatter: data.isTimeSeries ? (val) => timeFormatter(val) : (val) => valueFormatter(val),
+        color: "var(--nr-dashboard-widgetTextColor, #000)"
+      },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
+      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" } }
+    };
+    const yAxis = {
+      type: "value",
+      min: toNumber4(control.ymin) ?? undefined,
+      max: toNumber4(control.ymax) ?? undefined,
+      axisLabel: {
+        formatter: (val) => valueFormatter(val),
+        color: "var(--nr-dashboard-widgetTextColor, #000)"
+      },
+      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" } },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } }
+    };
+    option.xAxis = xAxis;
+    option.yAxis = yAxis;
+    option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
+    const scatterSeries = buildScatterSeries(data, control);
+    const markLine = buildMarkLine(control.markLines, look);
+    if (markLine && Array.isArray(scatterSeries) && scatterSeries.length > 0) {
+      scatterSeries[0].markLine = markLine;
+    }
+    option.series = scatterSeries;
+    const dataZoom = buildDataZoom(control, look);
+    if (dataZoom) {
+      option.dataZoom = dataZoom;
+    }
+  } else if (look === "funnel") {
+    option.series = buildFunnelSeries(data, control, colors);
+  } else if (look === "heatmap") {
+    const xLabels = data.heatmapXLabels ?? data.labels;
+    const yLabels = data.heatmapYLabels ?? data.series.map((s3) => s3.name);
+    option.xAxis = {
+      type: "category",
+      data: xLabels,
+      splitArea: { show: true },
+      axisLabel: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
+    };
+    option.yAxis = {
+      type: "category",
+      data: yLabels,
+      splitArea: { show: true },
+      axisLabel: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
+    };
+    option.grid = { left: 10, right: 60, top: 24, bottom: 20, containLabel: true };
+    const heatMin = toNumber4(control.heatmapMin) ?? 0;
+    const heatMax = toNumber4(control.heatmapMax) ?? 10;
+    option.visualMap = {
+      min: heatMin,
+      max: heatMax,
+      calculable: true,
+      orient: "vertical",
+      right: 0,
+      top: "center",
+      inRange: {
+        color: colors.length >= 2 ? colors.slice(0, 5) : ["#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"]
+      },
+      textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" }
+    };
+    option.series = buildHeatmapSeries(data);
   }
   option.title = {
     show: true,
     text: control.label || control.name || t4("chart_label", "Chart"),
     textStyle: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)", fontSize: 14, fontWeight: 600 }
   };
+  if (control.options && typeof control.options === "object") {
+    Object.assign(option, control.options);
+  }
   return option;
 }
 function ChartWidget(props) {
@@ -47032,6 +54160,8 @@ function ChartWidget(props) {
       return;
     instance.setOption(option, { replaceMerge: ["series", "legend"] });
   }, [instance, option]);
+  const isEmpty = data.series.length === 0 || data.series.every((s3) => s3.data.length === 0);
+  const nodataText = c3.nodata || "";
   return m2`<div
     class=${`nr-dashboard-chart__container ${c3.className || ""}`.trim()}
     style=${{
@@ -47040,7 +54170,8 @@ function ChartWidget(props) {
   }}
     aria-label=${t4("chart_value_label", "{label} chart", { label })}
   >
-    <div ref=${chartRef} class="nr-dashboard-chart__chart"></div>
+    ${isEmpty && nodataText ? m2`<div class="nr-dashboard-chart__nodata">${nodataText}</div>` : null}
+    <div ref=${chartRef} class="nr-dashboard-chart__chart" style=${{ visibility: isEmpty && nodataText ? "hidden" : "visible" }}></div>
   </div>`;
 }
 
@@ -47284,6 +54415,7 @@ function GroupCard(props) {
   const title = header?.name || t4("group_label", "Group {index}", { index: index + 1 });
   const items = group.items ?? [];
   const collapseEnabled = Boolean(header?.config?.collapse);
+  const showHeader = header?.config?.disp !== false;
   const groupKey = T2(() => {
     const base2 = `${tabName ?? ""} ${header?.name ?? ""}`.trim();
     return (base2 || header?.id || `group-${index}`).toString().replace(/ /g, "_");
@@ -47316,7 +54448,7 @@ function GroupCard(props) {
     data-grid-key=${header?.id ?? index}
     style=${sectionStyle}
   >
-    <header
+    ${showHeader ? m2`<header
       class="nr-dashboard-group-card__header"
     >
       <span class="nr-dashboard-group-card__title">${title}</span>
@@ -47329,7 +54461,7 @@ function GroupCard(props) {
           >
             <i class=${collapsed ? "fa fa-caret-down" : "fa fa-caret-up"}></i>
           </button>` : null}
-    </header>
+    </header>` : null}
     ${collapsed ? m2`<div class="nr-dashboard-group-card__message">${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div class="nr-dashboard-group-card__message">${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul class="nr-dashboard-group-card__list">
           ${items.map((control, ctrlIdx) => m2`<li
                 class="nr-dashboard-group-card__item"
@@ -47818,12 +54950,22 @@ function App() {
     if (typeof window === "undefined")
       return;
     const applyHash = () => {
-      const match = window.location.hash.match(/#\/(\d+)/);
-      if (!match)
-        return;
-      const idx = Number(match[1]);
-      if (!Number.isNaN(idx) && idx >= 0 && idx < state.menu.length) {
-        actions2.selectTab(idx);
+      const hash = window.location.hash;
+      const numericMatch = hash.match(/#\/(\d+)/);
+      if (numericMatch) {
+        const idx = Number(numericMatch[1]);
+        if (!Number.isNaN(idx) && idx >= 0 && idx < state.menu.length) {
+          actions2.selectTab(idx);
+          return;
+        }
+      }
+      const nameMatch = hash.match(/#\/(.+)/);
+      if (nameMatch) {
+        const tabName = decodeURIComponent(nameMatch[1]);
+        const idx = state.menu.findIndex((tab) => tab.header === tabName || tab.name === tabName);
+        if (idx >= 0 && !state.menu[idx].disabled) {
+          actions2.selectTab(idx);
+        }
       }
     };
     window.addEventListener("hashchange", applyHash);
@@ -47985,7 +55127,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
       node.removeEventListener("pointerup", handlePointerUp);
     };
   }, [actions2, allowSwipe, isSlide, state.menu, state.selectedTabIndex, navOpen]);
-  const statusLabel = (() => {
+  const _statusLabel = (() => {
     switch (state.connection) {
       case "ready":
         return t4("status_connected", "Connected");

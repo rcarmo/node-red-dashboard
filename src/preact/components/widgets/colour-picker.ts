@@ -162,9 +162,9 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
   const emitChange = useCallback((h: number, s: number, l: number, a: number) => {
     const color = formatColor(h, s, l, a, format);
     if (dynamicOutput || !isOpen) {
-      onEmit?.("ui-change", { payload: color });
+      onEmit?.("update-value", { id: c.id, value: { payload: color, type: "colour-picker" } });
     }
-  }, [format, dynamicOutput, isOpen, onEmit]);
+  }, [format, dynamicOutput, isOpen, onEmit, c.id]);
 
   // Close picker when clicking outside
   useEffect(() => {
@@ -172,12 +172,12 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
-        onEmit?.("ui-change", { payload: currentColor });
+        onEmit?.("update-value", { id: c.id, value: { payload: currentColor, type: "colour-picker" } });
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, inline, currentColor, onEmit]);
+  }, [isOpen, inline, currentColor, onEmit, c.id]);
 
   // Saturation/Lightness area drag handling
   const handleSatLightDrag = useCallback((e: MouseEvent | TouchEvent) => {
@@ -289,7 +289,7 @@ export function ColourPickerWidget(props: { control: UiControl; index: number; d
   const togglePicker = () => {
     if (isDisabled || inline) return;
     if (isOpen) {
-      onEmit?.("ui-change", { payload: currentColor });
+      onEmit?.("update-value", { id: c.id, value: { payload: currentColor, type: "colour-picker" } });
     }
     setIsOpen(!isOpen);
   };

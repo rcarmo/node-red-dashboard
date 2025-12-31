@@ -28,9 +28,12 @@ export function resolveSwitchColors(ctrl: SwitchControl, checked: boolean): stri
 
 export function buildSwitchEmit(ctrl: SwitchControl, fallbackLabel: string, next: boolean): Record<string, unknown> {
   return {
-    payload: next ? ctrl.onvalue ?? true : ctrl.offvalue ?? false,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "switch",
+    id: ctrl.id,
+    value: {
+      payload: next ? ctrl.onvalue ?? true : ctrl.offvalue ?? false,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "switch",
+    },
   };
 }
 
@@ -72,11 +75,11 @@ export function SwitchWidget(props: { control: UiControl; index: number; disable
     if (!onEmit) return;
     if (asSwitch.passthru === false && asSwitch.decouple) {
       const payload = buildSwitchEmit(asSwitch, label, next);
-      onEmit("ui-control", payload);
+      onEmit("update-value", payload);
       return;
     }
     const payload = buildSwitchEmit(asSwitch, label, next);
-    onEmit("ui-control", payload);
+    onEmit("update-value", payload);
   };
 
   const isCenter = (asSwitch.className || "").split(" ").includes("center");

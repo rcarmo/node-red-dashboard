@@ -35,9 +35,12 @@ export type NumericControl = UiControl & {
 
 export function buildNumericEmit(ctrl: NumericControl, fallbackLabel: string, value: number): Record<string, unknown> {
   return {
-    payload: value,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "numeric",
+    id: ctrl.id,
+    value: {
+      payload: value,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "numeric",
+    },
   };
 }
 
@@ -69,7 +72,7 @@ export function NumericWidget(props: { control: UiControl; index: number; disabl
     setValue(clamped);
     if (onEmit) {
       const payload = buildNumericEmit(asNum, label, clamped);
-      onEmit("ui-control", payload);
+      onEmit("update-value", payload);
     }
   };
 

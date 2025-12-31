@@ -43,9 +43,12 @@ export function clampSliderValue(value: number, min: number, max: number): numbe
 
 export function buildSliderEmit(ctrl: SliderControl, fallbackLabel: string, value: number): Record<string, unknown> {
   return {
-    payload: value,
-    topic: (ctrl as { topic?: string }).topic ?? fallbackLabel,
-    type: "slider",
+    id: ctrl.id,
+    value: {
+      payload: value,
+      topic: (ctrl as { topic?: string }).topic ?? fallbackLabel,
+      type: "slider",
+    },
   };
 }
 
@@ -83,7 +86,7 @@ export function SliderWidget(props: { control: UiControl; index: number; disable
 
   const emit = (next: number) => {
     if (!onEmit || isDisabled) return;
-    onEmit("ui-control", buildSliderEmit(asSlider, label, next));
+    onEmit("update-value", buildSliderEmit(asSlider, label, next));
   };
 
   const scheduleEmit = (next: number) => {

@@ -1715,6 +1715,16 @@
   position: relative;
 }
 
+/* Lift open dropdown above sibling grid items */
+.nr-dashboard-dropdown.is-open {
+  z-index: 1000;
+}
+
+/* Ensure parent grid-stack-item respects dropdown z-index */
+.grid-stack-item:has(.nr-dashboard-dropdown.is-open) {
+  z-index: 1000 !important;
+}
+
 .nr-dashboard-dropdown__label {
   margin: 0;
   line-height: 34px;

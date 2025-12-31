@@ -396,13 +396,13 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
     const v = (e.target as HTMLInputElement).value;
     setValue(v);
     if (!validate(v)) return;
-    onEmit?.("ui-change", { payload: v });
+    onEmit?.("update-value", { id: c.id, value: { payload: v, type: "date-picker" } });
   };
 
   const handleCalendarSelect = (dateStr: string) => {
     setValue(dateStr);
     if (!validate(dateStr)) return;
-    onEmit?.("ui-change", { payload: dateStr });
+    onEmit?.("update-value", { id: c.id, value: { payload: dateStr, type: "date-picker" } });
   };
 
   const toggleCalendar = () => {

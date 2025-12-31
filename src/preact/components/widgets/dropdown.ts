@@ -84,9 +84,12 @@ function normalizeValue(value: unknown, opts: DropdownOption[], multiple: boolea
 
 export function buildDropdownEmit(ctrl: DropdownControl, fallbackLabel: string, value: unknown): Record<string, unknown> {
   return {
-    payload: value,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "dropdown",
+    id: ctrl.id,
+    value: {
+      payload: value,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "dropdown",
+    },
   };
 }
 
@@ -164,7 +167,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
         setSearchTerm("");
         // Emit on close for multiple mode (batch selection)
         if (multiple && onEmit) {
-          onEmit("ui-control", buildDropdownEmit(asDrop, label, value));
+          onEmit("update-value", buildDropdownEmit(asDrop, label, value));
         }
       }
     };
@@ -189,7 +192,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
       setSearchTerm("");
       // Emit on close for multiple mode
       if (multiple && onEmit) {
-        onEmit("ui-control", buildDropdownEmit(asDrop, label, value));
+        onEmit("update-value", buildDropdownEmit(asDrop, label, value));
       }
     }
   };
@@ -210,7 +213,7 @@ export function DropdownWidget(props: { control: UiControl; index: number; disab
       setValue(optValue);
       setIsOpen(false);
       setSearchTerm("");
-      if (onEmit) onEmit("ui-control", buildDropdownEmit(asDrop, label, optValue));
+      if (onEmit) onEmit("update-value", buildDropdownEmit(asDrop, label, optValue));
     }
   }, [multiple, value, onEmit, asDrop, label]);
 

@@ -26,9 +26,12 @@ export function resolveButtonColor(ctrl: ButtonControl): string {
 export function buildButtonEmit(ctrl: ButtonControl, fallbackLabel: string): Record<string, unknown> {
   const val = resolveTypedPayload(ctrl.payload ?? true, ctrl.payloadType);
   return {
-    payload: val,
-    topic: ctrl.topic ?? fallbackLabel,
-    type: "button",
+    id: ctrl.id,
+    value: {
+      payload: val,
+      topic: ctrl.topic ?? fallbackLabel,
+      type: "button",
+    },
   };
 }
 
@@ -47,7 +50,7 @@ export function ButtonWidget(props: { control: UiControl; index: number; disable
 
   const handleClick = () => {
     const payload = buildButtonEmit(asButton, label);
-    onEmit?.("ui-control", payload);
+    onEmit?.("update-value", payload);
   };
 
   const renderIcon = (icon?: string) => {

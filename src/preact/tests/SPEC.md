@@ -42,12 +42,12 @@ Location: `src/preact/tests/fixtures/flows.json`
 
 - Link out in Controls/Forms; hub lives on Charts flow (`linkHubIn` + `linkHubRouter`).
 - Router switch by `msg.topic`:
-  - `gauge` → gauge widget
-  - `toast` → toast
-  - `echo` → template/audio/ toast
-  - `series` → chart (shares chart node for simplicity)
-  - else → media/nav
-- Link outs fan to Charts/Media/Nav flows.
+  - `gauge` → gauge widget (direct)
+  - `toast` → toast (via hub fan-out)
+  - `echo` → template/audio/ toast (via hub fan-out)
+  - `series` → chart (direct)
+  - else → media/nav (via hub fan-out)
+- Hub fan-out (`linkHubOut`) targets Media and Navigation link-ins; chart/gauge are fed directly. Media path now gates topics so only `toast` and `echo` reach toast/audio/template.
 
 ## Scenario Notes
 
@@ -71,3 +71,9 @@ Location: `src/preact/tests/fixtures/flows.json`
 - Enter text → template updates and toast shows message; audio speaks payload if string.
 - Submit form → toast/debug shows payload; check validation of required fields.
 - Click "Switch to Charts" inject → dashboard navigates to Charts tab; watch ui_control debug for events.
+
+## Quality Criteria
+
+- No overlapping nodes in workspace.
+- No overlapping widgets in dashboard.
+- No compressed or mis-sized widgets.

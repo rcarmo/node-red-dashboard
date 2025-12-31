@@ -1,6 +1,6 @@
 [
   {
-    "z": "f100000000000001",
+    "id": "f100000000000001",
     "type": "tab",
     "label": "Flow - Controls",
     "disabled": false,
@@ -99,7 +99,7 @@
     "order": 2,
     "width": 6,
     "height": 1,
-    "format": "Volume: {{msg.payload}}",
+    "format": "Volume: {{payload}}",
     "layout": "row-spread",
     "className": "",
     "style": "",
@@ -116,7 +116,7 @@
     "tooltip": "Toggles downstream text",
     "group": "grpControls",
     "order": 3,
-    "width": 3,
+    "width": 6,
     "height": 1,
     "passthru": true,
     "decouple": "false",
@@ -186,7 +186,7 @@
     "tooltip": "Send numeric to gauge",
     "group": "grpControls",
     "order": 5,
-    "width": 3,
+    "width": 6,
     "height": 1,
     "passthru": true,
     "wrap": false,
@@ -232,7 +232,7 @@
     "tooltip": "Triggers toast via link",
     "group": "grpControls",
     "order": 7,
-    "width": 3,
+    "width": 6,
     "height": 1,
     "passthru": false,
     "topic": "toast",
@@ -401,8 +401,8 @@
     "name": "Gauge",
     "group": "grpGauges",
     "order": 1,
-    "width": 3,
-    "height": 3,
+    "width": 6,
+    "height": 4,
     "gtype": "gage",
     "title": "Gauge",
     "label": "%",
@@ -417,17 +417,6 @@
     "y": 200,
     "wires": []
   },
-  {
-    "id": "linkChartsIn",
-    "z": "f100000000000003",
-    "type": "link in",
-    "name": "Hub → Charts",
-    "links": ["linkHubOut"],
-    "x": 140,
-    "y": 200,
-    "wires": [["gaugeNode"]]
-  },
-
   {
     "id": "mediaToast",
     "z": "f100000000000004",
@@ -479,20 +468,6 @@
     "wires": []
   },
   {
-    "id": "mediaLink",
-    "z": "f100000000000004",
-    "type": "ui_link",
-    "name": "External Link",
-    "link": "https://nodered.org",
-    "icon": "launch",
-    "target": "newtab",
-    "order": 3,
-    "className": "",
-    "x": 530,
-    "y": 280,
-    "wires": []
-  },
-  {
     "id": "linkMediaIn",
     "z": "f100000000000004",
     "type": "link in",
@@ -500,7 +475,25 @@
     "links": ["linkHubOut"],
     "x": 140,
     "y": 140,
-    "wires": [["mediaToast", "mediaAudio", "mediaTemplate"]]
+    "wires": [["mediaTopicRouter"]]
+  },
+  {
+    "id": "mediaTopicRouter",
+    "z": "f100000000000004",
+    "type": "switch",
+    "name": "Media topics",
+    "property": "topic",
+    "propertyType": "msg",
+    "rules": [
+      {"t": "eq", "v": "toast", "vt": "str"},
+      {"t": "eq", "v": "echo", "vt": "str"}
+    ],
+    "checkall": "true",
+    "repair": false,
+    "outputs": 2,
+    "x": 340,
+    "y": 140,
+    "wires": [["mediaToast"], ["mediaAudio", "mediaTemplate"]]
   },
 
   {
@@ -569,9 +562,9 @@
     "z": "f100000000000003",
     "type": "link in",
     "name": "Hub In",
-    "links": [],
+    "links": ["linkControlsOut", "linkFormsOut"],
     "x": 140,
-    "y": 260,
+    "y": 300,
     "wires": [["linkHubRouter"]]
   },
   {
@@ -592,13 +585,13 @@
     "repair": false,
     "outputs": 5,
     "x": 330,
-    "y": 260,
+    "y": 300,
     "wires": [
       ["gaugeNode"],
-      ["linkHubToMedia"],
-      ["linkHubToMedia"],
-      ["chartNode"],
-      ["linkHubToMedia"]
+      ["linkHubOut"],
+      ["linkHubOut"],
+      ["hubSeriesToChart"],
+      ["linkHubOut"]
     ]
   },
   {
@@ -607,20 +600,24 @@
     "type": "link out",
     "name": "Hub Out",
     "mode": "link",
-    "links": ["linkChartsIn", "linkMediaIn", "linkNavIn"],
+    "links": ["linkMediaIn"],
     "x": 640,
-    "y": 320,
+    "y": 360,
     "wires": []
   },
   {
-    "id": "linkHubToMedia",
+    "id": "hubSeriesToChart",
     "z": "f100000000000003",
-    "type": "link out",
-    "name": "Hub → Media/Nav",
-    "mode": "link",
-    "links": ["linkMediaIn", "linkNavIn"],
-    "x": 540,
-    "y": 260,
-    "wires": []
+    "type": "function",
+    "name": "Series → Chart",
+    "func": "const series = msg.payload;\nconst now = new Date();\nmsg.payload = [{\n  series: [series],\n  data: [[0]],\n  labels: [now.toLocaleTimeString()]\n}];\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 520,
+    "y": 300,
+    "wires": [["chartNode"]]
   }
 ]

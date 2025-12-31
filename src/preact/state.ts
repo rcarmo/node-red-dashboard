@@ -241,7 +241,7 @@ export function useDashboardState(): DashboardStore {
         responseMsg.payload = toast.cancelLabel ?? "Cancel";
       }
       // Emit back to Node-RED via the beforeSend mechanism
-      bridge?.emit("ui-control", { id: toast.nodeId, value: { msg: responseMsg } });
+      bridge?.emit("update-value", { id: toast.nodeId, value: { msg: responseMsg } });
     }
     // Dismiss the toast
     setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t) => t.id !== toastId) }));

@@ -31,9 +31,12 @@ function inputType(mode?: string): string {
 
 export function buildTextEmit(ctrl: TextInputControl, fallbackLabel: string, value: string): Record<string, unknown> {
   return {
-    payload: value,
-    topic: (ctrl as { topic?: string }).topic ?? fallbackLabel,
-    type: "text-input",
+    id: ctrl.id,
+    value: {
+      payload: value,
+      topic: (ctrl as { topic?: string }).topic ?? fallbackLabel,
+      type: "text-input",
+    },
   };
 }
 
@@ -84,7 +87,7 @@ export function TextInputWidget(props: { control: UiControl; index: number; disa
     if (!onEmit) return;
     if (!validate(next)) return;
     const payload = buildTextEmit(asInput, label, next);
-    onEmit("ui-control", payload);
+    onEmit("update-value", payload);
   };
 
   const scheduleEmit = (next: string) => {
