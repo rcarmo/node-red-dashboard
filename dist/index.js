@@ -53779,34 +53779,67 @@ function findSeries(data, name) {
 }
 function applyChartPayload(look, payload, prev, windowing) {
   if (!Array.isArray(payload) || payload.length === 0) {
+    if (prev.series.length > 0)
+      return prev;
     return { labels: [], series: [], isTimeSeries: false };
   }
   const entry = payload[0];
   const next = cloneData(prev);
   const values = entry.values || entry;
-  const seriesArr = Array.isArray(values.series) ? values.series : [];
+  const seriesArr = Array.isArray(values.series) ? values.series : typeof values.series === "string" ? [values.series] : [];
   const labelsArr = Array.isArray(values.labels) ? values.labels : [];
   const dataArr = Array.isArray(values.data) ? values.data : [];
-  if (look === "line" && entry.update) {
-    const seriesName = values.series || "";
-    const point = values.data;
-    if (point && typeof point === "object" && point.x != null && point.y != null) {
-      const s3 = findSeries(next, seriesName);
-      s3.data.push([Number(point.x), Number(point.y)]);
-      next.isTimeSeries = true;
-      const remove = Number(entry.remove ?? 0);
-      if (Number.isFinite(remove) && remove > 0) {
-        s3.data.splice(0, remove);
-      }
+  if ((look === "line" || look === "scatter") && entry.update) {
+    next.isTimeSeries = true;
+    if (seriesArr.length > 0 && dataArr.length > 0) {
+      let latestTs = 0;
+      seriesArr.forEach((seriesName, idx) => {
+        const s3 = findSeries(next, seriesName);
+        const points2 = Array.isArray(dataArr[idx]) ? dataArr[idx] : [];
+        points2.forEach((pt) => {
+          if (pt && typeof pt === "object" && "x" in pt && "y" in pt) {
+            const asPoint = pt;
+            s3.data.push([Number(asPoint.x), Number(asPoint.y)]);
+            if (asPoint.x > latestTs)
+              latestTs = asPoint.x;
+          }
+        });
+      });
       const cutoff = windowing?.removeOlderMs;
-      if (cutoff && cutoff > 0) {
-        const latestTs = Number(point.x);
+      if (cutoff && cutoff > 0 && latestTs > 0) {
         const threshold = latestTs - cutoff;
-        s3.data = s3.data.filter((p3) => Array.isArray(p3) && p3[0] >= threshold);
+        next.series.forEach((s3) => {
+          s3.data = s3.data.filter((p3) => Array.isArray(p3) && p3[0] >= threshold);
+        });
       }
       const maxPoints = windowing?.removeOlderPoints;
-      if (maxPoints && maxPoints > 0 && s3.data.length > maxPoints) {
-        s3.data.splice(0, s3.data.length - maxPoints);
+      if (maxPoints && maxPoints > 0) {
+        next.series.forEach((s3) => {
+          if (s3.data.length > maxPoints) {
+            s3.data = s3.data.slice(s3.data.length - maxPoints);
+          }
+        });
+      }
+      const remove = Number(entry.remove ?? 0);
+      if (Number.isFinite(remove) && remove > 0) {
+        next.series.forEach((s3) => {
+          s3.data.splice(0, remove);
+        });
+      }
+    } else if (typeof values.series === "string" && values.data && typeof values.data === "object") {
+      const point = values.data;
+      if (point.x != null && point.y != null) {
+        const s3 = findSeries(next, values.series);
+        s3.data.push([Number(point.x), Number(point.y)]);
+        const cutoff = windowing?.removeOlderMs;
+        if (cutoff && cutoff > 0) {
+          const threshold = Number(point.x) - cutoff;
+          s3.data = s3.data.filter((p3) => Array.isArray(p3) && p3[0] >= threshold);
+        }
+        const maxPoints = windowing?.removeOlderPoints;
+        if (maxPoints && maxPoints > 0 && s3.data.length > maxPoints) {
+          s3.data.splice(0, s3.data.length - maxPoints);
+        }
       }
     }
     return next;
