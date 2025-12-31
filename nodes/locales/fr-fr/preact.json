@@ -60,7 +60,7 @@
     "colour_lightness": "L",
     "colour_alpha": "A",
     "colour_value": "Valeur de couleur",
-    "colour_current": "Couleur actuelle : {color}",
+    "colour_current": "Couleur actuelle: {color}",
     "calendar_prev_month": "Mois précédent",
     "calendar_next_month": "Mois suivant",
     "calendar_today": "Aujourd'hui",
