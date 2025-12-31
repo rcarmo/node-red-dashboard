@@ -1,0 +1,35 @@
+{
+  "ui_form": {
+    "label": {
+      "group": "群組",
+      "size": "尺寸",
+      "label": "標籤",
+      "optionalLabel": "選填標籤",
+      "formElements": "表單元素",
+      "type": "類型",
+      "required": "必填",
+      "rows": "列數",
+      "remove": "移除",
+      "egName": "例如：姓名",
+      "egName2": "例如：name",
+      "text": "文字",
+      "multiline": "多行文字",
+      "number": "數字",
+      "email": "電子郵件",
+      "password": "密碼",
+      "checkbox": "核取方塊",
+      "switch": "開關",
+      "date": "日期",
+      "time": "時間",
+      "element": "元素",
+      "buttons": "按鈕",
+      "submitButtonText": "提交按鈕文字",
+      "cancelButtonText": "取消按鈕文字",
+      "topic": "主題",
+      "optionalMsgTopic": "選填 msg.topic",
+      "splitLayout": "將表單元素分成兩欄",
+      "className": "類別",
+      "classNamePlaceholder": "小工具的選填 CSS 類別名稱"
+    }
+  }
+}

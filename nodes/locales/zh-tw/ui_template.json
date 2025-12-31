@@ -1,0 +1,19 @@
+{
+    "ui_template": {
+        "label": {
+            "type": "範本類型",
+            "local": "群組中的小工具",
+            "global": "新增至網站 <head> 區段",
+            "group": "群組",
+            "size": "尺寸",
+            "name": "名稱",
+            "pass-through": "從輸入傳遞訊息。",
+            "store-state": "將輸出訊息新增至儲存狀態。",
+            "template": "範本",
+            "expand": "展開",
+            "resend": "重新整理時重新載入上次數值。",
+            "className": "類別",
+            "classNamePlaceholder": "小工具的選填 CSS 類別名稱"
+        }
+    }
+}

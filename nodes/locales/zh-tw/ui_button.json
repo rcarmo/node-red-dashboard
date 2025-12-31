@@ -1,0 +1,24 @@
+{
+  "ui_button": {
+    "label": {
+      "group": "群組",
+      "size": "尺寸",
+      "icon": "圖示",
+      "optionalIcon": "選填圖示",
+      "label": "標籤",
+      "optionalLabel": "選填標籤",
+      "tooltip": "提示",
+      "optionalTooltip": "選填提示",
+      "color": "顏色",
+      "optionalColor": "選填文字/圖示顏色",
+      "background": "背景",
+      "optionalBackgroundColor": "選填背景顏色",
+      "whenClicked": "點擊時傳送：",
+      "payload": "有效負載",
+      "topic": "主題",
+      "emulateClick": "當訊息到達輸入時，模擬按鈕點擊：",
+      "className": "類別",
+      "classNamePlaceholder": "小工具的選填 CSS 類別名稱"
+    }
+  }
+}

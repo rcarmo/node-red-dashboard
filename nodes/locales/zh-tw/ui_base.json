@@ -1,0 +1,102 @@
+{
+    "ui_base": {
+        "label": {
+            "dashboard": "儀表板",
+            "category": "儀表板",
+            "title": "標題",
+            "options": "選項",
+            "date-format": "日期格式",
+            "sizes": "尺寸",
+            "horizontal": "水平",
+            "vertical": "垂直",
+            "widget-size": "小工具 1x1 尺寸",
+            "widget-spacing": "小工具間距",
+            "group-padding": "群組內距",
+            "group-spacing": "群組間距",
+            "layout": "佈局",
+            "angular": "Angular",
+            "theme": "主題",
+            "site": "網站"
+        },
+        "auto": "自動",
+        "title": "Node-RED 儀表板",
+        "layout": {
+            "tab-and-link": "分頁和連結",
+            "tab": "分頁",
+            "link": "連結",
+            "group": "群組",
+            "edit": "編輯",
+            "spacer": "間隔",
+            "layout": "佈局",
+            "layout-editor": "儀表板佈局編輯器",
+            "width": "寬度",
+            "auto": "自動調整大小",
+            "manual": "手動調整大小"
+        },
+        "theme": {
+            "style": "樣式",
+            "custom-profile": "自訂設定檔",
+            "custom-profile-name": "未命名主題 1",
+            "base-settings": "基本設定",
+            "page-settings": "頁面設定",
+            "page": {
+                "title": "標題列背景",
+                "page": "頁面背景",
+                "side": "側邊欄背景"
+            },
+            "group-settings": "群組設定",
+            "group": {
+                "text": "群組文字",
+                "border": "群組邊框",
+                "background": "群組背景"
+            },
+            "widget-settings": "小工具設定",
+            "widget": {
+                "text": "小工具文字",
+                "colour": "小工具顏色",
+                "background": "小工具背景"
+            }
+        },
+        "style": {
+            "light": "淺色（預設）",
+            "dark": "深色",
+            "custom": "自訂",
+            "primary": "主要",
+            "accents": "強調",
+            "background": "背景",
+            "warnings": "警告",
+            "palette": "淺色 / 深色"
+        },
+        "base": {
+            "colour": "顏色",
+            "font": "字型"
+        },
+        "font": {
+            "system": "系統字型（預設）"
+        },
+        "site": {
+            "title": "Node-RED 儀表板",
+            "date-format": "YYYY/MM/DD"
+        },
+        "title-bar": {
+            "show": "顯示標題列",
+            "hide": "隱藏標題列"
+        },
+        "swipe": {
+            "no-swipe": "禁止滑動切換分頁",
+            "allow-swipe": "允許滑動切換分頁",
+            "allow-swipe-mouse": "允許滑動（含滑鼠）切換分頁",
+            "show-menu": "滑動開啟/關閉選單"
+        },
+        "lock": {
+            "clicked": "點擊顯示側邊選單",
+            "locked": "始終顯示側邊選單",
+            "locked-icon": "始終僅顯示圖示"
+        },
+        "temp": {
+            "allow-theme": "全部使用 Node-RED 主題",
+            "no-theme": "在 ui_template 中使用 Angular 主題",
+            "none": "全部使用 Angular 主題"
+        }
+    }
+}

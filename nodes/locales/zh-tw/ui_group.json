@@ -1,0 +1,16 @@
+{
+    "ui_group": {
+        "label": {
+            "name": "名稱",
+            "tab": "分頁",
+            "width": "寬度",
+            "default": "預設",
+            "group": "群組",
+            "unassigned": "未指派",
+            "className": "類別",
+            "classNamePlaceholder": "小工具的選填 CSS 類別名稱"
+        },
+        "display-name": "顯示群組名稱",
+        "collapse-name": "允許摺疊群組"
+    }
+}

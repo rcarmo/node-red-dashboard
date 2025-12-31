@@ -1,0 +1,16 @@
+{
+    "ui_link": {
+        "label": {
+            "name": "名稱",
+            "link": "連結",
+            "icon": "圖示",
+            "open-in": "開啟於",
+            "new-tab": "新分頁",
+            "this-tab": "此分頁",
+            "iframe": "iframe",
+            "className": "類別",
+            "classNamePlaceholder": "小工具的選填 CSS 類別名稱"
+        },
+        "tip": "<b>圖示</b>欄位可以是 <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">Material Design 圖示</a>（例如：'check'、'close'）、<a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">Font Awesome 圖示</a>（例如：'fa-fire'）或<a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">天氣圖示</a>（例如：'wi-wu-sunny'）。</p><p>您可以在圖示名稱前加上 'mi-' 來使用完整的 Google Material 圖示集，例如：'mi-videogame_asset'。</p>"
+    }
+}

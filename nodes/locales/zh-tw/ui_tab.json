@@ -1,0 +1,21 @@
+{
+    "ui_tab": {
+        "label": {
+            "home": "首頁",
+            "tab": "分頁",
+            "name": "名稱",
+            "icon": "圖示",
+            "state": "狀態",
+            "navmenu": "導覽選單",
+            "enabled": "啟用",
+            "disabled": "停用",
+            "visible": "可見",
+            "hidden": "隱藏"
+        },
+        "info": {
+            "disabled": " 此分頁在儀表板中為非作用狀態。",
+            "hidden": " 此分頁不會顯示在導覽選單中。"
+        },
+        "tip": "<b>圖示</b>欄位可以是 <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">Material Design 圖示</a>（例如：'check'、'close'）、<a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">Font Awesome 圖示</a>（例如：'fa-fire'）或<a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">天氣圖示</a>（例如：'wi-wu-sunny'）。</p><p>您可以在圖示名稱前加上 'mi-' 來使用完整的 Google Material 圖示集，例如：'mi-videogame_asset'。</p>"
+    }
+}
