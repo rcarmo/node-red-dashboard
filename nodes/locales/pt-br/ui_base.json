@@ -1,0 +1,102 @@
+{
+    "ui_base": {
+        "label": {
+            "dashboard": "painel",
+            "category": "painel",
+            "title": "Título",
+            "options": "Opções",
+            "date-format": "Formato de data",
+            "sizes": "Tamanhos",
+            "horizontal": "Horizontal",
+            "vertical": "Vertical",
+            "widget-size": "Tamanho do widget 1x1",
+            "widget-spacing": "Espaçamento de widgets",
+            "group-padding": "Preenchimento do grupo",
+            "group-spacing": "Espaçamento de grupos",
+            "layout": "Layout",
+            "angular": "Angular",
+            "theme": "Tema",
+            "site": "Site"
+        },
+        "auto": "auto",
+        "title": "Painel Node-RED",
+        "layout": {
+            "tab-and-link": "Abas e links",
+            "tab": "aba",
+            "link": "link",
+            "group": "grupo",
+            "edit": "editar",
+            "spacer": "espaçador",
+            "layout": "layout",
+            "layout-editor": "Editor de layout do painel",
+            "width": "Largura",
+            "auto": "dimensionamento auto",
+            "manual": "redimensionamento manual"
+        },
+        "theme": {
+            "style": "Estilo",
+            "custom-profile": "Perfil personalizado",
+            "custom-profile-name": "Tema sem título 1",
+            "base-settings": "Configurações base",
+            "page-settings": "Configurações de página",
+            "page": {
+                "title": "Fundo da barra de título",
+                "page": "Fundo da página",
+                "side": "Fundo da barra lateral"
+            },
+            "group-settings": "Configurações de grupo",
+            "group": {
+                "text": "Texto do grupo",
+                "border": "Borda do grupo",
+                "background": "Fundo do grupo"
+            },
+            "widget-settings": "Configurações do widget",
+            "widget": {
+                "text": "Texto do widget",
+                "colour": "Cor do widget",
+                "background": "Fundo do widget"
+            }
+        },
+        "style": {
+            "light": "Claro (padrão)",
+            "dark": "Escuro",
+            "custom": "Personalizado",
+            "primary": "Primário",
+            "accents": "Destaques",
+            "background": "Fundo",
+            "warnings": "Avisos",
+            "palette": "Claro / Escuro"
+        },
+        "base": {
+            "colour": "Cor",
+            "font": "Fonte"
+        },
+        "font": {
+            "system": "Fonte do sistema (padrão)"
+        },
+        "site": {
+            "title": "Painel Node-RED",
+            "date-format": "DD/MM/YYYY"
+        },
+        "title-bar": {
+            "show": "Mostrar a barra de título",
+            "hide": "Ocultar a barra de título"
+        },
+        "swipe": {
+            "no-swipe": "Sem deslizar entre abas",
+            "allow-swipe": "Permitir deslizar entre abas",
+            "allow-swipe-mouse": "Permitir deslizar (+mouse) entre abas",
+            "show-menu": "Deslizar para abrir/fechar menu"
+        },
+        "lock": {
+            "clicked": "Clique para mostrar menu lateral",
+            "locked": "Sempre mostrar menu lateral",
+            "locked-icon": "Sempre mostrar apenas ícones"
+        },
+        "temp": {
+            "allow-theme": "Tema Node-RED em todo lugar",
+            "no-theme": "Usar tema Angular em ui_template",
+            "none": "Tema Angular em todo lugar"
+        }
+    }
+}

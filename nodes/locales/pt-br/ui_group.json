@@ -1,0 +1,16 @@
+{
+    "ui_group": {
+        "label": {
+            "name": "Nome",
+            "tab": "Aba",
+            "width": "Largura",
+            "default": "Padrão",
+            "group": "Grupo",
+            "unassigned": "não atribuído",
+            "className": "Classe",
+            "classNamePlaceholder": "Nome(s) de classe CSS opcional para o widget"
+        },
+        "display-name": "Exibir nome do grupo",
+        "collapse-name": "Permitir recolher o grupo"
+    }
+}
