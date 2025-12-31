@@ -1,0 +1,16 @@
+{
+    "ui_link": {
+        "label": {
+            "name": "Название",
+            "link": "Ссылка",
+            "icon": "Иконка",
+            "open-in": "Открыть в",
+            "new-tab": "Новой вкладке",
+            "this-tab": "Текущей вкладке",
+            "iframe": "iframe",
+            "className": "Класс",
+            "classNamePlaceholder": "Опциональные CSS классы для виджета"
+        },
+        "tip": "Поле <b>Иконка</b> может содержать <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">иконку Material Design</a> <i>(напр. 'check', 'close')</i>, <a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">иконку Font Awesome</a> <i>(напр. 'fa-fire')</i>, или <a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">иконку погоды</a> <i>(напр. 'wi-wu-sunny')</i>.</p><p>Для использования полного набора иконок Google Material добавьте 'mi-' перед названием. Напр. 'mi-videogame_asset'.</p>"
+    }
+}

@@ -1,0 +1,24 @@
+{
+  "ui_button": {
+    "label": {
+      "group": "Группа",
+      "size": "Размер",
+      "icon": "Иконка",
+      "optionalIcon": "опциональная иконка",
+      "label": "Метка",
+      "optionalLabel": "опциональная метка",
+      "tooltip": "Подсказка",
+      "optionalTooltip": "опциональная подсказка",
+      "color": "Цвет",
+      "optionalColor": "опциональный цвет текста/иконки",
+      "background": "Фон",
+      "optionalBackgroundColor": "опциональный цвет фона",
+      "whenClicked": "При нажатии отправить:",
+      "payload": "Payload",
+      "topic": "Топик",
+      "emulateClick": "При получении сообщения эмулировать нажатие кнопки:",
+      "className": "Класс",
+      "classNamePlaceholder": "Опциональные CSS классы для виджета"
+    }
+  }
+}

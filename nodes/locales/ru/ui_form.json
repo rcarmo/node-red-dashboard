@@ -1,0 +1,35 @@
+{
+  "ui_form": {
+    "label": {
+      "group": "Группа",
+      "size": "Размер",
+      "label": "Метка",
+      "optionalLabel": "опциональная метка",
+      "formElements": "Элементы формы",
+      "type": "Тип",
+      "required": "Обязательно",
+      "rows": "Строки",
+      "remove": "Удалить",
+      "egName": "напр. Имя",
+      "egName2": "напр. name",
+      "text": "Текст",
+      "multiline": "Многострочный",
+      "number": "Число",
+      "email": "Email",
+      "password": "Пароль",
+      "checkbox": "Флажок",
+      "switch": "Переключатель",
+      "date": "Дата",
+      "time": "Время",
+      "element": "элемент",
+      "buttons": "Кнопки",
+      "submitButtonText": "текст кнопки отправки",
+      "cancelButtonText": "текст кнопки отмены",
+      "topic": "Топик",
+      "optionalMsgTopic": "опциональный msg.topic",
+      "splitLayout": "Расположить элементы формы в две колонки",
+      "className": "Класс",
+      "classNamePlaceholder": "Опциональные CSS классы для виджета"
+    }
+  }
+}
