@@ -198,6 +198,9 @@ export function useDashboardState(): DashboardStore {
       onControl: (payload) => {
         setState((prev) => handleUiControl(prev, payload));
       },
+      onUpdateValue: (payload) => {
+        setState((prev) => handleUpdateValue(prev, payload));
+      },
       onToast: (payload) => {
         setState((prev) => pushToast(prev, payload));
       },
@@ -276,6 +279,39 @@ export function getFirstVisibleTab(menu: UiMenuItem[]): number | null {
     }
   }
   return menu.length > 0 ? 0 : null;
+}
+
+/**
+ * Handle update-value events from the server.
+ * These carry value updates for widgets (charts, gauges, text, etc.)
+ */
+function handleUpdateValue(prev: DashboardState, payload: unknown): DashboardState {
+  const msg = (payload || {}) as Record<string, unknown>;
+  const controlId = msg.id as string | number | undefined;
+  if (controlId == null) return prev;
+
+  // Build the patch - value is the primary data, but also forward other fields
+  const patch: Record<string, unknown> = {};
+  if (msg.value !== undefined) {
+    patch.value = msg.value;
+  }
+  // Forward msg object for template widgets  
+  if (msg.msg !== undefined) {
+    patch.msg = msg.msg;
+  }
+  // Forward disabled state
+  if (msg.disabled !== undefined) {
+    patch.disabled = msg.disabled;
+  }
+  // Forward className
+  if (msg.className !== undefined) {
+    patch.className = msg.className;
+  }
+
+  if (Object.keys(patch).length === 0) return prev;
+
+  const menu = updateControlById(prev.menu, controlId, patch);
+  return { ...prev, menu: [...menu] };
 }
 
 function updateControlById(menu: UiMenuItem[], id: string | number | undefined, controlPatch: Record<string, unknown>): UiMenuItem[] {

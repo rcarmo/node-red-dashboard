@@ -3524,6 +3524,9 @@ function createSocketBridge(handlers = {}) {
   socket.on("ui-control", (data) => {
     handlers.onControl?.(data);
   });
+  socket.on("update-value", (data) => {
+    handlers.onUpdateValue?.(data);
+  });
   socket.on("show-toast", (data) => {
     handlers.onToast?.(data);
   });
@@ -3683,6 +3686,9 @@ function useDashboardState() {
       onControl: (payload) => {
         setState((prev) => handleUiControl(prev, payload));
       },
+      onUpdateValue: (payload) => {
+        setState((prev) => handleUpdateValue(prev, payload));
+      },
       onToast: (payload) => {
         setState((prev) => pushToast(prev, payload));
       },
@@ -3751,6 +3757,29 @@ function getFirstVisibleTab(menu) {
     }
   }
   return menu.length > 0 ? 0 : null;
+}
+function handleUpdateValue(prev, payload) {
+  const msg = payload || {};
+  const controlId = msg.id;
+  if (controlId == null)
+    return prev;
+  const patch = {};
+  if (msg.value !== undefined) {
+    patch.value = msg.value;
+  }
+  if (msg.msg !== undefined) {
+    patch.msg = msg.msg;
+  }
+  if (msg.disabled !== undefined) {
+    patch.disabled = msg.disabled;
+  }
+  if (msg.className !== undefined) {
+    patch.className = msg.className;
+  }
+  if (Object.keys(patch).length === 0)
+    return prev;
+  const menu = updateControlById(prev.menu, controlId, patch);
+  return { ...prev, menu: [...menu] };
 }
 function updateControlById(menu, id, controlPatch) {
   if (id == null)
