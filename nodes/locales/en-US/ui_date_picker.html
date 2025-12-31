@@ -1,7 +1,90 @@
 <script type="text/html" data-help-name="ui_date_picker">
-    <p>Adds a date picker widget to the user interface.</p>
-    <p>The date display can be formatted in the Dashboard - Site tab using <a href="https://momentjs.com/docs/#/displaying/">
-    moment.js</a> formatting. For example <code>MM/DD/YYYY</code>, <code>Do MMM YYYY</code> or <code>YYYY-MM-DD</code>.</p>
-    <p>Setting <code>msg.enabled</code> to <code>false</code> will disable the input.</p>
-    <p>If a <b>Class</b> is specified, it will be added to the parent card. This way you can style the card and the elements inside it with custom CSS. The Class can be set at runtime by setting a <code>msg.className</code> string property.</p>
+    <p>Adds a date picker widget to the user interface, allowing users to select a date
+    from a calendar popup. The selected date is output as a Unix timestamp in milliseconds.</p>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">number</span></dt>
+        <dd>The selected date as Unix epoch time in <b>milliseconds</b> (not seconds).
+        The time is set to midnight UTC (00:00:00.000) on the selected date.</dd>
+
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>The configured topic, if specified.</dd>
+    </dl>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">number | string | Date</span></dt>
+        <dd>Sets the displayed date. Accepts:
+        <ul>
+            <li>Unix timestamp in milliseconds</li>
+            <li>ISO 8601 date string (e.g., <code>"2025-12-31"</code>)</li>
+            <li>JavaScript Date object</li>
+        </ul></dd>
+
+        <dt class="optional">enabled <span class="property-type">boolean</span></dt>
+        <dd>Set to <code>false</code> to disable the widget, preventing user interaction.</dd>
+
+        <dt class="optional">className <span class="property-type">string</span></dt>
+        <dd>Dynamically set CSS class(es) on the widget container.</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Label <span class="property-type">string</span></dt>
+        <dd>Text displayed above the date picker input field.</dd>
+
+        <dt>Size <span class="property-type">width × height</span></dt>
+        <dd>Widget dimensions in grid units. Default height is 1 row.</dd>
+
+        <dt>Pass through <span class="property-type">boolean</span></dt>
+        <dd>When enabled, incoming messages that change the date value are passed to the output.
+        When disabled, only user interactions generate output messages.</dd>
+
+        <dt>Topic <span class="property-type">string | msg | flow | global</span></dt>
+        <dd>The topic to include in output messages. Can be a static string or read from
+        message properties, flow context, or global context.</dd>
+    </dl>
+
+    <h3>Date Format</h3>
+    <p>The display format is configured globally in the <b>Dashboard &gt; Site</b> tab using
+    <a href="https://momentjs.com/docs/#/displaying/format/" target="_blank">Moment.js format strings</a>:</p>
+    <table>
+        <tr><th>Format</th><th>Example Output</th></tr>
+        <tr><td><code>DD/MM/YYYY</code></td><td>31/12/2025</td></tr>
+        <tr><td><code>MM/DD/YYYY</code></td><td>12/31/2025</td></tr>
+        <tr><td><code>YYYY-MM-DD</code></td><td>2025-12-31</td></tr>
+        <tr><td><code>Do MMM YYYY</code></td><td>31st Dec 2025</td></tr>
+        <tr><td><code>dddd, MMMM Do</code></td><td>Wednesday, December 31st</td></tr>
+    </table>
+
+    <h3>Working with Timestamps</h3>
+    <p>The output is milliseconds since Unix epoch (January 1, 1970 UTC). To convert:</p>
+    <pre>// In a Function node:
+var date = new Date(msg.payload);
+msg.formatted = date.toLocaleDateString();
+msg.isoString = date.toISOString();
+return msg;</pre>
+
+    <p>To set a specific date via input:</p>
+    <pre>// Today at midnight UTC
+msg.payload = new Date().setUTCHours(0,0,0,0);
+
+// Specific date
+msg.payload = new Date("2025-12-31").getTime();
+
+// Or use timestamp directly (Dec 31, 2025 midnight UTC)
+msg.payload = 1767139200000;</pre>
+
+    <h3>Time Zones</h3>
+    <p>The date picker works with dates at midnight UTC. When displaying or processing dates,
+    be aware that the local time zone may show a different date if close to midnight:</p>
+    <ul>
+        <li>The <b>displayed date</b> uses the browser's local time zone</li>
+        <li>The <b>output timestamp</b> represents midnight UTC on that date</li>
+    </ul>
+
+    <h3>CSS Styling</h3>
+    <p>If a <b>Class</b> is specified, it will be added to the widget container, allowing
+    custom CSS styling. The class can also be set dynamically via <code>msg.className</code>.</p>
 </script>

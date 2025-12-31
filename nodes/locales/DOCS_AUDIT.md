@@ -11,10 +11,18 @@
 | Metric | Value |
 |--------|-------|
 | Total HTML files in en-US | 21 |
-| Files with **Excellent** documentation | 5 (24%) |
+| Files with **Excellent** documentation | 6 (29%) |
 | Files with **Good** documentation | 12 (57%) |
-| Files with **Basic** documentation | 4 (19%) |
+| Files with **Basic** documentation | 3 (14%) |
 | Files with **Minimal/Empty** documentation | 0 (0%) |
+
+### Rating Distribution
+
+| Rating | Files |
+|--------|-------|
+| ⭐⭐⭐⭐⭐ Excellent | ui_chart, ui_date_picker, ui_group, ui_spacer, ui_base, ui_template |
+| ⭐⭐⭐⭐ Good | ui_ui_control, ui_button, ui_switch, ui_numeric, ui_form, ui_audio, ui_dropdown, ui_text_input, ui_toast, ui_gauge, ui_slider, ui_text |
+| ⭐⭐⭐ Basic | ui_tab, ui_colour_picker, ui_link |
 
 ### Localization Coverage
 
@@ -146,21 +154,21 @@
 ---
 
 ### ui_date_picker.html
-**Rating:** ⭐⭐ Minimal  
-**Lines:** ~6
+**Rating:** ⭐⭐⭐⭐⭐ Excellent  
+**Lines:** ~95
 
 **Coverage:**
-- ✅ Format reference link
-- ✅ `msg.enabled` state
+- ✅ Output format (Unix timestamp in milliseconds)
+- ✅ Input options (timestamp, ISO string, Date object)
+- ✅ All configuration options (Label, Size, Pass through, Topic)
+- ✅ msg.enabled for disabling widget
+- ✅ Date format table with 5 Moment.js examples
+- ✅ Code examples for timestamp conversion
+- ✅ Code examples for setting dates via input
+- ✅ Time zone considerations explained
+- ✅ CSS class customization
 
-**Missing:**
-- Date range restrictions
-- Locale/internationalization
-- Initial value setting
-- Output format details
-- Pass-through mode behavior
-
-**Recommended Action:** Significantly expand documentation.
+**Notes:** Comprehensive rewrite completed 2025-12-31. Includes format table, code examples, and timezone guidance.
 
 ---
 
@@ -446,9 +454,9 @@
 
 ## Priority Recommendations
 
-### High Priority (Basic Files to Improve)
+### High Priority
 
-1. **ui_date_picker.html** - Missing essential features (currently Basic rating)
+*All previously identified high-priority files have been addressed.*
 
 ### Medium Priority (Localization)
 
@@ -473,7 +481,7 @@ These files are functional but could benefit from:
 
 1. ~~**Create content for ui_base.html**~~ - ✅ Completed 2025-12-31
 2. ~~**Expand ui_group.html**~~ - ✅ Completed 2025-12-31
-3. **Expand ui_date_picker.html** - Add format details and restrictions
+3. ~~**Expand ui_date_picker.html**~~ - ✅ Completed 2025-12-31
 
 ### Short-term
 
@@ -506,28 +514,28 @@ The 4 translated files match the German set and are:
 
 ---
 
-## Appendix: File Size Comparison
+## Appendix: File Ranking by Completeness
 
-| File | Lines | Quality Rating |
-|------|-------|----------------|
-| ui_chart.html | 130 | ⭐⭐⭐⭐⭐ |
-| ui_template.html | 48 | ⭐⭐⭐⭐⭐ |
-| ui_ui_control.html | 28 | ⭐⭐⭐⭐ |
-| ui_button.html | 23 | ⭐⭐⭐⭐ |
-| ui_switch.html | 19 | ⭐⭐⭐⭐ |
-| ui_numeric.html | 18 | ⭐⭐⭐⭐ |
-| ui_audio.html | 18 | ⭐⭐⭐⭐ |
-| ui_form.html | 18 | ⭐⭐⭐⭐ |
-| ui_text_input.html | 17 | ⭐⭐⭐⭐ |
-| ui_dropdown.html | 17 | ⭐⭐⭐⭐ |
-| ui_toast.html | 16 | ⭐⭐⭐⭐ |
-| ui_slider.html | 15 | ⭐⭐⭐⭐ |
-| ui_gauge.html | 15 | ⭐⭐⭐⭐ |
-| ui_text.html | 15 | ⭐⭐⭐⭐ |
-| ui_tab.html | 12 | ⭐⭐⭐ |
-| ui_colour_picker.html | 11 | ⭐⭐⭐ |
-| ui_link.html | 8 | ⭐⭐⭐ |
-| ui_date_picker.html | 6 | ⭐⭐ |
-| ui_base.html | 75 | ⭐⭐⭐⭐⭐ |
-| ui_group.html | 85 | ⭐⭐⭐⭐⭐ |
-| ui_spacer.html | 80 | ⭐⭐⭐⭐⭐ |
+| Rank | File | Lines | Rating | Notes |
+|------|------|-------|--------|-------|
+| 1 | ui_chart.html | 130 | ⭐⭐⭐⭐⭐ | All 8 chart types, data formats, zoom, mark lines, examples |
+| 2 | ui_date_picker.html | 95 | ⭐⭐⭐⭐⭐ | I/O formats, config, format table, code examples, timezone |
+| 3 | ui_group.html | 85 | ⭐⭐⭐⭐⭐ | Config, layout, IDs, dynamic control examples, best practices |
+| 4 | ui_spacer.html | 80 | ⭐⭐⭐⭐⭐ | Purpose, config, 4 layout diagrams, CSS debug, alternatives |
+| 5 | ui_base.html | 75 | ⭐⭐⭐⭐⭐ | All config sections, themes, sizes, options, access URL |
+| 6 | ui_template.html | 48 | ⭐⭐⭐⭐⭐ | Angular directives, 3 code examples, msg.template, icons |
+| 7 | ui_ui_control.html | 28 | ⭐⭐⭐⭐ | Tab/group control, events, socket info, code examples |
+| 8 | ui_button.html | 23 | ⭐⭐⭐⭐ | Payload, icons, colors, pass-through, msg.enabled |
+| 9 | ui_switch.html | 19 | ⭐⭐⭐⭐ | On/Off values, icons, colors, pass-through, tracking |
+| 10 | ui_numeric.html | 18 | ⭐⭐⭐⭐ | Min/max, value format, editable mode, msg.enabled |
+| 11 | ui_form.html | 18 | ⭐⭐⭐⭐ | Element structure, types, required, topic |
+| 12 | ui_audio.html | 18 | ⭐⭐⭐⭐ | TTS/audio, formats, volume, reset, node status |
+| 13 | ui_dropdown.html | 17 | ⭐⭐⭐⭐ | Options config, multi-select, msg.options |
+| 14 | ui_text_input.html | 17 | ⭐⭐⭐⭐ | Modes, delay, validation, browser compat |
+| 15 | ui_toast.html | 16 | ⭐⭐⭐⭐ | Notification/dialog, position, buttons, input mode |
+| 16 | ui_gauge.html | 15 | ⭐⭐⭐⭐ | Value format, sectors, colors, modes |
+| 17 | ui_slider.html | 15 | ⭐⭐⭐⭐ | Min/max, vertical, reversed, msg.enabled |
+| 18 | ui_text.html | 15 | ⭐⭐⭐⭐ | Value format, Angular filters, icons, CSS class |
+| 19 | ui_tab.html | 12 | ⭐⭐⭐ | Disabled/hidden states, icons |
+| 20 | ui_colour_picker.html | 11 | ⭐⭐⭐ | Formats, pass-through |
+| 21 | ui_link.html | 8 | ⭐⭐⭐ | Icons, open-in options, iframe warning |
