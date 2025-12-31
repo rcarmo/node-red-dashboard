@@ -63,7 +63,7 @@ export function GroupCard(props: {
     sectionStyle.position = "absolute";
     sectionStyle.left = `${layoutPos?.left ?? 0}px`;
     sectionStyle.top = `${layoutPos?.top ?? 0}px`;
-    sectionStyle.width = `${layoutPos?.width ?? "auto"}`;
+    sectionStyle.width = layoutPos?.width ? `${layoutPos.width}px` : "auto";
   }
 
   return html`<section
