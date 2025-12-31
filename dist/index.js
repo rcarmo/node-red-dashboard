@@ -53851,13 +53851,13 @@ function applyChartPayload(look, payload, prev, windowing) {
   }
   return next;
 }
-function buildLineSeries(control, data) {
+function buildLineSeries(control, data, colors) {
   const interpolate2 = (control.interpolate || "").toString();
   const dot = Boolean(control.dot);
   const spanGaps = Boolean(control.spanGaps);
   const stacked = Boolean(control.stacked);
   const stackName = control.stackKey || (stacked ? "stack" : undefined);
-  return data.series.map((s3) => {
+  return data.series.map((s3, idx) => {
     const series = {
       type: "line",
       name: s3.name,
@@ -53865,7 +53865,13 @@ function buildLineSeries(control, data) {
       showSymbol: dot,
       symbol: "circle",
       symbolSize: dot ? 6 : 4,
-      lineStyle: { width: 2 },
+      lineStyle: {
+        width: 2,
+        color: colors[idx % colors.length]
+      },
+      itemStyle: {
+        color: colors[idx % colors.length]
+      },
       smooth: interpolate2 === "cubic" || interpolate2 === "bezier" || interpolate2 === "monotone",
       connectNulls: spanGaps
     };
@@ -53935,20 +53941,34 @@ function buildPieSeries(look, control, data, colors) {
     };
   });
 }
-function buildRadarSeries(data) {
-  return data.series.map((s3) => ({
+function buildRadarSeries(data, colors) {
+  return data.series.map((s3, idx) => ({
     type: "radar",
     name: s3.name,
-    data: [{ value: s3.data }]
+    data: [{ value: s3.data }],
+    lineStyle: {
+      width: 2,
+      color: colors[idx % colors.length]
+    },
+    itemStyle: {
+      color: colors[idx % colors.length]
+    },
+    areaStyle: {
+      color: colors[idx % colors.length],
+      opacity: 0.2
+    }
   }));
 }
-function buildScatterSeries(data, control) {
+function buildScatterSeries(data, control, colors) {
   const symbolSize = toOptionalNumber(control.symbolSize) ?? 10;
-  return data.series.map((s3) => ({
+  return data.series.map((s3, idx) => ({
     type: "scatter",
     name: s3.name,
     data: s3.data,
-    symbolSize
+    symbolSize,
+    itemStyle: {
+      color: colors[idx % colors.length]
+    }
   }));
 }
 function buildFunnelSeries(data, control, colors) {
@@ -54108,7 +54128,7 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
     }
     option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
     const useOneColor = Boolean(control.useOneColor);
-    const baseSeries = look === "line" ? buildLineSeries(control, data) : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter, useOneColor, colors);
+    const baseSeries = look === "line" ? buildLineSeries(control, data, colors) : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter, useOneColor, colors);
     const markLine = buildMarkLine(control.markLines, look);
     if (markLine && Array.isArray(baseSeries) && baseSeries.length > 0) {
       baseSeries[0].markLine = markLine;
@@ -54141,7 +54161,7 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       },
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
     };
-    option.series = buildRadarSeries(data);
+    option.series = buildRadarSeries(data, colors);
   } else if (look === "scatter") {
     const xAxis = {
       type: data.isTimeSeries ? "time" : "value",
@@ -54166,7 +54186,7 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
     option.xAxis = xAxis;
     option.yAxis = yAxis;
     option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
-    const scatterSeries = buildScatterSeries(data, control);
+    const scatterSeries = buildScatterSeries(data, control, colors);
     const markLine = buildMarkLine(control.markLines, look);
     if (markLine && Array.isArray(scatterSeries) && scatterSeries.length > 0) {
       scatterSeries[0].markLine = markLine;
@@ -54243,7 +54263,10 @@ function ChartWidget(props) {
     return Number.isFinite(n3) && n3 > 0 ? n3 : undefined;
   }, [c3.removeOlderPoints]);
   y2(() => {
-    setData((prev) => applyChartPayload(look, c3.value, prev, { removeOlderMs, removeOlderPoints }));
+    console.log("[Chart] c.value changed:", JSON.stringify(c3.value));
+    const newData = applyChartPayload(look, c3.value, data, { removeOlderMs, removeOlderPoints });
+    console.log("[Chart] After applyChartPayload, series:", newData.series.map((s3) => ({ name: s3.name, points: s3.data.length })));
+    setData(newData);
   }, [c3.value, look, removeOlderMs, removeOlderPoints]);
   y2(() => {
     setHidden((prev) => {

@@ -389,14 +389,14 @@ export function applyChartPayload(look: ChartLook, payload: unknown, prev: Chart
   return next;
 }
 
-function buildLineSeries(control: ChartControl, data: ChartData): EChartsOption["series"] {
+function buildLineSeries(control: ChartControl, data: ChartData, colors: string[]): EChartsOption["series"] {
   const interpolate = (control.interpolate || "").toString();
   const dot = Boolean(control.dot);
   const spanGaps = Boolean(control.spanGaps);
   const stacked = Boolean(control.stacked);
   const stackName = control.stackKey || (stacked ? "stack" : undefined);
 
-  return data.series.map((s) => {
+  return data.series.map((s, idx) => {
     const series: Record<string, unknown> = {
       type: "line",
       name: s.name,
@@ -404,7 +404,13 @@ function buildLineSeries(control: ChartControl, data: ChartData): EChartsOption[
       showSymbol: dot,
       symbol: "circle",
       symbolSize: dot ? 6 : 4,
-      lineStyle: { width: 2 },
+      lineStyle: { 
+        width: 2,
+        color: colors[idx % colors.length],
+      },
+      itemStyle: {
+        color: colors[idx % colors.length],
+      },
       smooth: interpolate === "cubic" || interpolate === "bezier" || interpolate === "monotone",
       connectNulls: spanGaps,
     };
@@ -495,21 +501,35 @@ function buildPieSeries(look: ChartLook, control: ChartControl, data: ChartData,
   });
 }
 
-function buildRadarSeries(data: ChartData): EChartsOption["series"] {
-  return data.series.map((s) => ({
+function buildRadarSeries(data: ChartData, colors: string[]): EChartsOption["series"] {
+  return data.series.map((s, idx) => ({
     type: "radar",
     name: s.name,
     data: [{ value: s.data as number[] }],
+    lineStyle: {
+      width: 2,
+      color: colors[idx % colors.length],
+    },
+    itemStyle: {
+      color: colors[idx % colors.length],
+    },
+    areaStyle: {
+      color: colors[idx % colors.length],
+      opacity: 0.2,
+    },
   }));
 }
 
-function buildScatterSeries(data: ChartData, control: ChartControl): EChartsOption["series"] {
+function buildScatterSeries(data: ChartData, control: ChartControl, colors: string[]): EChartsOption["series"] {
   const symbolSize = toOptionalNumber(control.symbolSize) ?? 10;
-  return data.series.map((s) => ({
+  return data.series.map((s, idx) => ({
     type: "scatter",
     name: s.name,
     data: s.data,
     symbolSize,
+    itemStyle: {
+      color: colors[idx % colors.length],
+    },
   }));
 }
 
@@ -699,7 +719,7 @@ export function buildChartOption(
     option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
     const useOneColor = Boolean(control.useOneColor);
     const baseSeries = look === "line"
-      ? buildLineSeries(control, data)
+      ? buildLineSeries(control, data, colors)
       : buildBarSeries(look, data, stacked, stackKey, stackMap, stackLabel, valueFormatter, useOneColor, colors);
 
     // Add mark lines to first series if configured
@@ -737,7 +757,7 @@ export function buildChartOption(
       },
       axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
     };
-    option.series = buildRadarSeries(data);
+    option.series = buildRadarSeries(data, colors);
   } else if (look === "scatter") {
     // Scatter chart with value axes
     const xAxis = {
@@ -764,7 +784,7 @@ export function buildChartOption(
     option.yAxis = yAxis;
     option.grid = { left: 10, right: 10, top: 24, bottom: control.dataZoom ? 40 : 20, containLabel: true };
 
-    const scatterSeries = buildScatterSeries(data, control);
+    const scatterSeries = buildScatterSeries(data, control, colors);
     // Add mark lines to first series if configured
     const markLine = buildMarkLine(control.markLines, look);
     if (markLine && Array.isArray(scatterSeries) && scatterSeries.length > 0) {
@@ -854,7 +874,10 @@ export function ChartWidget(props: { control: UiControl; index: number; disabled
   }, [c.removeOlderPoints]);
 
   useEffect(() => {
-    setData((prev) => applyChartPayload(look, c.value, prev, { removeOlderMs, removeOlderPoints }));
+    console.log("[Chart] c.value changed:", JSON.stringify(c.value));
+    const newData = applyChartPayload(look, c.value, data, { removeOlderMs, removeOlderPoints });
+    console.log("[Chart] After applyChartPayload, series:", newData.series.map(s => ({ name: s.name, points: s.data.length })));
+    setData(newData);
   }, [c.value, look, removeOlderMs, removeOlderPoints]);
 
   useEffect(() => {
