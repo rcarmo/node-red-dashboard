@@ -278,89 +278,73 @@ function findSeries(data: ChartData, name: string): ChartSeries {
 }
 
 export function applyChartPayload(look: ChartLook, payload: unknown, prev: ChartData, windowing?: Windowing): ChartData {
+  // Match Angular: if (newValue !== undefined && newValue.length > 0)
   if (!Array.isArray(payload) || payload.length === 0) {
-    // Keep previous data if no new payload
+    // Keep previous data if series exist (don't clear on empty)
     if (prev.series.length > 0) return prev;
     return { labels: [], series: [], isTimeSeries: false };
   }
 
+  // Angular: newValue = newValue[0]
   const entry = payload[0] as Record<string, unknown>;
   const next = cloneData(prev);
-  const values = (entry.values || entry) as Record<string, unknown>;
-  const seriesArr = Array.isArray(values.series) ? (values.series as string[]) : 
-                    typeof values.series === "string" ? [values.series] : [];
-  const labelsArr = Array.isArray(values.labels) ? (values.labels as string[]) : [];
-  const dataArr = Array.isArray(values.data) ? (values.data as unknown[]) : [];
-
-  // Incremental update mode - append points to existing series
+  
+  // Angular accesses newValue.values.series, newValue.values.data, etc.
+  const values = (entry.values || {}) as Record<string, unknown>;
+  
+  // Angular UPDATE mode: type === 'line' && newValue.update
+  // In this mode: values.series is STRING, values.data is SINGLE POINT {x, y}
   if ((look === "line" || look === "scatter") && entry.update) {
+    // Angular: var seriesName = newValue.values.series (string)
+    const seriesName = String(values.series ?? "");
+    if (!seriesName) return next;
+    
+    // Angular: find or create series
+    let s = next.series.find((ser) => ser.name === seriesName);
+    if (!s) {
+      s = { name: seriesName, data: [] };
+      next.series.push(s);
+    }
     next.isTimeSeries = true;
     
-    // Handle multiple series with arrays of points: { series: ["A", "B"], data: [[{x,y}], [{x,y}]] }
-    if (seriesArr.length > 0 && dataArr.length > 0) {
-      let latestTs = 0;
-      seriesArr.forEach((seriesName, idx) => {
-        const s = findSeries(next, seriesName);
-        const points = Array.isArray(dataArr[idx]) ? (dataArr[idx] as unknown[]) : [];
-        points.forEach((pt) => {
-          if (pt && typeof pt === "object" && "x" in (pt as { x: number }) && "y" in (pt as { y: number })) {
-            const asPoint = pt as { x: number; y: number };
-            s.data.push([Number(asPoint.x), Number(asPoint.y)]);
-            if (asPoint.x > latestTs) latestTs = asPoint.x;
-          }
-        });
-      });
-
-      // Apply windowing based on time
+    // Angular: if (newValue.remove) { scope.config.data[seriesIndex].splice(0, newValue.remove); }
+    const remove = Number((entry as { remove?: number }).remove ?? 0);
+    if (Number.isFinite(remove) && remove > 0) {
+      s.data.splice(0, remove);
+    }
+    
+    // Angular: scope.config.data[seriesIndex].push(newValue.values.data)
+    // values.data is a single point {x, y}
+    const point = values.data as { x?: number; y?: number } | undefined;
+    if (point && typeof point === "object" && point.x != null && point.y != null) {
+      s.data.push([Number(point.x), Number(point.y)]);
+      
+      // Apply time-based windowing
       const cutoff = windowing?.removeOlderMs;
-      if (cutoff && cutoff > 0 && latestTs > 0) {
-        const threshold = latestTs - cutoff;
-        next.series.forEach((s) => {
-          s.data = s.data.filter((p) => Array.isArray(p) && (p[0] as number) >= threshold);
-        });
+      if (cutoff && cutoff > 0) {
+        const threshold = Number(point.x) - cutoff;
+        s.data = s.data.filter((p) => Array.isArray(p) && (p[0] as number) >= threshold);
       }
-
-      // Apply windowing based on point count
+      
+      // Apply point-count windowing
       const maxPoints = windowing?.removeOlderPoints;
-      if (maxPoints && maxPoints > 0) {
-        next.series.forEach((s) => {
-          if (s.data.length > maxPoints) {
-            s.data = s.data.slice(s.data.length - maxPoints);
-          }
-        });
-      }
-
-      // Handle explicit remove count
-      const remove = Number((entry as { remove?: number }).remove ?? 0);
-      if (Number.isFinite(remove) && remove > 0) {
-        next.series.forEach((s) => {
-          s.data.splice(0, remove);
-        });
+      if (maxPoints && maxPoints > 0 && s.data.length > maxPoints) {
+        s.data.splice(0, s.data.length - maxPoints);
       }
     }
-    // Handle single series with single point: { series: "A", data: {x, y} }
-    else if (typeof values.series === "string" && values.data && typeof values.data === "object") {
-      const point = values.data as { x?: number; y?: number };
-      if (point.x != null && point.y != null) {
-        const s = findSeries(next, values.series as string);
-        s.data.push([Number(point.x), Number(point.y)]);
-        
-        const cutoff = windowing?.removeOlderMs;
-        if (cutoff && cutoff > 0) {
-          const threshold = Number(point.x) - cutoff;
-          s.data = s.data.filter((p) => Array.isArray(p) && (p[0] as number) >= threshold);
-        }
-        const maxPoints = windowing?.removeOlderPoints;
-        if (maxPoints && maxPoints > 0 && s.data.length > maxPoints) {
-          s.data.splice(0, s.data.length - maxPoints);
-        }
-      }
-    }
-
+    
     return next;
   }
 
-  // Replace dataset mode
+  // Angular REPLACE mode: Bar charts and non-update line charts replace the data
+  // In this mode: values.series is ARRAY, values.data is ARRAY of ARRAYS
+  const seriesArr = Array.isArray(values.series) ? (values.series as string[]) : [];
+  const labelsArr = Array.isArray(values.labels) ? (values.labels as string[]) : [];
+  const dataArr = Array.isArray(values.data) ? (values.data as unknown[]) : [];
+  
+  // Angular: scope.config.data = newValue.values.data
+  // Angular: scope.config.series = newValue.values.series  
+  // Angular: scope.config.labels = newValue.values.labels
   next.labels = labelsArr;
   next.series = [];
   next.isTimeSeries = false;
