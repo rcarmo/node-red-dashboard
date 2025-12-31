@@ -352,7 +352,7 @@
     "z": "f100000000000003",
     "type": "function",
     "name": "Sinusoid Series",
-    "func": "// Generate sinusoid data\nconst t = Date.now();\nconst phase = t / 1000;\nconst a = Math.round(50 + 40 * Math.sin(phase));\nconst b = Math.round(50 + 40 * Math.cos(phase));\nmsg.payload = [{\n  series: [\"Sin\", \"Cos\"],\n  data: [[{x: t, y: a}], [{x: t, y: b}]],\n  labels: [\"\"]\n}];\nmsg.payload[0].update = true;\nreturn msg;",
+    "func": "// Generate sinusoid data - send two update messages (one per series)\nconst t = Date.now();\nconst phase = t / 1000;\nconst a = Math.round(50 + 40 * Math.sin(phase));\nconst b = Math.round(50 + 40 * Math.cos(phase));\n// Send proper update format: { update: true, values: { series: string, data: {x,y} } }\nconst msg1 = { payload: [{ key: 'chartNode', update: true, values: { series: 'Sin', data: { x: t, y: a }, labels: '' } }] };\nconst msg2 = { payload: [{ key: 'chartNode', update: true, values: { series: 'Cos', data: { x: t, y: b }, labels: '' } }] };\nreturn [[msg1, msg2]];",
     "outputs": 1,
     "noerr": 0,
     "initialize": "",
