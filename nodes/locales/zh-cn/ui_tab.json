@@ -1,0 +1,21 @@
+{
+    "ui_tab": {
+        "label": {
+            "home": "主页",
+            "tab": "标签",
+            "name": "名称",
+            "icon": "图标",
+            "state": "状态",
+            "navmenu": "导航菜单",
+            "enabled": "启用",
+            "disabled": "禁用",
+            "visible": "可见",
+            "hidden": "隐藏"
+        },
+        "info": {
+            "disabled": " 标签在仪表板中处于非活动状态。",
+            "hidden": " 标签不显示在导航菜单中。"
+        },
+        "tip": "<b>图标</b>字段可以是 <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">Material Design 图标</a> <i>（例如 'check'、'close'）</i>、<a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">Font Awesome 图标</a> <i>（例如 'fa-fire'）</i>，或 <a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">天气图标</a> <i>（例如 'wi-wu-sunny'）</i>。</p><p>您可以在图标名称前添加 'mi-' 来使用完整的 Google Material 图标集，例如 'mi-videogame_asset'。</p>"
+    }
+}

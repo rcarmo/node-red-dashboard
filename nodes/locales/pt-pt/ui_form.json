@@ -1,0 +1,35 @@
+{
+  "ui_form": {
+    "label": {
+      "group": "Grupo",
+      "size": "Tamanho",
+      "label": "Etiqueta",
+      "optionalLabel": "etiqueta opcional",
+      "formElements": "Elementos do formulário",
+      "type": "Tipo",
+      "required": "Obrigatório",
+      "rows": "Linhas",
+      "remove": "Remover",
+      "egName": "ex. Nome",
+      "egName2": "ex. nome",
+      "text": "Texto",
+      "multiline": "Multilinha",
+      "number": "Número",
+      "email": "E-mail",
+      "password": "Palavra-passe",
+      "checkbox": "Caixa de verificação",
+      "switch": "Interruptor",
+      "date": "Data",
+      "time": "Hora",
+      "element": "elemento",
+      "buttons": "Botões",
+      "submitButtonText": "texto do botão enviar",
+      "cancelButtonText": "texto do botão cancelar",
+      "topic": "Tópico",
+      "optionalMsgTopic": "msg.topic opcional",
+      "splitLayout": "Colocar os elementos do formulário em duas colunas",
+      "className": "Classe",
+      "classNamePlaceholder": "Nome(s) de classe CSS opcional para o widget"
+    }
+  }
+}

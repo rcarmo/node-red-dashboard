@@ -1,0 +1,16 @@
+{
+    "ui_group": {
+        "label": {
+            "name": "Nombre",
+            "tab": "Pestaña",
+            "width": "Ancho",
+            "default": "Por defecto",
+            "group": "Grupo",
+            "unassigned": "sin asignar",
+            "className": "Clase",
+            "classNamePlaceholder": "Nombre(s) de clase CSS opcional para el widget"
+        },
+        "display-name": "Mostrar nombre del grupo",
+        "collapse-name": "Permitir contraer el grupo"
+    }
+}

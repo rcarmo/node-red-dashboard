@@ -1,0 +1,21 @@
+{
+    "ui_tab": {
+        "label": {
+            "home": "Inicio",
+            "tab": "Pestaña",
+            "name": "Nombre",
+            "icon": "Icono",
+            "state": "Estado",
+            "navmenu": "Menú de nav.",
+            "enabled": "Habilitado",
+            "disabled": "Deshabilitado",
+            "visible": "Visible",
+            "hidden": "Oculto"
+        },
+        "info": {
+            "disabled": " La pestaña está inactiva en el panel.",
+            "hidden": " La pestaña no se muestra en el menú de navegación."
+        },
+        "tip": "El campo <b>Icono</b> puede ser un <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">icono de Material Design</a> <i>(ej. 'check', 'close')</i> o un <a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">icono de Font Awesome</a> <i>(ej. 'fa-fire')</i>, o un <a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">icono del tiempo</a> <i>(ej. 'wi-wu-sunny')</i>.</p><p>Puede usar el conjunto completo de iconos de Google Material agregando 'mi-' al nombre del icono. ej. 'mi-videogame_asset'.</p>"
+    }
+}

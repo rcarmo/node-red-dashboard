@@ -1,0 +1,35 @@
+{
+  "ui_form": {
+    "label": {
+      "group": "Groupe",
+      "size": "Taille",
+      "label": "Libellé",
+      "optionalLabel": "libellé optionnel",
+      "formElements": "Éléments du formulaire",
+      "type": "Type",
+      "required": "Obligatoire",
+      "rows": "Lignes",
+      "remove": "Supprimer",
+      "egName": "ex. Nom",
+      "egName2": "ex. nom",
+      "text": "Texte",
+      "multiline": "Multiligne",
+      "number": "Nombre",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "checkbox": "Case à cocher",
+      "switch": "Interrupteur",
+      "date": "Date",
+      "time": "Heure",
+      "element": "élément",
+      "buttons": "Boutons",
+      "submitButtonText": "texte du bouton envoyer",
+      "cancelButtonText": "texte du bouton annuler",
+      "topic": "Sujet",
+      "optionalMsgTopic": "msg.topic optionnel",
+      "splitLayout": "Placer les éléments du formulaire en deux colonnes",
+      "className": "Classe",
+      "classNamePlaceholder": "Nom(s) de classe CSS optionnel pour le widget"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+    "ui_template": {
+        "label": {
+            "type": "Tipo de plantilla",
+            "local": "Widget en grupo",
+            "global": "Añadido a la sección <head> del sitio",
+            "group": "Grupo",
+            "size": "Tamaño",
+            "name": "Nombre",
+            "pass-through": "Pasar mensajes desde la entrada.",
+            "store-state": "Añadir mensajes de salida al estado almacenado.",
+            "template": "Plantilla",
+            "expand": "Expandir",
+            "resend": "Recargar último valor al actualizar.",
+            "className": "Clase",
+            "classNamePlaceholder": "Nombre(s) de clase CSS opcional para el widget"
+        }
+    }
+}

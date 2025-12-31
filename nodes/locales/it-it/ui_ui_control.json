@@ -1,0 +1,16 @@
+{
+    "ui_ui_control": {
+        "label": {
+            "name": "Nome",
+            "output": "Output"
+        },
+        "placeholder": {
+            "name": "Nome"
+        },
+        "events": {
+            "all": "Eventi di connessione, perdita, cambio scheda o gruppo",
+            "change": "Solo eventi di cambio scheda o gruppo",
+            "connect": "Solo evento di connessione"
+        }
+    }
+}

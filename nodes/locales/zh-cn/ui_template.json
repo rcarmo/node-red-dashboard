@@ -1,0 +1,19 @@
+{
+    "ui_template": {
+        "label": {
+            "type": "模板类型",
+            "local": "分组中的小部件",
+            "global": "添加到站点 <head> 部分",
+            "group": "分组",
+            "size": "尺寸",
+            "name": "名称",
+            "pass-through": "从输入传递消息。",
+            "store-state": "将输出消息添加到存储状态。",
+            "template": "模板",
+            "expand": "展开",
+            "resend": "刷新时重新加载最后的值。",
+            "className": "类",
+            "classNamePlaceholder": "可选的小部件 CSS 类名"
+        }
+    }
+}

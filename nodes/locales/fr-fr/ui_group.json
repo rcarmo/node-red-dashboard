@@ -1,0 +1,16 @@
+{
+    "ui_group": {
+        "label": {
+            "name": "Nom",
+            "tab": "Onglet",
+            "width": "Largeur",
+            "default": "Par défaut",
+            "group": "Groupe",
+            "unassigned": "non assigné",
+            "className": "Classe",
+            "classNamePlaceholder": "Nom(s) de classe CSS optionnel pour le widget"
+        },
+        "display-name": "Afficher le nom du groupe",
+        "collapse-name": "Permettre de réduire le groupe"
+    }
+}

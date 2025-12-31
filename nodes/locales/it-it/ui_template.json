@@ -1,0 +1,19 @@
+{
+    "ui_template": {
+        "label": {
+            "type": "Tipo di modello",
+            "local": "Widget nel gruppo",
+            "global": "Aggiunto alla sezione <head> del sito",
+            "group": "Gruppo",
+            "size": "Dimensione",
+            "name": "Nome",
+            "pass-through": "Passa i messaggi dall'input.",
+            "store-state": "Aggiungi messaggi di output allo stato memorizzato.",
+            "template": "Modello",
+            "expand": "Espandi",
+            "resend": "Ricarica l'ultimo valore all'aggiornamento.",
+            "className": "Classe",
+            "classNamePlaceholder": "Nome/i classe CSS opzionale per il widget"
+        }
+    }
+}

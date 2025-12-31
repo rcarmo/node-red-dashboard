@@ -1,0 +1,24 @@
+{
+  "ui_button": {
+    "label": {
+      "group": "Gruppo",
+      "size": "Dimensione",
+      "icon": "Icona",
+      "optionalIcon": "icona opzionale",
+      "label": "Etichetta",
+      "optionalLabel": "etichetta opzionale",
+      "tooltip": "Suggerimento",
+      "optionalTooltip": "suggerimento opzionale",
+      "color": "Colore",
+      "optionalColor": "colore testo/icona opzionale",
+      "background": "Sfondo",
+      "optionalBackgroundColor": "colore sfondo opzionale",
+      "whenClicked": "Al clic, invia:",
+      "payload": "Payload",
+      "topic": "Argomento",
+      "emulateClick": "Se arriva un msg in input, emula un clic del pulsante:",
+      "className": "Classe",
+      "classNamePlaceholder": "Nome/i classe CSS opzionale per il widget"
+    }
+  }
+}

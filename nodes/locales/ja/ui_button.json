@@ -1,0 +1,24 @@
+{
+  "ui_button": {
+    "label": {
+      "group": "グループ",
+      "size": "サイズ",
+      "icon": "アイコン",
+      "optionalIcon": "オプションのアイコン",
+      "label": "ラベル",
+      "optionalLabel": "オプションのラベル",
+      "tooltip": "ツールチップ",
+      "optionalTooltip": "オプションのツールチップ",
+      "color": "色",
+      "optionalColor": "オプションのテキスト/アイコン色",
+      "background": "背景",
+      "optionalBackgroundColor": "オプションの背景色",
+      "whenClicked": "クリック時に送信：",
+      "payload": "ペイロード",
+      "topic": "トピック",
+      "emulateClick": "入力にメッセージが到着したらボタンクリックをエミュレート：",
+      "className": "クラス",
+      "classNamePlaceholder": "ウィジェットのオプションのCSSクラス名"
+    }
+  }
+}

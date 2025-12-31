@@ -1,0 +1,21 @@
+{
+    "ui_tab": {
+        "label": {
+            "home": "Accueil",
+            "tab": "Onglet",
+            "name": "Nom",
+            "icon": "Icône",
+            "state": "État",
+            "navmenu": "Menu de nav.",
+            "enabled": "Activé",
+            "disabled": "Désactivé",
+            "visible": "Visible",
+            "hidden": "Masqué"
+        },
+        "info": {
+            "disabled": " L'onglet est inactif dans le tableau de bord.",
+            "hidden": " L'onglet n'est pas affiché dans le menu de navigation."
+        },
+        "tip": "Le champ <b>Icône</b> peut être une <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">icône Material Design</a> <i>(ex. 'check', 'close')</i> ou une <a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">icône Font Awesome</a> <i>(ex. 'fa-fire')</i>, ou une <a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">icône météo</a> <i>(ex. 'wi-wu-sunny')</i>.</p><p>Vous pouvez utiliser l'ensemble complet des icônes Google Material en ajoutant 'mi-' au nom de l'icône. ex. 'mi-videogame_asset'.</p>"
+    }
+}

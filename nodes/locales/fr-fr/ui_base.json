@@ -1,0 +1,102 @@
+{
+    "ui_base": {
+        "label": {
+            "dashboard": "tableau de bord",
+            "category": "tableau de bord",
+            "title": "Titre",
+            "options": "Options",
+            "date-format": "Format de date",
+            "sizes": "Tailles",
+            "horizontal": "Horizontal",
+            "vertical": "Vertical",
+            "widget-size": "Taille du widget 1x1",
+            "widget-spacing": "Espacement des widgets",
+            "group-padding": "Marge interne du groupe",
+            "group-spacing": "Espacement des groupes",
+            "layout": "Disposition",
+            "angular": "Angular",
+            "theme": "Thème",
+            "site": "Site"
+        },
+        "auto": "auto",
+        "title": "Tableau de bord Node-RED",
+        "layout": {
+            "tab-and-link": "Onglets et liens",
+            "tab": "onglet",
+            "link": "lien",
+            "group": "groupe",
+            "edit": "modifier",
+            "spacer": "espaceur",
+            "layout": "disposition",
+            "layout-editor": "Éditeur de disposition du tableau de bord",
+            "width": "Largeur",
+            "auto": "dimensionnement auto",
+            "manual": "redimensionnement manuel"
+        },
+        "theme": {
+            "style": "Style",
+            "custom-profile": "Profil personnalisé",
+            "custom-profile-name": "Thème sans titre 1",
+            "base-settings": "Paramètres de base",
+            "page-settings": "Paramètres de page",
+            "page": {
+                "title": "Fond de la barre de titre",
+                "page": "Fond de page",
+                "side": "Fond de la barre latérale"
+            },
+            "group-settings": "Paramètres de groupe",
+            "group": {
+                "text": "Texte du groupe",
+                "border": "Bordure du groupe",
+                "background": "Fond du groupe"
+            },
+            "widget-settings": "Paramètres du widget",
+            "widget": {
+                "text": "Texte du widget",
+                "colour": "Couleur du widget",
+                "background": "Fond du widget"
+            }
+        },
+        "style": {
+            "light": "Clair (par défaut)",
+            "dark": "Sombre",
+            "custom": "Personnalisé",
+            "primary": "Primaire",
+            "accents": "Accents",
+            "background": "Fond",
+            "warnings": "Avertissements",
+            "palette": "Clair / Sombre"
+        },
+        "base": {
+            "colour": "Couleur",
+            "font": "Police"
+        },
+        "font": {
+            "system": "Police système (par défaut)"
+        },
+        "site": {
+            "title": "Tableau de bord Node-RED",
+            "date-format": "DD/MM/YYYY"
+        },
+        "title-bar": {
+            "show": "Afficher la barre de titre",
+            "hide": "Masquer la barre de titre"
+        },
+        "swipe": {
+            "no-swipe": "Pas de balayage entre onglets",
+            "allow-swipe": "Autoriser le balayage entre onglets",
+            "allow-swipe-mouse": "Autoriser le balayage (+souris) entre onglets",
+            "show-menu": "Balayer pour ouvrir/fermer le menu"
+        },
+        "lock": {
+            "clicked": "Cliquer pour afficher le menu latéral",
+            "locked": "Toujours afficher le menu latéral",
+            "locked-icon": "Toujours afficher les icônes uniquement"
+        },
+        "temp": {
+            "allow-theme": "Thème Node-RED partout",
+            "no-theme": "Utiliser le thème Angular dans ui_template",
+            "none": "Thème Angular partout"
+        }
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "ui_ui_control": {
+        "label": {
+            "name": "Nombre",
+            "output": "Salida"
+        },
+        "placeholder": {
+            "name": "Nombre"
+        },
+        "events": {
+            "all": "Eventos de conexión, pérdida, cambio de pestaña o grupo",
+            "change": "Solo eventos de cambio de pestaña o grupo",
+            "connect": "Solo evento de conexión"
+        }
+    }
+}

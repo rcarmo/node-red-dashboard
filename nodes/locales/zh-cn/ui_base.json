@@ -1,0 +1,102 @@
+{
+    "ui_base": {
+        "label": {
+            "dashboard": "仪表板",
+            "category": "仪表板",
+            "title": "标题",
+            "options": "选项",
+            "date-format": "日期格式",
+            "sizes": "尺寸",
+            "horizontal": "水平",
+            "vertical": "垂直",
+            "widget-size": "1x1 小部件尺寸",
+            "widget-spacing": "小部件间距",
+            "group-padding": "分组内边距",
+            "group-spacing": "分组间距",
+            "layout": "布局",
+            "angular": "Angular",
+            "theme": "主题",
+            "site": "站点"
+        },
+        "auto": "自动",
+        "title": "Node-RED 仪表板",
+        "layout": {
+            "tab-and-link": "标签和链接",
+            "tab": "标签",
+            "link": "链接",
+            "group": "分组",
+            "edit": "编辑",
+            "spacer": "间隔",
+            "layout": "布局",
+            "layout-editor": "仪表板布局编辑器",
+            "width": "宽度",
+            "auto": "自动调整大小",
+            "manual": "手动调整大小"
+        },
+        "theme": {
+            "style": "样式",
+            "custom-profile": "自定义配置",
+            "custom-profile-name": "未命名主题 1",
+            "base-settings": "基本设置",
+            "page-settings": "页面设置",
+            "page": {
+                "title": "标题栏背景",
+                "page": "页面背景",
+                "side": "侧边栏背景"
+            },
+            "group-settings": "分组设置",
+            "group": {
+                "text": "分组文字",
+                "border": "分组边框",
+                "background": "分组背景"
+            },
+            "widget-settings": "小部件设置",
+            "widget": {
+                "text": "小部件文字",
+                "colour": "小部件颜色",
+                "background": "小部件背景"
+            }
+        },
+        "style": {
+            "light": "浅色（默认）",
+            "dark": "深色",
+            "custom": "自定义",
+            "primary": "主要",
+            "accents": "强调",
+            "background": "背景",
+            "warnings": "警告",
+            "palette": "浅色 / 深色"
+        },
+        "base": {
+            "colour": "颜色",
+            "font": "字体"
+        },
+        "font": {
+            "system": "系统字体（默认）"
+        },
+        "site": {
+            "title": "Node-RED 仪表板",
+            "date-format": "YYYY/MM/DD"
+        },
+        "title-bar": {
+            "show": "显示标题栏",
+            "hide": "隐藏标题栏"
+        },
+        "swipe": {
+            "no-swipe": "禁止滑动切换标签",
+            "allow-swipe": "允许滑动切换标签",
+            "allow-swipe-mouse": "允许滑动（+鼠标）切换标签",
+            "show-menu": "滑动打开/关闭菜单"
+        },
+        "lock": {
+            "clicked": "点击显示侧边菜单",
+            "locked": "始终显示侧边菜单",
+            "locked-icon": "始终仅显示图标"
+        },
+        "temp": {
+            "allow-theme": "全局使用 Node-RED 主题",
+            "no-theme": "在 ui_template 中使用 Angular 主题",
+            "none": "全局使用 Angular 主题"
+        }
+    }
+}

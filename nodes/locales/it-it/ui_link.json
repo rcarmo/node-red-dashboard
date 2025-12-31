@@ -1,0 +1,16 @@
+{
+    "ui_link": {
+        "label": {
+            "name": "Nome",
+            "link": "Collegamento",
+            "icon": "Icona",
+            "open-in": "Apri in",
+            "new-tab": "Nuova scheda",
+            "this-tab": "Questa scheda",
+            "iframe": "iframe",
+            "className": "Classe",
+            "classNamePlaceholder": "Nome/i classe CSS opzionale per il widget"
+        },
+        "tip": "Il campo <b>Icona</b> può essere un'<a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">icona Material Design</a> <i>(es. 'check', 'close')</i> o un'<a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">icona Font Awesome</a> <i>(es. 'fa-fire')</i>, o un'<a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">icona meteo</a> <i>(es. 'wi-wu-sunny')</i>.</p><p>Puoi usare l'insieme completo delle icone Google Material aggiungendo 'mi-' al nome dell'icona. es. 'mi-videogame_asset'.</p>"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "ui_group": {
+        "label": {
+            "name": "Nome",
+            "tab": "Scheda",
+            "width": "Larghezza",
+            "default": "Predefinito",
+            "group": "Gruppo",
+            "unassigned": "non assegnato",
+            "className": "Classe",
+            "classNamePlaceholder": "Nome/i classe CSS opzionale per il widget"
+        },
+        "display-name": "Mostra nome del gruppo",
+        "collapse-name": "Consenti di comprimere il gruppo"
+    }
+}

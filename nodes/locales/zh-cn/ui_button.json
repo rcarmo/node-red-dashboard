@@ -1,0 +1,24 @@
+{
+  "ui_button": {
+    "label": {
+      "group": "分组",
+      "size": "尺寸",
+      "icon": "图标",
+      "optionalIcon": "可选图标",
+      "label": "标签",
+      "optionalLabel": "可选标签",
+      "tooltip": "提示",
+      "optionalTooltip": "可选提示",
+      "color": "颜色",
+      "optionalColor": "可选文字/图标颜色",
+      "background": "背景",
+      "optionalBackgroundColor": "可选背景颜色",
+      "whenClicked": "点击时发送：",
+      "payload": "Payload",
+      "topic": "主题",
+      "emulateClick": "当输入收到消息时，模拟按钮点击：",
+      "className": "类",
+      "classNamePlaceholder": "可选的小部件 CSS 类名"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+    "ui_link": {
+        "label": {
+            "name": "Nome",
+            "link": "Ligação",
+            "icon": "Ícone",
+            "open-in": "Abrir em",
+            "new-tab": "Novo separador",
+            "this-tab": "Este separador",
+            "iframe": "iframe",
+            "className": "Classe",
+            "classNamePlaceholder": "Nome(s) de classe CSS opcional para o widget"
+        },
+        "tip": "O campo <b>Ícone</b> pode ser um <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">ícone Material Design</a> <i>(ex. 'check', 'close')</i> ou um <a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">ícone Font Awesome</a> <i>(ex. 'fa-fire')</i>, ou um <a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">ícone meteorológico</a> <i>(ex. 'wi-wu-sunny')</i>.</p><p>Pode usar o conjunto completo de ícones Google Material adicionando 'mi-' ao nome do ícone. ex. 'mi-videogame_asset'.</p>"
+    }
+}

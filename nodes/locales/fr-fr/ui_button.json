@@ -1,0 +1,24 @@
+{
+  "ui_button": {
+    "label": {
+      "group": "Groupe",
+      "size": "Taille",
+      "icon": "Icône",
+      "optionalIcon": "icône optionnelle",
+      "label": "Libellé",
+      "optionalLabel": "libellé optionnel",
+      "tooltip": "Info-bulle",
+      "optionalTooltip": "info-bulle optionnelle",
+      "color": "Couleur",
+      "optionalColor": "couleur texte/icône optionnelle",
+      "background": "Fond",
+      "optionalBackgroundColor": "couleur de fond optionnelle",
+      "whenClicked": "Au clic, envoyer :",
+      "payload": "Payload",
+      "topic": "Sujet",
+      "emulateClick": "Si un msg arrive en entrée, émuler un clic du bouton :",
+      "className": "Classe",
+      "classNamePlaceholder": "Nom(s) de classe CSS optionnel pour le widget"
+    }
+  }
+}
