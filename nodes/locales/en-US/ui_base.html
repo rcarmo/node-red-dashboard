@@ -1,2 +1,77 @@
 <script type="text/html" data-help-name="ui_base">
+    <p>The <b>Dashboard</b> configuration node manages the overall settings for the Node-RED Dashboard,
+    including theming, layout, and site-wide options.</p>
+
+    <h3>Tabs &amp; Links</h3>
+    <p>The <b>Layout</b> section shows the tab and link hierarchy for your dashboard. You can:</p>
+    <ul>
+        <li>Reorder tabs, groups, and widgets by dragging</li>
+        <li>Edit tab, group, or widget properties by clicking the edit button</li>
+        <li>Use the <b>Layout Editor</b> to visually arrange widgets within groups using a grid interface</li>
+    </ul>
+    <p>Widget sizes can be set to <b>auto</b> (automatically sized based on content) or manually resized
+    using the layout editor grid.</p>
+
+    <h3>Theme</h3>
+    <p>Choose from three built-in theme styles:</p>
+    <ul>
+        <li><b>Light</b> - Light background with blue accent (default)</li>
+        <li><b>Dark</b> - Dark background with teal accent</li>
+        <li><b>Custom</b> - Fully customizable colors</li>
+    </ul>
+    <p>Custom themes allow you to configure:</p>
+    <ul>
+        <li><b>Base Settings</b> - Primary color and font family</li>
+        <li><b>Page Settings</b> - Title bar, page background, and sidebar colors</li>
+        <li><b>Group Settings</b> - Group text, border, and background colors</li>
+        <li><b>Widget Settings</b> - Widget text and background colors</li>
+    </ul>
+    <p>Custom theme profiles can be saved to and loaded from the Node-RED library for reuse across projects.</p>
+
+    <h3>Site</h3>
+    <p>Configure site-wide options:</p>
+    <ul>
+        <li><b>Title</b> - The dashboard title shown in the browser tab and title bar</li>
+        <li><b>Date Format</b> - Default format for date widgets (e.g., <code>DD/MM/YYYY</code> or <code>MM-DD-YYYY</code>).
+        Uses <a href="https://momentjs.com/docs/#/displaying/format/" target="_blank">Moment.js format strings</a>.</li>
+    </ul>
+
+    <h3>Sizes</h3>
+    <p>Control the dashboard grid layout dimensions:</p>
+    <ul>
+        <li><b>1x1 Widget Size</b> - Base size in pixels for a single grid unit (width × height)</li>
+        <li><b>Widget Spacing</b> - Gap between widgets in pixels</li>
+        <li><b>Group Padding</b> - Internal padding within groups</li>
+        <li><b>Group Spacing</b> - Gap between groups</li>
+    </ul>
+
+    <h3>Options</h3>
+    <p>Additional display and behavior settings:</p>
+    <ul>
+        <li><b>Title Bar</b> - Show or hide the top navigation bar</li>
+        <li><b>Side Menu</b> - Control sidebar behavior:
+            <ul>
+                <li><i>Click to show</i> - Menu opens on click/tap</li>
+                <li><i>Always show</i> - Menu permanently visible</li>
+                <li><i>Always show icons only</i> - Collapsed icon-only sidebar</li>
+            </ul>
+        </li>
+        <li><b>Swipe</b> - Enable touch/mouse swipe gestures:
+            <ul>
+                <li><i>No swipe</i> - Disable swipe navigation</li>
+                <li><i>Allow swipe</i> - Swipe left/right to change tabs</li>
+                <li><i>Allow swipe (+mouse)</i> - Enable mouse drag for swipe</li>
+                <li><i>Swipe to open menu</i> - Swipe from edge to toggle sidebar</li>
+            </ul>
+        </li>
+        <li><b>Angular Theme</b> - Control how Angular Material theming is applied to <code>ui_template</code> widgets</li>
+    </ul>
+
+    <h3>Accessing the Dashboard</h3>
+    <p>Once deployed, the dashboard is available at <code>http://&lt;node-red-host&gt;:&lt;port&gt;/ui</code>
+    (or a custom path if configured in <code>settings.js</code>).</p>
+
+    <h3>Multiple Dashboards</h3>
+    <p>Only one <code>ui_base</code> configuration node is used per Node-RED instance. All tabs, groups,
+    and widgets share the same theme and site settings.</p>
 </script>
