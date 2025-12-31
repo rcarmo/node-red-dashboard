@@ -28,6 +28,8 @@ interface LocaleAudit {
   missingFiles: string[];
   extraFiles: string[];
   fileAudits: FileAudit[];
+  missingHtmlFiles: string[];
+  presentHtmlFiles: string[];
 }
 
 interface FileAudit {
@@ -42,6 +44,7 @@ interface FileAudit {
 interface AuditSummary {
   referenceLocale: string;
   referenceFiles: string[];
+  referenceHtmlFiles: string[];
   totalReferenceKeys: number;
   locales: LocaleAudit[];
   timestamp: string;
@@ -110,6 +113,18 @@ async function getLocaleFiles(localeDir: string): Promise<string[]> {
 }
 
 /**
+ * Get all HTML files in a locale directory
+ */
+async function getHtmlFiles(localeDir: string): Promise<string[]> {
+  try {
+    const entries = await readdir(localeDir);
+    return entries.filter(f => f.endsWith('.html')).sort();
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Get all locale directories
  */
 async function getLocales(): Promise<string[]> {
@@ -126,13 +141,18 @@ async function getLocales(): Promise<string[]> {
 async function auditLocale(
   locale: string,
   referenceFiles: string[],
-  referenceData: Map<string, unknown>
+  referenceData: Map<string, unknown>,
+  referenceHtmlFiles: string[]
 ): Promise<LocaleAudit> {
   const localeDir = join(LOCALES_DIR, locale);
   const localeFiles = await getLocaleFiles(localeDir);
+  const localeHtmlFiles = await getHtmlFiles(localeDir);
 
   const missingFiles = referenceFiles.filter(f => !localeFiles.includes(f));
   const extraFiles = localeFiles.filter(f => !referenceFiles.includes(f));
+
+  const missingHtmlFiles = referenceHtmlFiles.filter(f => !localeHtmlFiles.includes(f));
+  const presentHtmlFiles = localeHtmlFiles.filter(f => referenceHtmlFiles.includes(f));
 
   const fileAudits: FileAudit[] = [];
 
@@ -185,6 +205,8 @@ async function auditLocale(
     missingFiles,
     extraFiles,
     fileAudits,
+    missingHtmlFiles,
+    presentHtmlFiles,
   };
 }
 
@@ -202,19 +224,20 @@ function formatCoverage(coverage: number): string {
  * Print a formatted table of results
  */
 function printTable(summary: AuditSummary): void {
-  const { locales, referenceFiles, totalReferenceKeys } = summary;
+  const { locales, referenceFiles, referenceHtmlFiles, totalReferenceKeys } = summary;
 
   console.log('\n' + '='.repeat(80));
   console.log('LOCALE AUDIT REPORT');
   console.log('='.repeat(80));
   console.log(`Reference: ${REFERENCE_LOCALE}`);
-  console.log(`Total files: ${referenceFiles.length}`);
+  console.log(`Total JSON files: ${referenceFiles.length}`);
+  console.log(`Total HTML files: ${referenceHtmlFiles.length}`);
   console.log(`Total keys: ${totalReferenceKeys}`);
   console.log(`Timestamp: ${summary.timestamp}`);
   console.log('='.repeat(80) + '\n');
 
   // Summary table
-  console.log('COVERAGE SUMMARY BY LOCALE');
+  console.log('JSON COVERAGE SUMMARY BY LOCALE');
   console.log('-'.repeat(80));
   console.log(
     'Locale'.padEnd(12) +
@@ -247,6 +270,35 @@ function printTable(summary: AuditSummary): void {
       String(totalMissing).padEnd(10) +
       String(totalExtra).padEnd(8) +
       formatCoverage(avgCoverage)
+    );
+  }
+
+  console.log('-'.repeat(80) + '\n');
+
+  // HTML file coverage summary
+  console.log('HTML HELP FILE COVERAGE BY LOCALE');
+  console.log('-'.repeat(80));
+  console.log(
+    'Locale'.padEnd(12) +
+    'Present'.padEnd(10) +
+    'Missing'.padEnd(10) +
+    'Coverage'
+  );
+  console.log('-'.repeat(80));
+
+  for (const locale of locales) {
+    if (locale.locale === REFERENCE_LOCALE) continue;
+
+    const present = locale.presentHtmlFiles.length;
+    const missing = locale.missingHtmlFiles.length;
+    const total = referenceHtmlFiles.length;
+    const coverage = total > 0 ? (present / total) * 100 : 100;
+
+    console.log(
+      locale.locale.padEnd(12) +
+      `${present}/${total}`.padEnd(10) +
+      String(missing).padEnd(10) +
+      formatCoverage(coverage)
     );
   }
 
@@ -435,18 +487,22 @@ async function main(): Promise<void> {
     }
   }
 
+  // Get reference HTML files
+  const referenceHtmlFiles = await getHtmlFiles(referenceDir);
+
   // Get all locales and audit each
   const locales = await getLocales();
   const localeAudits: LocaleAudit[] = [];
 
   for (const locale of locales) {
-    const audit = await auditLocale(locale, referenceFiles, referenceData);
+    const audit = await auditLocale(locale, referenceFiles, referenceData, referenceHtmlFiles);
     localeAudits.push(audit);
   }
 
   const summary: AuditSummary = {
     referenceLocale: REFERENCE_LOCALE,
     referenceFiles,
+    referenceHtmlFiles,
     totalReferenceKeys,
     locales: localeAudits,
     timestamp: new Date().toISOString(),
