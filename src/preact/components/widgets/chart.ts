@@ -129,22 +129,24 @@ type Windowing = {
   removeOlderPoints?: number;
 };
 
+// ECharts renders to canvas and cannot resolve CSS variables
+// Use direct hex colors that match the CSS variable defaults
 const DEFAULT_COLORS = [
-  "var(--nr-dashboard-widgetColor, #1F77B4)",
-  "var(--nr-dashboard-chartColor1, #AEC7E8)",
-  "var(--nr-dashboard-chartColor2, #FF7F0E)",
-  "var(--nr-dashboard-chartColor3, #2CA02C)",
-  "var(--nr-dashboard-chartColor4, #98DF8A)",
-  "var(--nr-dashboard-chartColor5, #D62728)",
-  "var(--nr-dashboard-chartColor6, #FF9896)",
-  "var(--nr-dashboard-chartColor7, #9467BD)",
-  "var(--nr-dashboard-chartColor8, #C5B0D5)",
-  "var(--nr-dashboard-chartColor9, #7EB3C6)",
-  "var(--nr-dashboard-chartColor10, #BC5879)",
-  "var(--nr-dashboard-chartColor11, #6DC2DF)",
-  "var(--nr-dashboard-chartColor12, #D7D185)",
-  "var(--nr-dashboard-chartColor13, #91CA96)",
-  "var(--nr-dashboard-chartColor14, #DEB64D)",
+  "#1F77B4", // --nr-dashboard-widgetColor
+  "#AEC7E8", // --nr-dashboard-chartColor1
+  "#FF7F0E", // --nr-dashboard-chartColor2
+  "#2CA02C", // --nr-dashboard-chartColor3
+  "#98DF8A", // --nr-dashboard-chartColor4
+  "#D62728", // --nr-dashboard-chartColor5
+  "#FF9896", // --nr-dashboard-chartColor6
+  "#9467BD", // --nr-dashboard-chartColor7
+  "#C5B0D5", // --nr-dashboard-chartColor8
+  "#7EB3C6", // --nr-dashboard-chartColor9
+  "#BC5879", // --nr-dashboard-chartColor10
+  "#6DC2DF", // --nr-dashboard-chartColor11
+  "#D7D185", // --nr-dashboard-chartColor12
+  "#91CA96", // --nr-dashboard-chartColor13
+  "#DEB64D", // --nr-dashboard-chartColor14
 ];
 
 export function normalizeLook(look?: string): ChartLook {
@@ -196,14 +198,14 @@ function buildDataZoom(control: ChartControl, look: ChartLook): EChartsOption["d
       width: isHorizontal ? undefined : 20,
       bottom: isHorizontal ? 0 : undefined,
       right: isHorizontal ? undefined : 0,
-      borderColor: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))",
-      backgroundColor: "var(--nr-dashboard-chartSplitAreaLow, rgba(0,0,0,0.05))",
-      fillerColor: "var(--nr-dashboard-widgetColor, rgba(31,119,180,0.2))",
-      handleStyle: { color: "var(--nr-dashboard-widgetColor, #1F77B4)" },
-      textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+      borderColor: "rgba(0,0,0,0.24)",
+      backgroundColor: "rgba(0,0,0,0.05)",
+      fillerColor: "rgba(31,119,180,0.2)",
+      handleStyle: { color: "#1F77B4" },
+      textStyle: { color: "#000" },
       dataBackground: {
-        lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" },
-        areaStyle: { color: "var(--nr-dashboard-chartSplitAreaHigh, rgba(0,0,0,0.1))" },
+        lineStyle: { color: "rgba(0,0,0,0.24)" },
+        areaStyle: { color: "rgba(0,0,0,0.1)" },
       },
     });
   }
@@ -249,10 +251,10 @@ function buildMarkLine(markLines: MarkLineItem[] | undefined, look: ChartLook): 
           show: Boolean(ml.label),
           formatter: ml.label || String(ml.value),
           position: isYAxis ? "end" : "start",
-          color: ml.color || "var(--nr-dashboard-widgetTextColor, #000)",
+          color: ml.color || "#000",
         },
         lineStyle: {
-          color: ml.color || "var(--nr-dashboard-chartColor5, #D62728)",
+          color: ml.color || "#D62728",
           type: ml.lineStyle || "dashed",
           width: 2,
         },
