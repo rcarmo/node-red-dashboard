@@ -53995,11 +53995,11 @@ function buildFunnelSeries(data, control, colors) {
         show: true,
         position: "inside",
         formatter: "{b}: {c}",
-        color: "var(--nr-dashboard-widgetTextColor, #fff)"
+        color: "#fff"
       },
       labelLine: { show: false },
       itemStyle: {
-        borderColor: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2))",
+        borderColor: "rgba(0,0,0,0.2)",
         borderWidth: 1
       }
     }
@@ -54021,7 +54021,7 @@ function buildHeatmapSeries(data) {
       data: heatmapData,
       label: {
         show: true,
-        color: "var(--nr-dashboard-widgetTextColor, #000)",
+        color: "#000",
         formatter: ({ value: value2 }) => {
           const arr = value2;
           return arr && arr[2] != null ? String(arr[2]) : "";
@@ -54051,7 +54051,7 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
     animation,
     animationDuration,
     useUTC,
-    textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
+    textStyle: { color: "#000" },
     tooltip: {
       trigger: look === "pie" || look === "polar-area" ? "item" : "axis",
       axisPointer: stacked && (look === "bar" || look === "horizontalBar") ? { type: "shadow" } : undefined,
@@ -54102,9 +54102,9 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       data: data.isTimeSeries ? undefined : data.labels,
       axisLabel: {
         formatter: data.isTimeSeries ? (val) => timeFormatter(val) : (val) => String(val ?? ""),
-        color: "var(--nr-dashboard-widgetTextColor, #000)"
+        color: "#000"
       },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
+      axisLine: { lineStyle: { color: "rgba(0,0,0,0.24)" } }
     };
     const valueAxis2 = {
       type: "value",
@@ -54112,12 +54112,12 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       max: toNumber4(control.ymax) ?? undefined,
       axisLabel: {
         formatter: (val) => valueFormatter(val),
-        color: "var(--nr-dashboard-widgetTextColor, #000)"
+        color: "#000"
       },
       splitLine: {
-        lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" }
+        lineStyle: { color: "rgba(0,0,0,0.12)" }
       },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } }
+      axisLine: { lineStyle: { color: "rgba(255,255,255,0.18)" } }
     };
     if (look === "horizontalBar") {
       option.yAxis = categoryAxis2;
@@ -54149,17 +54149,17 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       startAngle: radarStartAngle,
       splitNumber: radarSplitNumber,
       shape: radarShape,
-      axisName: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
-      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(255,255,255,0.15))" } },
+      axisName: { color: "#000" },
+      splitLine: { lineStyle: { color: "rgba(255,255,255,0.15)" } },
       splitArea: {
         areaStyle: {
           color: [
-            "var(--nr-dashboard-chartSplitAreaLow, rgba(255,255,255,0.02))",
-            "var(--nr-dashboard-chartSplitAreaHigh, rgba(255,255,255,0.05))"
+            "rgba(255,255,255,0.02)",
+            "rgba(255,255,255,0.05)"
           ]
         }
       },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
+      axisLine: { lineStyle: { color: "rgba(0,0,0,0.24)" } }
     };
     option.series = buildRadarSeries(data, colors);
   } else if (look === "scatter") {
@@ -54167,10 +54167,10 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       type: data.isTimeSeries ? "time" : "value",
       axisLabel: {
         formatter: data.isTimeSeries ? (val) => timeFormatter(val) : (val) => valueFormatter(val),
-        color: "var(--nr-dashboard-widgetTextColor, #000)"
+        color: "#000"
       },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } },
-      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" } }
+      axisLine: { lineStyle: { color: "rgba(0,0,0,0.24)" } },
+      splitLine: { lineStyle: { color: "rgba(0,0,0,0.12)" } }
     };
     const yAxis = {
       type: "value",
@@ -54178,10 +54178,10 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       max: toNumber4(control.ymax) ?? undefined,
       axisLabel: {
         formatter: (val) => valueFormatter(val),
-        color: "var(--nr-dashboard-widgetTextColor, #000)"
+        color: "#000"
       },
-      splitLine: { lineStyle: { color: "var(--nr-dashboard-chartSplitLineColor, rgba(0,0,0,0.12))" } },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(255,255,255,0.18))" } }
+      splitLine: { lineStyle: { color: "rgba(0,0,0,0.12)" } },
+      axisLine: { lineStyle: { color: "rgba(255,255,255,0.18)" } }
     };
     option.xAxis = xAxis;
     option.yAxis = yAxis;
@@ -54205,15 +54205,15 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       type: "category",
       data: xLabels,
       splitArea: { show: true },
-      axisLabel: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
+      axisLabel: { color: "#000" },
+      axisLine: { lineStyle: { color: "rgba(0,0,0,0.24)" } }
     };
     option.yAxis = {
       type: "category",
       data: yLabels,
       splitArea: { show: true },
-      axisLabel: { color: "var(--nr-dashboard-widgetTextColor, #000)" },
-      axisLine: { lineStyle: { color: "var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.24))" } }
+      axisLabel: { color: "#000" },
+      axisLine: { lineStyle: { color: "rgba(0,0,0,0.24)" } }
     };
     option.grid = { left: 10, right: 60, top: 24, bottom: 20, containLabel: true };
     const heatMin = toNumber4(control.heatmapMin) ?? 0;
@@ -54228,14 +54228,14 @@ function buildChartOption(control, data, lang, t4, hiddenSeries) {
       inRange: {
         color: colors.length >= 2 ? colors.slice(0, 5) : ["#313695", "#4575b4", "#74add1", "#abd9e9", "#e0f3f8", "#ffffbf", "#fee090", "#fdae61", "#f46d43", "#d73027", "#a50026"]
       },
-      textStyle: { color: "var(--nr-dashboard-widgetTextColor, #000)" }
+      textStyle: { color: "#000" }
     };
     option.series = buildHeatmapSeries(data);
   }
   option.title = {
     show: true,
     text: control.label || control.name || t4("chart_label", "Chart"),
-    textStyle: { color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)", fontSize: 14, fontWeight: 600 }
+    textStyle: { color: "#e9ecf1", fontSize: 14, fontWeight: 600 }
   };
   if (control.options && typeof control.options === "object") {
     Object.assign(option, control.options);
