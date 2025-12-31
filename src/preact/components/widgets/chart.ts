@@ -372,6 +372,9 @@ function buildLineSeries(control: ChartControl, data: ChartData): EChartsOption[
       name: s.name,
       data: s.data,
       showSymbol: dot,
+      symbol: "circle",
+      symbolSize: dot ? 6 : 4,
+      lineStyle: { width: 2 },
       smooth: interpolate === "cubic" || interpolate === "bezier" || interpolate === "monotone",
       connectNulls: spanGaps,
     };

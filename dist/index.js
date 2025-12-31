@@ -44617,36 +44617,51 @@ function GaugeWidget(props) {
       />
     </div>`;
   }
-  useECharts(chartRef, [value2, min3, max3, segments, showTicks, showMinMax, isDonut, isWave, isCompass, formatted, label, reverse, formatter, chartHeight], () => ({
+  const getValueColor = () => {
+    const span = max3 - min3 || 1;
+    const pct = clamp2((value2 - min3) / span, 0, 1);
+    for (let i3 = 0;i3 < segments.length; i3++) {
+      if (pct <= segments[i3][0])
+        return segments[i3][1];
+    }
+    return segments[segments.length - 1][1];
+  };
+  const valueColor = getValueColor();
+  useECharts(chartRef, [value2, min3, max3, segments, showTicks, showMinMax, isDonut, isWave, isCompass, formatted, label, reverse, formatter, chartHeight, valueColor], () => ({
     backgroundColor: "transparent",
     series: [
       {
         type: "gauge",
         min: min3,
         max: max3,
-        startAngle: isCompass ? 90 : reverse ? 45 : 225,
-        endAngle: isCompass ? -270 : reverse ? -225 : -45,
-        splitNumber: isCompass ? 8 : showTicks ? 6 : 0,
+        radius: "90%",
+        startAngle: isCompass ? 90 : reverse ? 45 : 200,
+        endAngle: isCompass ? -270 : reverse ? -225 : -20,
+        splitNumber: isCompass ? 8 : showTicks ? 5 : 0,
         progress: {
           show: true,
-          width: isDonut ? 14 : 10,
+          width: isDonut ? 18 : 12,
           roundCap: true,
           itemStyle: {
-            color: segments[segments.length - 1][1]
+            color: valueColor,
+            shadowColor: valueColor,
+            shadowBlur: 6
           }
         },
         axisLine: {
           lineStyle: {
-            width: isDonut ? 14 : 10,
-            color: segments
-          }
+            width: isDonut ? 18 : 12,
+            color: [[1, "var(--nr-dashboard-gaugeTrackColor, rgba(128,128,128,0.2))"]]
+          },
+          roundCap: true
         },
-        axisTick: { show: showTicks, distance: isCompass ? -6 : -8, length: isCompass ? 8 : 6 },
-        splitLine: { show: showTicks, length: isCompass ? 10 : 8, distance: isCompass ? -10 : -12 },
+        axisTick: { show: false },
+        splitLine: { show: false },
         axisLabel: {
-          show: showMinMax || isCompass,
-          distance: isCompass ? 18 : 12,
-          color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
+          show: showMinMax && !isDonut,
+          distance: 20,
+          fontSize: 11,
+          color: "var(--nr-dashboard-widgetTextColor, rgba(255,255,255,0.6))",
           formatter: (val) => {
             if (!isCompass)
               return formatter.format(val);
@@ -44655,14 +44670,37 @@ function GaugeWidget(props) {
             return dirs[idx];
           }
         },
-        pointer: { show: !isDonut, width: 4, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
-        anchor: { show: !isDonut, showAbove: true, size: 10, itemStyle: { color: "var(--nr-dashboard-widgetTextColor, #fff)" } },
+        pointer: {
+          show: !isDonut,
+          length: "60%",
+          width: 5,
+          itemStyle: {
+            color: valueColor,
+            shadowColor: "rgba(0,0,0,0.3)",
+            shadowBlur: 4,
+            shadowOffsetY: 2
+          }
+        },
+        anchor: {
+          show: !isDonut,
+          showAbove: true,
+          size: 14,
+          itemStyle: {
+            color: "var(--nr-dashboard-widgetBackgroundColor, #1f2937)",
+            borderColor: valueColor,
+            borderWidth: 3
+          }
+        },
+        title: {
+          show: false
+        },
         detail: {
           valueAnimation: true,
           formatter: () => formatted,
           color: "var(--nr-dashboard-widgetTextColor, #e9ecf1)",
-          fontSize: 16,
-          offsetCenter: [0, "54%"]
+          fontSize: 20,
+          fontWeight: 500,
+          offsetCenter: [0, isDonut ? "0%" : "70%"]
         },
         data: [
           {
@@ -53826,6 +53864,9 @@ function buildLineSeries(control, data) {
       name: s3.name,
       data: s3.data,
       showSymbol: dot,
+      symbol: "circle",
+      symbolSize: dot ? 6 : 4,
+      lineStyle: { width: 2 },
       smooth: interpolate2 === "cubic" || interpolate2 === "bezier" || interpolate2 === "monotone",
       connectNulls: spanGaps
     };
