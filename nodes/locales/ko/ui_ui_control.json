@@ -1,0 +1,16 @@
+{
+    "ui_ui_control": {
+        "label": {
+            "name": "이름",
+            "output": "출력"
+        },
+        "placeholder": {
+            "name": "이름"
+        },
+        "events": {
+            "all": "연결, 끊김, 탭 또는 그룹 변경 이벤트",
+            "change": "탭 또는 그룹 변경 이벤트만",
+            "connect": "연결 이벤트만"
+        }
+    }
+}

@@ -1,0 +1,24 @@
+{
+  "ui_button": {
+    "label": {
+      "group": "그룹",
+      "size": "크기",
+      "icon": "아이콘",
+      "optionalIcon": "선택적 아이콘",
+      "label": "라벨",
+      "optionalLabel": "선택적 라벨",
+      "tooltip": "툴팁",
+      "optionalTooltip": "선택적 툴팁",
+      "color": "색상",
+      "optionalColor": "선택적 텍스트/아이콘 색상",
+      "background": "배경",
+      "optionalBackgroundColor": "선택적 배경색",
+      "whenClicked": "클릭 시 전송:",
+      "payload": "페이로드",
+      "topic": "토픽",
+      "emulateClick": "입력에 메시지가 도착하면 버튼 클릭 에뮬레이션:",
+      "className": "클래스",
+      "classNamePlaceholder": "위젯의 선택적 CSS 클래스 이름"
+    }
+  }
+}

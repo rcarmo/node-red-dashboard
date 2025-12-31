@@ -1,0 +1,16 @@
+{
+    "ui_link": {
+        "label": {
+            "name": "이름",
+            "link": "링크",
+            "icon": "아이콘",
+            "open-in": "열기 위치",
+            "new-tab": "새 탭",
+            "this-tab": "현재 탭",
+            "iframe": "iframe",
+            "className": "클래스",
+            "classNamePlaceholder": "위젯의 선택적 CSS 클래스 이름"
+        },
+        "tip": "<b>아이콘</b> 필드는 <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">Material Design 아이콘</a> <i>(예: 'check', 'close')</i>, <a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">Font Awesome 아이콘</a> <i>(예: 'fa-fire')</i>, 또는 <a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">날씨 아이콘</a> <i>(예: 'wi-wu-sunny')</i>을 사용할 수 있습니다.</p><p>아이콘 이름 앞에 'mi-'를 추가하면 전체 Google Material 아이콘을 사용할 수 있습니다. 예: 'mi-videogame_asset'.</p>"
+    }
+}

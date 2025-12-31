@@ -1,0 +1,35 @@
+{
+  "ui_form": {
+    "label": {
+      "group": "그룹",
+      "size": "크기",
+      "label": "라벨",
+      "optionalLabel": "선택적 라벨",
+      "formElements": "양식 요소",
+      "type": "유형",
+      "required": "필수",
+      "rows": "행",
+      "remove": "제거",
+      "egName": "예: 이름",
+      "egName2": "예: name",
+      "text": "텍스트",
+      "multiline": "여러 줄",
+      "number": "숫자",
+      "email": "이메일",
+      "password": "비밀번호",
+      "checkbox": "체크박스",
+      "switch": "스위치",
+      "date": "날짜",
+      "time": "시간",
+      "element": "요소",
+      "buttons": "버튼",
+      "submitButtonText": "제출 버튼 텍스트",
+      "cancelButtonText": "취소 버튼 텍스트",
+      "topic": "토픽",
+      "optionalMsgTopic": "선택적 msg.topic",
+      "splitLayout": "양식 요소를 두 열로 배치",
+      "className": "클래스",
+      "classNamePlaceholder": "위젯의 선택적 CSS 클래스 이름"
+    }
+  }
+}

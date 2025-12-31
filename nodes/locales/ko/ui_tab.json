@@ -1,0 +1,21 @@
+{
+    "ui_tab": {
+        "label": {
+            "home": "홈",
+            "tab": "탭",
+            "name": "이름",
+            "icon": "아이콘",
+            "state": "상태",
+            "navmenu": "탐색 메뉴",
+            "enabled": "활성화",
+            "disabled": "비활성화",
+            "visible": "표시",
+            "hidden": "숨김"
+        },
+        "info": {
+            "disabled": " 탭이 대시보드에서 비활성화되어 있습니다.",
+            "hidden": " 탭이 탐색 메뉴에 표시되지 않습니다."
+        },
+        "tip": "<b>아이콘</b> 필드는 <a href=\"https://klarsys.github.io/angular-material-icons/\" target=\"_blank\">Material Design 아이콘</a> <i>(예: 'check', 'close')</i>, <a href=\"https://fontawesome.com/v4.7.0/icons/\" target=\"_blank\">Font Awesome 아이콘</a> <i>(예: 'fa-fire')</i>, 또는 <a href=\"https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md\" target=\"_blank\">날씨 아이콘</a> <i>(예: 'wi-wu-sunny')</i>을 사용할 수 있습니다.</p><p>아이콘 이름 앞에 'mi-'를 추가하면 전체 Google Material 아이콘을 사용할 수 있습니다. 예: 'mi-videogame_asset'.</p>"
+    }
+}

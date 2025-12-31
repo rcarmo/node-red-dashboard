@@ -1,0 +1,19 @@
+{
+    "ui_template": {
+        "label": {
+            "type": "템플릿 유형",
+            "local": "그룹 내 위젯",
+            "global": "사이트 <head> 섹션에 추가",
+            "group": "그룹",
+            "size": "크기",
+            "name": "이름",
+            "pass-through": "입력에서 메시지 전달.",
+            "store-state": "출력 메시지를 저장된 상태에 추가.",
+            "template": "템플릿",
+            "expand": "확장",
+            "resend": "새로 고침 시 마지막 값 다시 로드.",
+            "className": "클래스",
+            "classNamePlaceholder": "위젯의 선택적 CSS 클래스 이름"
+        }
+    }
+}

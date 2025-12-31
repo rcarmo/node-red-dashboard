@@ -1,0 +1,16 @@
+{
+    "ui_group": {
+        "label": {
+            "name": "이름",
+            "tab": "탭",
+            "width": "너비",
+            "default": "기본값",
+            "group": "그룹",
+            "unassigned": "미할당",
+            "className": "클래스",
+            "classNamePlaceholder": "위젯의 선택적 CSS 클래스 이름"
+        },
+        "display-name": "그룹 이름 표시",
+        "collapse-name": "그룹 접기 허용"
+    }
+}
