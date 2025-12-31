@@ -1,10 +1,16 @@
 {
     "ui_ui_control": {
         "label": {
-            "name": "Name"
+            "name": "Name",
+            "output": "Ausgabe"
         },
         "placeholder": {
             "name": "Name"
+        },
+        "events": {
+            "all": "Verbinden, Trennen, Tab- oder Gruppen-Wechsel Ereignisse",
+            "change": "Nur Tab- oder Gruppen-Wechsel Ereignisse",
+            "connect": "Nur Verbindungs-Ereignis"
         }
     }
 }

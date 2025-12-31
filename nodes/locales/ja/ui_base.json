@@ -2,6 +2,7 @@
     "ui_base" : {
         "label" : {
             "dashboard" : "ダッシュボード",
+            "category" : "ダッシュボード",
             "title" : "タイトル",
             "options" : "オプション",
             "date-format" : "日付形式",
@@ -83,7 +84,9 @@
         },
         "swipe" : {
             "no-swipe" : "スワイプによるタブ切り替えをしない",
-            "allow-swipe" : "スワイプによるタブ切り替えをする"
+            "allow-swipe" : "スワイプによるタブ切り替えをする",
+            "allow-swipe-mouse" : "スワイプ(+マウス)によるタブ切り替えをする",
+            "show-menu" : "スワイプでメニューを開く/閉じる"
         },
         "lock" : {
             "clicked" : "サイドメニューをクリックで表示",

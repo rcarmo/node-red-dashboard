@@ -84,7 +84,9 @@
         },
         "swipe": {
             "no-swipe": "Kein Wischen zwischen Tabs",
-            "allow-swipe": "Wischen zwischen Tabs zulassen"
+            "allow-swipe": "Wischen zwischen Tabs zulassen",
+            "allow-swipe-mouse": "Wischen (+Maus) zwischen Tabs zulassen",
+            "show-menu": "Wischen zum Öffnen/Schließen des Menüs"
         },
         "lock": {
             "clicked": "Klicken, um das Seitenmenü anzuzeigen",

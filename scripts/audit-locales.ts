@@ -4,11 +4,12 @@
  * Compares all locale directories against the reference locale (en-US)
  * to identify missing files and missing translation keys.
  *
- * Usage: bun run scripts/audit-locales.ts [--fix] [--json]
+ * Usage: bun run scripts/audit-locales.ts [--fix] [--json] [--spot-check]
  *
  * Options:
- *   --fix   Output suggestions for missing keys (does not auto-fix)
- *   --json  Output results as JSON instead of formatted table
+ *   --fix         Output suggestions for missing keys (does not auto-fix)
+ *   --json        Output results as JSON instead of formatted table
+ *   --spot-check  Show 5 random keys across 3 random languages for consistency review
  */
 
 import { readdir, readFile } from 'node:fs/promises';
@@ -326,12 +327,90 @@ function printTable(summary: AuditSummary): void {
 }
 
 /**
+ * Shuffle an array using Fisher-Yates algorithm
+ */
+function shuffle<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
+/**
+ * Run spot check: show 5 random keys across 3 random languages
+ */
+async function runSpotCheck(
+  locales: string[],
+  referenceFiles: string[],
+  referenceData: Map<string, unknown>
+): Promise<void> {
+  console.log('\n' + '='.repeat(80));
+  console.log('SPOT CHECK - Random Translation Samples');
+  console.log('='.repeat(80));
+
+  // Collect all keys from all files
+  const allKeys: { file: string; key: string }[] = [];
+  for (const file of referenceFiles) {
+    const data = referenceData.get(file);
+    if (data) {
+      const keys = extractKeys(data);
+      for (const k of keys) {
+        allKeys.push({ file, key: k.path });
+      }
+    }
+  }
+
+  // Select 5 random keys
+  const selectedKeys = shuffle(allKeys).slice(0, 5);
+
+  // Select 3 random non-reference locales
+  const nonRefLocales = locales.filter(l => l !== REFERENCE_LOCALE);
+  const selectedLocales = shuffle(nonRefLocales).slice(0, 3);
+
+  console.log(`\nComparing ${selectedKeys.length} random keys across: ${REFERENCE_LOCALE}, ${selectedLocales.join(', ')}\n`);
+
+  for (const { file, key } of selectedKeys) {
+    console.log(`\x1b[1m${file} → ${key}\x1b[0m`);
+    console.log('-'.repeat(60));
+
+    // Show reference value
+    const refData = referenceData.get(file);
+    const refValue = refData ? getValueAtPath(refData, key) : undefined;
+    console.log(`  \x1b[36m${REFERENCE_LOCALE.padEnd(8)}\x1b[0m ${JSON.stringify(refValue)}`);
+
+    // Show values from selected locales
+    for (const locale of selectedLocales) {
+      const localeDir = join(LOCALES_DIR, locale);
+      const localeData = await readJsonFile(join(localeDir, file));
+      const localeValue = localeData ? getValueAtPath(localeData, key) : undefined;
+
+      const status = localeValue === undefined
+        ? '\x1b[31m(missing)\x1b[0m'
+        : localeValue === refValue
+          ? '\x1b[33m(same as ref)\x1b[0m'
+          : '';
+
+      console.log(`  ${locale.padEnd(8)} ${JSON.stringify(localeValue)} ${status}`);
+    }
+
+    console.log('');
+  }
+
+  console.log('='.repeat(80));
+  console.log('Review the translations above for consistency and accuracy.');
+  console.log('Run again for a different random sample.\n');
+}
+
+/**
  * Main audit function
  */
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const jsonOutput = args.includes('--json');
   const showFix = args.includes('--fix');
+  const spotCheck = args.includes('--spot-check');
 
   console.log('Scanning locales directory...');
 
@@ -398,6 +477,10 @@ async function main(): Promise<void> {
           }
         }
       }
+    }
+
+    if (spotCheck) {
+      await runSpotCheck(locales, referenceFiles, referenceData);
     }
   }
 
