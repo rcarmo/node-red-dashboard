@@ -8,6 +8,7 @@
     ],
     "scripts": {
         "test": "bun test",
+        "audit:locales": "bun run scripts/audit-locales.ts",
         "copy:html": "mkdir -p dist && cp src/preact/index.html dist/index.html",
         "copy:css": "mkdir -p dist && cp dist/dashboard.css dist/dashboard.css 2>/dev/null || true",
         "copy:assets": "mkdir -p dist/icons dist/fonts && cp node_modules/material-design-icons-iconfont/dist/material-design-icons.css dist/icons/material-design-icons.css && cp node_modules/material-design-icons-iconfont/dist/fonts/MaterialIcons-Regular.* dist/fonts/ && cp node_modules/font-awesome/css/font-awesome.css dist/icons/font-awesome.css && cp node_modules/font-awesome/fonts/* dist/fonts/ && cp node_modules/weather-icons-lite/css/weather-icons-lite.css dist/icons/weather-icons-lite.css && cp node_modules/weather-icons-lite/fonts/* dist/fonts/ && cp src/icon120x120.png src/wheel.png dist/",
