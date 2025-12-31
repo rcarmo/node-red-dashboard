@@ -1,3 +1,78 @@
 <script type="text/html" data-help-name="ui_spacer">
-    <p>If a <b>Class</b> is specified, it will be added to the parent card. This way you can style the card and the elements inside it with custom CSS. The Class can be set at runtime by setting a <code>msg.className</code> string property.</p>
+    <p>A <b>Spacer</b> is an invisible placeholder widget used to control layout and positioning
+    of other widgets within a group. It occupies space in the grid without rendering any visible content.</p>
+
+    <h3>Purpose</h3>
+    <p>Spacers are useful for:</p>
+    <ul>
+        <li><b>Creating gaps</b> - Add empty space between widgets</li>
+        <li><b>Alignment</b> - Push widgets to specific positions in the grid</li>
+        <li><b>Row breaks</b> - Force widgets to start on a new row</li>
+        <li><b>Centering</b> - Add equal spacers on both sides of a widget</li>
+        <li><b>Placeholder</b> - Reserve space for widgets that may be shown/hidden dynamically</li>
+    </ul>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Group <span class="property-type">ui_group</span></dt>
+        <dd>The group where this spacer will be placed.</dd>
+
+        <dt>Size <span class="property-type">width × height</span></dt>
+        <dd>The dimensions of the spacer in grid units:
+        <ul>
+            <li><b>Width</b> - Number of columns to occupy (1 to group width)</li>
+            <li><b>Height</b> - Number of rows to occupy (typically 1)</li>
+        </ul>
+        The default size is determined by the group width. Width cannot exceed the group width.</dd>
+
+        <dt>Class <span class="property-type">string</span></dt>
+        <dd>Optional CSS class(es) to add to the spacer element for custom styling.</dd>
+    </dl>
+
+    <h3>Layout Examples</h3>
+    <p><b>Right-align a widget:</b> Place a spacer before the widget to push it to the right.</p>
+    <pre>Group width: 6
+[Spacer 4x1] [Button 2x1]
+→ Button appears on the right side</pre>
+
+    <p><b>Center a widget:</b> Use equal spacers on both sides.</p>
+    <pre>Group width: 6
+[Spacer 2x1] [Gauge 2x1] [Spacer 2x1]
+→ Gauge appears centered</pre>
+
+    <p><b>Create vertical gap:</b> Use a full-width spacer with extra height.</p>
+    <pre>Group width: 6
+[Chart 6x4]
+[Spacer 6x2]  ← Creates 2 rows of empty space
+[Controls 6x1]</pre>
+
+    <p><b>Force row break:</b> Fill remaining columns to start a new row.</p>
+    <pre>Group width: 6
+[Switch 2x1] [Spacer 4x1]
+[Slider 6x1]  ← Starts on new row</pre>
+
+    <h3>Node Characteristics</h3>
+    <ul>
+        <li>Spacers have <b>no inputs or outputs</b> - they are purely for layout</li>
+        <li>Spacers are <b>configuration nodes</b> that don't appear in flows</li>
+        <li>Multiple spacers can be used in the same group</li>
+        <li>Spacers are invisible at runtime but occupy grid space</li>
+    </ul>
+
+    <h3>CSS Styling</h3>
+    <p>While spacers are invisible by default, you can use the <b>Class</b> field to add
+    visual styling for debugging or decorative purposes:</p>
+    <pre>.my-debug-spacer {
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px dashed red;
+}</pre>
+    <p>This can help visualize spacer placement during development.</p>
+
+    <h3>Alternative Approaches</h3>
+    <p>In some cases, you may achieve similar results without spacers:</p>
+    <ul>
+        <li>Set explicit widget widths less than group width (widgets flow naturally)</li>
+        <li>Use CSS flexbox/grid via <code>ui_template</code> for complex layouts</li>
+        <li>Adjust group widths to match your widget arrangement</li>
+    </ul>
 </script>
