@@ -529,7 +529,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
             : state.menu.length === 0
             ? html`<div class="nr-dashboard-empty">
                 <div class="nr-dashboard-empty__inner">
-                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" class="nr-dashboard-empty__icon" />
+                  <img src="icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" class="nr-dashboard-empty__icon" />
                   <p class="nr-dashboard-empty__body">${t(
                     "welcome_body",
                     "Please add some UI nodes to your flow and redeploy.",
@@ -589,7 +589,7 @@ function DashboardShell({ state, selectedTab, tabId, actions }: DashboardShellPr
 function LoadingScreen({ message }: { message: string }): VNode {
   return html`<div class="nr-dashboard-loading nr-dashboard-fade-in">
     <div class="nr-dashboard-loading__inner">
-      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin nr-dashboard-loading-icon" />
+      <img src="wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin nr-dashboard-loading-icon" />
       <p class="nr-dashboard-loading__text">${message}</p>
     </div>
   </div>`;

@@ -3656,18 +3656,23 @@ function useDashboardState() {
         const theme = data.theme ?? null;
         const locales = data.locales ?? null;
         const lang = data.lang ?? null;
-        const defaultTab = getFirstVisibleTab(menu);
-        setState((prev) => ({
-          ...prev,
-          connection: "ready",
-          menu,
-          globals,
-          site,
-          theme,
-          locales,
-          lang,
-          selectedTabIndex: defaultTab
-        }));
+        setState((prev) => {
+          let selectedTabIndex = prev.selectedTabIndex;
+          if (selectedTabIndex == null || selectedTabIndex < 0 || selectedTabIndex >= menu.length || menu[selectedTabIndex]?.disabled) {
+            selectedTabIndex = getFirstVisibleTab(menu);
+          }
+          return {
+            ...prev,
+            connection: "ready",
+            menu,
+            globals,
+            site,
+            theme,
+            locales,
+            lang,
+            selectedTabIndex
+          };
+        });
       },
       onReplayDone: () => {
         setState((prev) => ({ ...prev, replayDone: true, connection: "ready" }));
@@ -3875,7 +3880,9 @@ function handleUiControl(prev, payload) {
   }
   if (msg.tabs) {
     menu = applyTabVisibility(menu, msg.tabs);
-    selectedTabIndex = getFirstVisibleTab(menu);
+    if (selectedTabIndex == null || selectedTabIndex < 0 || selectedTabIndex >= menu.length || menu[selectedTabIndex]?.disabled || menu[selectedTabIndex]?.hidden) {
+      selectedTabIndex = getFirstVisibleTab(menu);
+    }
   }
   if (msg.tab !== undefined) {
     const requested = msg.tab;
@@ -44320,8 +44327,19 @@ function useECharts(ref, deps, buildOption, onInit) {
       onInit(chart);
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
+    window.addEventListener("dashboard:layout", handleResize);
+    let resizeObserver = null;
+    if (typeof ResizeObserver !== "undefined" && ref.current) {
+      resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(() => chart.resize());
+      });
+      resizeObserver.observe(ref.current);
+    }
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("dashboard:layout", handleResize);
+      if (resizeObserver)
+        resizeObserver.disconnect();
       chart.dispose();
       instanceRef.current = null;
     };
@@ -44627,17 +44645,18 @@ function GaugeWidget(props) {
     class=${`${asGauge.className || ""}`.trim()}
     style=${{
     width: "100%",
+    height: "100%",
     minHeight: `${chartHeight}px`,
     display: "flex",
     flexDirection: "column",
-    gap: "8px",
+    gap: "4px",
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "flex-start"
   }}
     aria-label=${ariaLabel}
   >
     <div class="nr-dashboard-gauge__title">${label}</div>
-    <div ref=${chartRef} class="nr-dashboard-gauge__chart" style=${{ height: `${chartHeight}px` }}></div>
+    <div ref=${chartRef} class="nr-dashboard-gauge__chart" style=${{ flex: "1 1 auto", width: "100%", minHeight: `${chartHeight - 40}px` }}></div>
   </div>`;
 }
 
@@ -55286,7 +55305,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
         <main ref=${mainRef} class="nr-dashboard-content" tabIndex=${-1}>
           ${shouldShowLoading(state.connection) ? m2`<${LoadingScreen} message=${t4("loading", "Loading dashboard...")} />` : state.menu.length === 0 ? m2`<div class="nr-dashboard-empty">
                 <div class="nr-dashboard-empty__inner">
-                  <img src="./icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" class="nr-dashboard-empty__icon" />
+                  <img src="icon120x120.png" alt="Node-RED Dashboard" width="120" height="120" class="nr-dashboard-empty__icon" />
                   <p class="nr-dashboard-empty__body">${t4("welcome_body", "Please add some UI nodes to your flow and redeploy.")}</p>
                 </div>
               </div>` : (() => {
@@ -55328,7 +55347,7 @@ function DashboardShell({ state, selectedTab, tabId, actions: actions2 }) {
 function LoadingScreen({ message }) {
   return m2`<div class="nr-dashboard-loading nr-dashboard-fade-in">
     <div class="nr-dashboard-loading__inner">
-      <img src="./wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin nr-dashboard-loading-icon" />
+      <img src="wheel.png" alt=${message} width="72" height="72" class="nr-dashboard-wheel-spin nr-dashboard-loading-icon" />
       <p class="nr-dashboard-loading__text">${message}</p>
     </div>
   </div>`;

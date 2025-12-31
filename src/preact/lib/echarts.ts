@@ -38,9 +38,23 @@ export function useECharts(
 
     const handleResize = () => chart.resize();
     window.addEventListener("resize", handleResize);
+    
+    // Also listen for layout changes
+    window.addEventListener("dashboard:layout", handleResize);
+    
+    // ResizeObserver for container size changes
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && ref.current) {
+      resizeObserver = new ResizeObserver(() => {
+        requestAnimationFrame(() => chart.resize());
+      });
+      resizeObserver.observe(ref.current);
+    }
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("dashboard:layout", handleResize);
+      if (resizeObserver) resizeObserver.disconnect();
       chart.dispose();
       instanceRef.current = null;
     };

@@ -734,27 +734,32 @@
   font-weight: 500;
   font-size: 14px;
   line-height: 20px;
-  padding: 10px 10px 4px 10px;
+  padding: 4px 10px 0 10px;
+  flex-shrink: 0;
 }
 
 .nr-dashboard-gauge__chart {
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 120px;
 }
 
 /* Chart Widget */
 .nr-dashboard-chart__container {
   width: 100%;
   height: 100%;
-  min-height: 200px;
+  min-height: 150px;
   padding: 5px;
   box-sizing: border-box;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .nr-dashboard-chart__chart {
   width: 100%;
-  height: 100%;
-  min-height: 180px;
+  flex: 1 1 auto;
+  min-height: 120px;
 }
 
 .nr-dashboard-chart__nodata {
@@ -1742,6 +1747,7 @@
 /* Lift open dropdown above sibling grid items */
 .nr-dashboard-dropdown.is-open {
   z-index: 1000;
+  overflow: visible;
 }
 
 /* Ensure parent grid-stack-item respects dropdown z-index */
@@ -1771,6 +1777,7 @@
   margin: 0 4px 0 0;
   box-sizing: border-box;
   position: relative;
+  overflow: visible;
 }
 
 .nr-dashboard-dropdown__trigger {
@@ -1838,7 +1845,7 @@
   border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 100;
+  z-index: 1000;
   max-height: 280px;
   overflow: hidden;
   display: flex;
@@ -2418,6 +2425,7 @@
   grid-auto-rows: var(--nr-group-row-height, 48px);
   row-gap: var(--nr-group-row-gap, 8px);
   column-gap: var(--nr-group-col-gap, 8px);
+  overflow: visible;
 }
 
 #nr-dashboard-root .nr-dashboard-group-card__item {
@@ -2427,11 +2435,24 @@
   min-height: 48px;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 #nr-dashboard-root .nr-dashboard-group-card__item > * {
   flex: 1 1 auto;
   min-height: 0;
+}
+
+/* Lift items containing open dropdowns above siblings */
+#nr-dashboard-root .nr-dashboard-group-card__item:has(.nr-dashboard-dropdown.is-open) {
+  z-index: 100;
+  position: relative;
+}
+
+/* Lift items containing focused numeric inputs above siblings */
+#nr-dashboard-root .nr-dashboard-group-card__item:has(.nr-dashboard-numeric__input:focus) {
+  z-index: 100;
+  position: relative;
 }
 
 #nr-dashboard-root .nr-dashboard-widget-frame {
@@ -2442,6 +2463,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 #nr-dashboard-root .nr-dashboard-widget-frame > * {

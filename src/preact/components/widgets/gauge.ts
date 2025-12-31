@@ -366,16 +366,17 @@ export function GaugeWidget(props: { control: UiControl; index: number }): VNode
     class=${`${asGauge.className || ""}`.trim()}
     style=${{  
       width: "100%",
+      height: "100%",
       minHeight: `${chartHeight}px`,
       display: "flex",
       flexDirection: "column",
-      gap: "8px",
+      gap: "4px",
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "flex-start",
     }}
     aria-label=${ariaLabel}
   >
     <div class="nr-dashboard-gauge__title">${label}</div>
-    <div ref=${chartRef} class="nr-dashboard-gauge__chart" style=${{ height: `${chartHeight}px` }}></div>
+    <div ref=${chartRef} class="nr-dashboard-gauge__chart" style=${{ flex: "1 1 auto", width: "100%", minHeight: `${chartHeight - 40}px` }}></div>
   </div>`;
 }

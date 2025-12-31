@@ -173,18 +173,24 @@ export function useDashboardState(): DashboardStore {
         const theme = data.theme ?? null;
         const locales = data.locales ?? null;
         const lang = data.lang ?? null;
-        const defaultTab = getFirstVisibleTab(menu);
-        setState((prev) => ({
-          ...prev,
-          connection: "ready",
-          menu,
-          globals,
-          site,
-          theme,
-          locales,
-          lang,
-          selectedTabIndex: defaultTab,
-        }));
+        setState((prev) => {
+          // Preserve current tab selection if valid, otherwise select first visible
+          let selectedTabIndex = prev.selectedTabIndex;
+          if (selectedTabIndex == null || selectedTabIndex < 0 || selectedTabIndex >= menu.length || menu[selectedTabIndex]?.disabled) {
+            selectedTabIndex = getFirstVisibleTab(menu);
+          }
+          return {
+            ...prev,
+            connection: "ready",
+            menu,
+            globals,
+            site,
+            theme,
+            locales,
+            lang,
+            selectedTabIndex,
+          };
+        });
       },
       onReplayDone: () => {
         setState((prev) => ({ ...prev, replayDone: true, connection: "ready" }));
@@ -434,7 +440,10 @@ function handleUiControl(prev: DashboardState, payload: unknown): DashboardState
 
   if (msg.tabs) {
     menu = applyTabVisibility(menu, msg.tabs as Record<string, unknown>);
-    selectedTabIndex = getFirstVisibleTab(menu);
+    // Only reset tab selection if current tab is no longer valid
+    if (selectedTabIndex == null || selectedTabIndex < 0 || selectedTabIndex >= menu.length || menu[selectedTabIndex]?.disabled || menu[selectedTabIndex]?.hidden) {
+      selectedTabIndex = getFirstVisibleTab(menu);
+    }
   }
 
   if (msg.tab !== undefined) {
