@@ -161,7 +161,7 @@ export function ToastOverlay(props: {
     onDialogResult?.(toast.id, result);
   };
 
-  return html`<>
+  return html`<div class="nr-dashboard-toast-wrapper">
     ${dialogs.map((toast) => html`<${DialogToast}
       key=${toast.id}
       toast=${toast}
@@ -179,5 +179,5 @@ export function ToastOverlay(props: {
         />`)}
       </div>`;
     })}
-  </>`;
+  </div>`;
 }

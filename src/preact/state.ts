@@ -213,18 +213,21 @@ export function useDashboardState(): DashboardStore {
     bridge?.emit("ui-change", { tab: index });
   };
 
+  // Auto-dismiss toasts with displayTime > 0
+  // Use a ref to track which toasts already have timers to avoid re-creating timers
   useEffect(() => {
-    const timers: number[] = [];
+    const timers: Map<string, number> = new Map();
     state.toasts.forEach((toast) => {
-      if (toast.displayTime && toast.displayTime > 0) {
+      if (toast.displayTime && toast.displayTime > 0 && !timers.has(toast.id)) {
         const timer = window.setTimeout(() => {
           setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t) => t.id !== toast.id) }));
         }, toast.displayTime);
-        timers.push(timer);
+        timers.set(toast.id, timer);
       }
     });
     return () => {
-      timers.forEach((t) => window.clearTimeout(t));
+      timers.forEach((timer) => window.clearTimeout(timer));
+      timers.clear();
     };
   }, [state.toasts]);
 
@@ -369,6 +372,14 @@ function pushToast(prev: DashboardState, payload: unknown): DashboardState {
     dialogType = msg.prompt || msg.position === "prompt" ? "prompt" : "dialog";
   }
   
+  // Normalize position: Node-RED uses "top right" but we need "top-right"
+  const normalizePosition = (pos?: string): ToastMessage["position"] => {
+    if (!pos || pos === "dialog" || pos === "prompt") return undefined;
+    const normalized = pos.toLowerCase().replace(/\s+/g, "-");
+    const valid: ToastMessage["position"][] = ["top-right", "top-left", "bottom-right", "bottom-left", "top-center", "bottom-center"];
+    return valid.includes(normalized as ToastMessage["position"]) ? (normalized as ToastMessage["position"]) : "top-right";
+  };
+  
   const toast = {
     id,
     title: msg.title,
@@ -382,7 +393,7 @@ function pushToast(prev: DashboardState, payload: unknown): DashboardState {
     cancelLabel: msg.cancel,
     showCancel: Boolean(msg.cancel),
     raw: msg.raw,
-    position: (msg.position && !["dialog", "prompt"].includes(msg.position)) ? msg.position as ToastMessage["position"] : undefined,
+    position: normalizePosition(msg.position),
     nodeId: msg.id?.toString(),
     originalMsg: msg.msg,
   } satisfies ToastMessage;

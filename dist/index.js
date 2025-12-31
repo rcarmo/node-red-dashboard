@@ -3695,17 +3695,18 @@ function useDashboardState() {
     bridge?.emit("ui-change", { tab: index });
   };
   y2(() => {
-    const timers = [];
+    const timers = new Map;
     state.toasts.forEach((toast) => {
-      if (toast.displayTime && toast.displayTime > 0) {
+      if (toast.displayTime && toast.displayTime > 0 && !timers.has(toast.id)) {
         const timer = window.setTimeout(() => {
           setState((prev) => ({ ...prev, toasts: prev.toasts.filter((t4) => t4.id !== toast.id) }));
         }, toast.displayTime);
-        timers.push(timer);
+        timers.set(toast.id, timer);
       }
     });
     return () => {
-      timers.forEach((t4) => window.clearTimeout(t4));
+      timers.forEach((timer) => window.clearTimeout(timer));
+      timers.clear();
     };
   }, [state.toasts]);
   const handleDialogResult = (toastId, result) => {
@@ -3822,6 +3823,13 @@ function pushToast(prev, payload) {
   if (msg.dialog || msg.position === "dialog" || msg.position === "prompt") {
     dialogType = msg.prompt || msg.position === "prompt" ? "prompt" : "dialog";
   }
+  const normalizePosition = (pos) => {
+    if (!pos || pos === "dialog" || pos === "prompt")
+      return;
+    const normalized = pos.toLowerCase().replace(/\s+/g, "-");
+    const valid = ["top-right", "top-left", "bottom-right", "bottom-left", "top-center", "bottom-center"];
+    return valid.includes(normalized) ? normalized : "top-right";
+  };
   const toast = {
     id,
     title: msg.title,
@@ -3835,7 +3843,7 @@ function pushToast(prev, payload) {
     cancelLabel: msg.cancel,
     showCancel: Boolean(msg.cancel),
     raw: msg.raw,
-    position: msg.position && !["dialog", "prompt"].includes(msg.position) ? msg.position : undefined,
+    position: normalizePosition(msg.position),
     nodeId: msg.id?.toString(),
     originalMsg: msg.msg
   };
@@ -54817,7 +54825,7 @@ function ToastOverlay(props) {
     onDismiss(toast.id);
     onDialogResult?.(toast.id, result);
   };
-  return m2`<>
+  return m2`<div class="nr-dashboard-toast-wrapper">
     ${dialogs.map((toast) => m2`<${DialogToast}
       key=${toast.id}
       toast=${toast}
@@ -54836,7 +54844,7 @@ function ToastOverlay(props) {
         />`)}
       </div>`;
   })}
-  </>`;
+  </div>`;
 }
 
 // src/preact/index.ts
