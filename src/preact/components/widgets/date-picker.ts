@@ -16,6 +16,8 @@ export type DatePickerControl = UiControl & {
   max?: string;
   required?: boolean;
   error?: string;
+  /** Use native browser date picker instead of custom calendar */
+  native?: boolean;
 };
 
 export function resolveDateInputType(mode?: string): "date" | "time" | "datetime-local" {
@@ -353,7 +355,9 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
   const isDisabled = Boolean(disabled);
 
   const inputType = resolveDateInputType(c.mode);
-  const showCalendar = c.mode !== "time"; // Only show calendar for date/datetime modes
+  // Show custom calendar only if not native mode and not time-only
+  const useNative = c.native !== false; // Default to native
+  const showCalendar = !useNative && c.mode !== "time";
 
   // Sync from external value changes
   useEffect(() => {
@@ -431,9 +435,6 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
             setFocused(true);
           }}
           onBlur=${() => setFocused(false)}
-          onClick=${() => {
-            if (showCalendar && !isDisabled) setIsCalendarOpen(true);
-          }}
           style=${fieldStyles}
           min=${c.min || undefined}
           max=${c.max || undefined}
@@ -446,9 +447,7 @@ export function DatePickerWidget(props: { control: UiControl; index: number; dis
           disabled=${isDisabled}
         >
           <i class="fa fa-calendar" aria-hidden="true"></i>
-        </button>` : html`<span class="nr-dashboard-date-picker__icon" aria-hidden="true">
-          <i class="fa fa-clock-o" aria-hidden="true"></i>
-        </span>`}
+        </button>` : null}
       </div>
     </div>
     ${isCalendarOpen && showCalendar ? html`<${Calendar}

@@ -376,6 +376,11 @@
   width: 100%;
   margin-top: 8px;
   position: relative;
+  z-index: 1;
+}
+
+.nr-dashboard-date-picker__container:has(.nr-dashboard-calendar) {
+  z-index: 1000;
 }
 
 .nr-dashboard-date-picker__row {
@@ -454,14 +459,14 @@
 .nr-dashboard-calendar {
   position: absolute;
   top: 100%;
-  left: 8px;
-  right: 8px;
+  left: 0;
+  right: 0;
   margin-top: 4px;
   background: var(--nr-dashboard-groupBackgroundColor, #fff);
   border: 1px solid var(--nr-dashboard-widgetBorderColor, rgba(0,0,0,0.2));
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  z-index: 1000;
   padding: 12px;
 }
 
@@ -2538,25 +2543,6 @@
   text-align: center;
   padding: 48px 16px;
   background: var(--nr-dashboard-pageBackgroundColor, #eee);
-  background-image: url('./icon192x192.png');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 35%;
-  opacity: 1;
-  animation: nr-dashboard-fade 2.5s ease-in;
-}
-
-.nr-dashboard-empty::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url('./icon192x192.png');
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: 35%;
-  opacity: 0.08;
-  pointer-events: none;
-  z-index: 0;
 }
 
 .nr-dashboard-empty__inner {

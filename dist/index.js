@@ -44991,7 +44991,8 @@ function DatePickerWidget(props) {
   const inputId = T2(() => `nr-dashboard-date-${index}`, [index]);
   const isDisabled = Boolean(disabled);
   const inputType2 = resolveDateInputType(c3.mode);
-  const showCalendar = c3.mode !== "time";
+  const useNative = c3.native !== false;
+  const showCalendar = !useNative && c3.mode !== "time";
   y2(() => {
     if (c3.value !== undefined) {
       setValue(c3.value);
@@ -45064,10 +45065,6 @@ function DatePickerWidget(props) {
     setFocused(true);
   }}
           onBlur=${() => setFocused(false)}
-          onClick=${() => {
-    if (showCalendar && !isDisabled)
-      setIsCalendarOpen(true);
-  }}
           style=${fieldStyles}
           min=${c3.min || undefined}
           max=${c3.max || undefined}
@@ -45080,9 +45077,7 @@ function DatePickerWidget(props) {
           disabled=${isDisabled}
         >
           <i class="fa fa-calendar" aria-hidden="true"></i>
-        </button>` : m2`<span class="nr-dashboard-date-picker__icon" aria-hidden="true">
-          <i class="fa fa-clock-o" aria-hidden="true"></i>
-        </span>`}
+        </button>` : null}
       </div>
     </div>
     ${isCalendarOpen && showCalendar ? m2`<${Calendar}
