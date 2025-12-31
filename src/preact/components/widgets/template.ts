@@ -11,12 +11,36 @@ export type TemplateControl = UiControl & {
   className?: string;
   templateScope?: "local" | "global";
   msg?: Record<string, unknown>;
+  value?: unknown;
 };
+
+function interpolateTemplate(template: string, ctrl: TemplateControl): string {
+  // Simple mustache-like interpolation for {{msg.xxx}} and {{value}} patterns
+  const msg = ctrl.msg ?? {};
+  const value = ctrl.value;
+  
+  return template
+    // Handle {{msg.payload}}, {{msg.topic}}, etc.
+    .replace(/{{\s*msg\.(\w+)\s*}}/gi, (_, key) => {
+      const val = (msg as Record<string, unknown>)[key];
+      return val === undefined || val === null ? "" : String(val);
+    })
+    // Handle {{payload}} directly (legacy shorthand)
+    .replace(/{{\s*payload\s*}}/gi, () => {
+      const payload = (msg as { payload?: unknown }).payload ?? value;
+      return payload === undefined || payload === null ? "" : String(payload);
+    })
+    // Handle {{value}}
+    .replace(/{{\s*value\s*}}/gi, () => {
+      return value === undefined || value === null ? "" : String(value);
+    });
+}
 
 export function resolveTemplateHtml(ctrl: TemplateControl): string {
   // Use msg.template if available (dynamic updates), otherwise use configured template/format
   const msgTemplate = (ctrl.msg as { template?: string } | undefined)?.template;
-  return msgTemplate ?? ctrl.template ?? ctrl.format ?? "";
+  const rawTemplate = msgTemplate ?? ctrl.template ?? ctrl.format ?? "";
+  return interpolateTemplate(rawTemplate, ctrl);
 }
 
 export function TemplateWidget(props: { control: UiControl; index: number }): VNode {

@@ -10,7 +10,7 @@ export function GroupCard(props: {
   index: number;
   columnSpan: number;
   padding: { x: number; y: number };
-  sizes: { cy: number; cx: number };
+  sizes: { cy: number; cx: number; sy?: number };
   onEmit?: (event: string, msg?: Record<string, unknown>) => void;
   tabName?: string;
   layoutMode?: "grid" | "masonry";
@@ -47,9 +47,12 @@ export function GroupCard(props: {
   }, [collapsed, groupKey, onEmit]);
 
   // Build style object with dynamic layout values via CSS custom properties
+  const rowHeight = sizes.sy ?? 48;
   const sectionStyle: Record<string, string | undefined> = {
     "--nr-group-row-gap": `${sizes.cy}px`,
     "--nr-group-col-gap": `${sizes.cx}px`,
+    "--nr-group-columns": `${columnSpan}`,
+    "--nr-group-row-height": `${rowHeight}px`,
     "--nr-group-item-padding": `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`,
     gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
     padding: `${padding.y}px ${padding.x}px`,
@@ -89,16 +92,25 @@ export function GroupCard(props: {
       : items.length === 0
       ? html`<div class="nr-dashboard-group-card__message">${t("no_widgets", "No widgets in this group yet.")}</div>`
       : html`<ul class="nr-dashboard-group-card__list">
-          ${items.map((control, ctrlIdx) => html`<li
+          ${items.map((control, ctrlIdx) => {
+            const ctrl = control as { id?: string | number; width?: number; height?: number };
+            const colSpan = ctrl.width && ctrl.width > 0 ? ctrl.width : 1;
+            const rowSpan = ctrl.height && ctrl.height > 0 ? ctrl.height : 1;
+            const itemStyle: Record<string, string> = {};
+            if (colSpan > 1) itemStyle.gridColumn = `span ${colSpan}`;
+            if (rowSpan > 1) itemStyle.gridRow = `span ${rowSpan}`;
+            return html`<li
                 class="nr-dashboard-group-card__item"
-                key=${(control as { id?: string | number })?.id ?? ctrlIdx}
+                key=${ctrl.id ?? ctrlIdx}
+                style=${Object.keys(itemStyle).length > 0 ? itemStyle : undefined}
               >
                 <${WidgetRenderer}
                   control=${control}
                   index=${ctrlIdx}
                   onEmit=${onEmit}
                 />
-              </li>`)}
+              </li>`;
+          })}
         </ul>`}
   </section>`;
 }

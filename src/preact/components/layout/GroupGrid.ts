@@ -201,6 +201,7 @@ export function GroupGrid(props: {
       const paddingY = Math.max(0, sizes.py);
       const itemGapY = Math.max(0, sizes.cy);
       const itemGapX = Math.max(0, sizes.cx);
+      const rowHeight = Math.max(32, sizes.sx ?? 48);
       const layoutKey = group.header?.id ?? idx;
       const pos = positions[layoutKey];
       const width = layoutMode === "masonry" ? calcWidth(span) : undefined;
@@ -210,7 +211,7 @@ export function GroupGrid(props: {
         index=${idx}
         columnSpan=${span}
         padding=${{ x: paddingX, y: paddingY }}
-        sizes=${{ cy: itemGapY, cx: itemGapX }}
+        sizes=${{ cy: itemGapY, cx: itemGapX, sy: rowHeight }}
         onEmit=${onEmit}
         tabName=${tabName}
         layoutMode=${layoutMode}

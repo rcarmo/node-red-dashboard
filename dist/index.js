@@ -4180,7 +4180,7 @@ function useElementSize() {
 function applyFormat(format, value2) {
   if (!format)
     return value2 === undefined || value2 === null ? "" : String(value2);
-  return format.replace(/{{\s*payload\s*}}/g, String(value2 ?? ""));
+  return format.replace(/{{\s*msg\.payload\s*}}/gi, String(value2 ?? "")).replace(/{{\s*payload\s*}}/gi, String(value2 ?? ""));
 }
 function layoutStyles(ctrl) {
   const align = ctrl.layoutAlign || "space-between center";
@@ -45593,9 +45593,23 @@ function LinkWidget(props) {
 }
 
 // src/preact/components/widgets/template.ts
+function interpolateTemplate(template, ctrl) {
+  const msg = ctrl.msg ?? {};
+  const value2 = ctrl.value;
+  return template.replace(/{{\s*msg\.(\w+)\s*}}/gi, (_3, key) => {
+    const val = msg[key];
+    return val === undefined || val === null ? "" : String(val);
+  }).replace(/{{\s*payload\s*}}/gi, () => {
+    const payload = msg.payload ?? value2;
+    return payload === undefined || payload === null ? "" : String(payload);
+  }).replace(/{{\s*value\s*}}/gi, () => {
+    return value2 === undefined || value2 === null ? "" : String(value2);
+  });
+}
 function resolveTemplateHtml(ctrl) {
   const msgTemplate = ctrl.msg?.template;
-  return msgTemplate ?? ctrl.template ?? ctrl.format ?? "";
+  const rawTemplate = msgTemplate ?? ctrl.template ?? ctrl.format ?? "";
+  return interpolateTemplate(rawTemplate, ctrl);
 }
 function TemplateWidget(props) {
   const { control, index } = props;
@@ -54371,7 +54385,7 @@ function WidgetRenderer(props) {
   if (type === "button" || type === "ui_button") {
     return m2`<${WidgetFrame} control=${control} disabled=${disabled}><${ButtonWidget} control=${control} index=${index} onEmit=${onEmit} disabled=${disabled} /></${WidgetFrame}>`;
   }
-  if (type === "switch" || type === "ui_switch") {
+  if (type === "switch" || type === "ui_switch" || type.startsWith("switch-")) {
     return m2`<${WidgetFrame} control=${control} disabled=${disabled}><${SwitchWidget} control=${control} index=${index} onEmit=${onEmit} disabled=${disabled} /></${WidgetFrame}>`;
   }
   if (type === "gauge" || type === "ui_gauge") {
@@ -54430,9 +54444,12 @@ function GroupCard(props) {
     setCollapsed(next);
     onEmit?.("ui-collapse", { group: groupKey, state: !next });
   }, [collapsed, groupKey, onEmit]);
+  const rowHeight = sizes.sy ?? 48;
   const sectionStyle = {
     "--nr-group-row-gap": `${sizes.cy}px`,
     "--nr-group-col-gap": `${sizes.cx}px`,
+    "--nr-group-columns": `${columnSpan}`,
+    "--nr-group-row-height": `${rowHeight}px`,
     "--nr-group-item-padding": `${Math.max(0, padding.y - 6)}px ${Math.max(0, padding.x - 4)}px`,
     gridColumn: layoutMode === "grid" ? `span ${columnSpan}` : undefined,
     padding: `${padding.y}px ${padding.x}px`
@@ -54463,16 +54480,27 @@ function GroupCard(props) {
           </button>` : null}
     </header>` : null}
     ${collapsed ? m2`<div class="nr-dashboard-group-card__message">${t4("collapsed", "Collapsed")}</div>` : items.length === 0 ? m2`<div class="nr-dashboard-group-card__message">${t4("no_widgets", "No widgets in this group yet.")}</div>` : m2`<ul class="nr-dashboard-group-card__list">
-          ${items.map((control, ctrlIdx) => m2`<li
+          ${items.map((control, ctrlIdx) => {
+    const ctrl = control;
+    const colSpan = ctrl.width && ctrl.width > 0 ? ctrl.width : 1;
+    const rowSpan = ctrl.height && ctrl.height > 0 ? ctrl.height : 1;
+    const itemStyle = {};
+    if (colSpan > 1)
+      itemStyle.gridColumn = `span ${colSpan}`;
+    if (rowSpan > 1)
+      itemStyle.gridRow = `span ${rowSpan}`;
+    return m2`<li
                 class="nr-dashboard-group-card__item"
-                key=${control?.id ?? ctrlIdx}
+                key=${ctrl.id ?? ctrlIdx}
+                style=${Object.keys(itemStyle).length > 0 ? itemStyle : undefined}
               >
                 <${WidgetRenderer}
                   control=${control}
                   index=${ctrlIdx}
                   onEmit=${onEmit}
                 />
-              </li>`)}
+              </li>`;
+  })}
         </ul>`}
   </section>`;
 }
@@ -54650,6 +54678,7 @@ function GroupGrid(props) {
     const paddingY = Math.max(0, sizes.py);
     const itemGapY = Math.max(0, sizes.cy);
     const itemGapX = Math.max(0, sizes.cx);
+    const rowHeight = Math.max(32, sizes.sx ?? 48);
     const layoutKey = group.header?.id ?? idx;
     const pos = positions[layoutKey];
     const width = layoutMode === "masonry" ? calcWidth(span) : undefined;
@@ -54659,7 +54688,7 @@ function GroupGrid(props) {
         index=${idx}
         columnSpan=${span}
         padding=${{ x: paddingX, y: paddingY }}
-        sizes=${{ cy: itemGapY, cx: itemGapX }}
+        sizes=${{ cy: itemGapY, cx: itemGapX, sy: rowHeight }}
         onEmit=${onEmit}
         tabName=${tabName}
         layoutMode=${layoutMode}

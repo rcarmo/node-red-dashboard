@@ -55,7 +55,7 @@ export function WidgetRenderer(props: { control: UiControl; index: number; onEmi
     return html`<${WidgetFrame} control=${control} disabled=${disabled}><${ButtonWidget} control=${control} index=${index} onEmit=${onEmit} disabled=${disabled} /></${WidgetFrame}>`;
   }
 
-  if (type === "switch" || type === "ui_switch") {
+  if (type === "switch" || type === "ui_switch" || type.startsWith("switch-")) {
     return html`<${WidgetFrame} control=${control} disabled=${disabled}><${SwitchWidget} control=${control} index=${index} onEmit=${onEmit} disabled=${disabled} /></${WidgetFrame}>`;
   }
 

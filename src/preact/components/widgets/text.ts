@@ -22,7 +22,10 @@ type TextControl = UiControl & {
 
 export function applyFormat(format: string | undefined, value: unknown): string {
   if (!format) return value === undefined || value === null ? "" : String(value);
-  return format.replace(/{{\s*payload\s*}}/g, String(value ?? ""));
+  // Support both {{payload}} and {{msg.payload}} patterns for legacy compatibility
+  return format
+    .replace(/{{\s*msg\.payload\s*}}/gi, String(value ?? ""))
+    .replace(/{{\s*payload\s*}}/gi, String(value ?? ""));
 }
 
 export function layoutStyles(ctrl: TextControl): Record<string, string> {
