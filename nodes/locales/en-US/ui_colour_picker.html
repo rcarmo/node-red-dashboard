@@ -1,10 +1,95 @@
 <script type="text/html" data-help-name="ui_colour_picker">
-    <p>Adds a colour picker to the dashboard.</p>
-    <p>If the group width is 4 or greater then the picker can be set to be visible at all times.</p>
-    <p><b>Format</b> can be rgb, hex, hex8, hsv, or hsl. Transparency is supported for all except hex.</p>
-    <p>If a <b>Topic</b> is specified, it will be added as <code>msg.topic</code>.</p>
-    <p>Setting <code>msg.enabled</code> to <code>false</code> will disable the input.</p>
-    <p>If set to ‘pass through mode’ a message arriving on the input will be evaluated for any colour format available
-        as Format. If the conversion fails #000000 will be used.</p>
-    <p>If a <b>Class</b> is specified, it will be added to the parent card. This way you can style the card and the elements inside it with custom CSS. The Class can be set at runtime by setting a <code>msg.className</code> string property.</p>
+    <p>Adds an interactive colour picker widget to the dashboard, allowing users to select colors
+    using various picker styles and output formats.</p>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">string | object</span></dt>
+        <dd>The selected color in the configured format:
+        <table>
+            <tr><th>Format</th><th>String Output</th><th>Object Output</th></tr>
+            <tr><td><code>hex</code></td><td><code>"#ff5500"</code></td><td>N/A (always string)</td></tr>
+            <tr><td><code>hex8</code></td><td><code>"#ff5500cc"</code></td><td>N/A (includes alpha)</td></tr>
+            <tr><td><code>rgb</code></td><td><code>"rgb(255, 85, 0)"</code></td><td><code>{r: 255, g: 85, b: 0, a: 1}</code></td></tr>
+            <tr><td><code>hsl</code></td><td><code>"hsl(20, 100%, 50%)"</code></td><td><code>{h: 20, s: 1, l: 0.5, a: 1}</code></td></tr>
+            <tr><td><code>hsv</code></td><td><code>"hsv(20, 100%, 100%)"</code></td><td><code>{h: 20, s: 1, v: 1, a: 1}</code></td></tr>
+        </table></dd>
+
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>The configured topic, if specified.</dd>
+    </dl>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">string</span></dt>
+        <dd>Sets the picker to a color. Accepts any valid CSS color format:
+        <ul>
+            <li>Hex: <code>"#ff5500"</code> or <code>"#f50"</code></li>
+            <li>RGB: <code>"rgb(255, 85, 0)"</code> or <code>"rgba(255, 85, 0, 0.8)"</code></li>
+            <li>HSL: <code>"hsl(20, 100%, 50%)"</code></li>
+            <li>Named: <code>"red"</code>, <code>"blue"</code>, <code>"transparent"</code></li>
+        </ul>
+        If conversion fails, <code>#000000</code> (black) is used.</dd>
+
+        <dt class="optional">enabled <span class="property-type">boolean</span></dt>
+        <dd>Set to <code>false</code> to disable the picker.</dd>
+
+        <dt class="optional">className <span class="property-type">string</span></dt>
+        <dd>Dynamically set CSS class(es) on the widget.</dd>
+    </dl>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Format <span class="property-type">hex | hex8 | rgb | hsl | hsv</span></dt>
+        <dd>The color format for output. <code>hex</code> does not support transparency;
+        use <code>hex8</code>, <code>rgb</code>, <code>hsl</code>, or <code>hsv</code> for alpha channel.</dd>
+
+        <dt>Shape <span class="property-type">round | square</span></dt>
+        <dd><b>Round</b> shows a circular color wheel with a lightness slider.
+        <b>Square</b> shows a rectangular saturation/value picker with a hue slider.</dd>
+
+        <dt>Payload <span class="property-type">string | object</span></dt>
+        <dd>Output as a CSS color string or as an object with individual color components.</dd>
+
+        <dt>Send <span class="property-type">select</span></dt>
+        <dd><b>One value when released/closed</b> - sends color only when user finishes selecting.
+        <b>Multiple values during editing</b> - sends continuous updates while dragging.</dd>
+    </dl>
+
+    <h3>Display Options</h3>
+    <p>When the widget width is 4 or greater, you can enable persistent display of:</p>
+    <ul>
+        <li><b>Show swatch</b> - Display a color preview square</li>
+        <li><b>Show picker</b> - Always show the color picker (no popup)</li>
+        <li><b>Show value field</b> - Display a text input with the color value</li>
+    </ul>
+    <p>For narrower widgets, the picker appears as a popup when clicked.</p>
+
+    <h3>Slider Options</h3>
+    <ul>
+        <li><b>Hue slider</b> - Adjust the base color (used with square picker)</li>
+        <li><b>Lightness slider</b> - Adjust brightness (used with round picker)</li>
+        <li><b>Transparency slider</b> - Adjust alpha channel (not available for <code>hex</code> format)</li>
+    </ul>
+
+    <h3>Pass-through Mode</h3>
+    <p>When enabled, incoming messages with color values update the picker and are forwarded
+    to the output. This allows external color sources to sync with the picker state.</p>
+
+    <h3>Examples</h3>
+    <p><b>Set a color via input:</b></p>
+    <pre>msg.payload = "#3498db";  // Nice blue
+msg.payload = "rgb(231, 76, 60)";  // Red
+msg.payload = "hsl(120, 100%, 50%)";  // Pure green</pre>
+
+    <p><b>Use object output for RGB components:</b></p>
+    <pre>// With format=rgb and payload=object
+// Output: {r: 52, g: 152, b: 219, a: 1}
+var red = msg.payload.r;
+var green = msg.payload.g;
+var blue = msg.payload.b;</pre>
+
+    <h3>CSS Styling</h3>
+    <p>If a <b>Class</b> is specified, it will be added to the widget container for custom styling.
+    The class can also be set dynamically via <code>msg.className</code>.</p>
 </script>

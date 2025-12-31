@@ -1,26 +1,112 @@
 <script type="text/html" data-help-name="ui_chart">
-    <p>Plots the input values on a chart. Supported chart types:</p>
-    <ul>
-        <li><b>Line</b>: Time-based line chart with optional smoothing and dot markers</li>
-        <li><b>Bar</b>: Vertical or horizontal bar chart</li>
-        <li><b>Pie</b>: Pie chart with optional donut cutout</li>
-        <li><b>Polar area</b>: Polar area chart for proportional data</li>
-        <li><b>Radar</b>: Radar/spider chart for multi-axis comparison</li>
-        <li><b>Scatter</b>: X/Y scatter plot with configurable point size</li>
-        <li><b>Funnel</b>: Funnel chart for pipeline/conversion data</li>
-        <li><b>Heatmap</b>: Matrix heatmap for 2D data visualization</li>
-    </ul>
+    <p>Displays data on an interactive chart with support for multiple chart types,
+    live updates, and stored data visualization.</p>
 
-    <h3>Live Data</h3>
-    <p>To display live data, send a <code>msg.payload</code> containing a number. Each value will be converted to a number; if conversion fails, the message is ignored.</p>
-    <p>Multiple series can be shown by using different <code>msg.topic</code> (or <code>msg.series</code>) values. Use <code>msg.label</code> to create multiple bars of the same color within a series.</p>
-    <p>For line charts, send <code>null</code> or <code>false</code> as the payload to create gaps. Use <code>msg.timestamp</code> (epoch ms or ISO8601) to insert points at specific times.</p>
-    <pre>{topic: "temperature", payload: 22, timestamp: 1520527095000}</pre>
+    <h3>Chart Types</h3>
+    <p>Eight chart types are available, each suited to different data visualization needs:</p>
+    <table>
+        <tr><th>Type</th><th>Best For</th><th>Special Features</th></tr>
+        <tr><td><b>Line</b></td><td>Time series, trends</td><td>Interpolation, dot markers, data gaps</td></tr>
+        <tr><td><b>Bar</b></td><td>Comparisons, categories</td><td>Vertical orientation, color per series</td></tr>
+        <tr><td><b>Horizontal Bar</b></td><td>Rankings, comparisons</td><td>Horizontal orientation</td></tr>
+        <tr><td><b>Pie</b></td><td>Proportions, percentages</td><td>Donut cutout option</td></tr>
+        <tr><td><b>Polar Area</b></td><td>Proportional comparison</td><td>Equal angles, varying radius</td></tr>
+        <tr><td><b>Radar</b></td><td>Multi-axis comparison</td><td>Spider/web chart</td></tr>
+        <tr><td><b>Scatter</b></td><td>Correlation, distribution</td><td>X/Y coordinates, point sizing</td></tr>
+        <tr><td><b>Funnel</b></td><td>Pipeline, conversion</td><td>Sort order, alignment options</td></tr>
+        <tr><td><b>Heatmap</b></td><td>2D data, intensity</td><td>Color scale, matrix format</td></tr>
+    </table>
 
-    <h3>Stored Data (Complete Charts)</h3>
-    <p>To display a complete chart in one message, use an array containing an object with <code>series</code>, <code>labels</code>, and <code>data</code> arrays:</p>
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Group</dt>
+        <dd>The dashboard group to place this widget in.</dd>
 
-    <h4>Line Charts (time series)</h4>
+        <dt>Size</dt>
+        <dd>Width × Height in grid units. Height defaults to ~half the width.</dd>
+
+        <dt>Label</dt>
+        <dd>Chart title displayed above the chart. Supports <code>{{msg.topic}}</code> for dynamic labels.</dd>
+
+        <dt>Type</dt>
+        <dd>Select from: Line, Bar, Horizontal Bar, Pie, Polar Area, Radar, Scatter, Funnel, Heatmap.</dd>
+
+        <dt>Legend</dt>
+        <dd>Show/hide the series legend (Line, Bar, Pie, Polar, Radar charts).</dd>
+
+        <dt>Interpolate <span class="property-type">line only</span></dt>
+        <dd>Line smoothing: linear, step, bezier.</dd>
+
+        <dt>Show dots <span class="property-type">line only</span></dt>
+        <dd>Display data point markers on line charts.</dd>
+
+        <dt>X-axis</dt>
+        <dd>Time window (e.g., "1 hour") or max points. Older data is automatically removed.</dd>
+
+        <dt>X-axis Label</dt>
+        <dd>Date format using <a href="https://momentjs.com/docs/#/displaying/format/" target="_blank">Moment.js tokens</a>
+        (e.g., <code>HH:mm:ss</code>, <code>D/M</code>, <code>Y-M-D</code>).</dd>
+
+        <dt>Y-axis (min/max)</dt>
+        <dd>Optional fixed scale. Leave blank for auto-scaling.</dd>
+
+        <dt>Blank label</dt>
+        <dd>Text shown when no data has been received yet.</dd>
+
+        <dt>Donut hole <span class="property-type">pie only</span></dt>
+        <dd>Cutout percentage for donut effect (0 = solid pie).</dd>
+
+        <dt>Series colors</dt>
+        <dd>Up to 9 colors for data series. Use "First color only" for single-color bar charts.</dd>
+
+        <dt>Use UTC</dt>
+        <dd>Display timestamps in UTC instead of local time.</dd>
+
+        <dt>Class</dt>
+        <dd>Optional CSS class(es) for custom styling.</dd>
+    </dl>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">number | array</span></dt>
+        <dd>Single value for live updates, or array for complete chart data.
+        Send <code>[]</code> (empty array) to clear the chart.</dd>
+
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>Series name for the data point. Different topics create separate series.</dd>
+
+        <dt>label <span class="property-type">string</span></dt>
+        <dd>Creates multiple bars of the same color within a series (bar charts).</dd>
+
+        <dt>timestamp <span class="property-type">number | string</span></dt>
+        <dd>Insert point at specific time (epoch ms or ISO8601). Defaults to current time.</dd>
+
+        <dt>className <span class="property-type">string</span></dt>
+        <dd>Dynamically set CSS class(es) at runtime.</dd>
+    </dl>
+
+    <h3>Output</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">array</span></dt>
+        <dd>Current chart state array. Can be stored and re-sent later to restore the chart.</dd>
+    </dl>
+
+    <h3>Live Data Mode</h3>
+    <p>Send numeric <code>msg.payload</code> values to add points in real-time:</p>
+    <pre>// Simple value (uses current time)
+msg.payload = 22;
+msg.topic = "temperature";
+
+// With explicit timestamp
+msg.payload = 22;
+msg.topic = "temperature";
+msg.timestamp = 1520527095000;</pre>
+    <p><b>Tip:</b> Send <code>null</code> or <code>false</code> as payload to create gaps in line charts.</p>
+
+    <h3>Stored Data Format</h3>
+    <p>Send complete chart data as an array with <code>series</code>, <code>labels</code>, and <code>data</code>:</p>
+
+    <h4>Line Chart (time series)</h4>
     <pre>[{
   "series": ["A", "B"],
   "data": [
@@ -30,100 +116,111 @@
   "labels": [""]
 }]</pre>
 
-    <h4>Line Charts (categorical)</h4>
+    <h4>Line Chart (categorical)</h4>
     <pre>[{
   "series": ["X", "Y", "Z"],
   "data": [[5, 6, 9], [3, 8, 5], [6, 7, 2]],
   "labels": ["Jan", "Feb", "Mar"]
 }]</pre>
 
-    <h4>Bar Charts</h4>
-    <p>For bars of different colors (one value per series):</p>
+    <h4>Bar Chart (different colors per series)</h4>
     <pre>[{
   "series": ["X", "Y", "Z"],
   "data": [[5], [3], [6]],
   "labels": ["Jan"]
 }]</pre>
-    <p>For bars of the same color, enable "Use first colour for all bars":</p>
+
+    <h4>Bar Chart (same color, enable "First color only")</h4>
     <pre>[{
   "series": ["X"],
   "data": [[5, 6, 9]],
   "labels": ["Jan", "Feb", "Mar"]
 }]</pre>
 
-    <h4>Pie/Polar Area Charts</h4>
+    <h4>Pie / Polar Area Chart</h4>
     <pre>[{
   "series": ["Sales"],
   "data": [[300, 500, 100]],
   "labels": ["Download", "In-Store", "Mail-Order"]
 }]</pre>
 
-    <h4>Radar Charts</h4>
+    <h4>Radar Chart</h4>
     <pre>[{
   "series": ["Product A", "Product B"],
   "data": [[80, 90, 70, 85, 75], [65, 75, 80, 90, 70]],
   "labels": ["Quality", "Price", "Design", "Features", "Support"]
 }]</pre>
 
-    <h4>Scatter Charts</h4>
-    <p>Each point is an <code>[x, y]</code> array. For time series, use epoch timestamps for x:</p>
+    <h4>Scatter Chart</h4>
     <pre>[{
   "series": ["Measurements"],
   "data": [[[1, 5], [2, 8], [3, 4], [4, 9]]],
-  "labels": []
+  "labels": [],
+  "symbolSize": 10
 }]</pre>
-    <p>Options: <code>symbolSize</code> (point size, default 10)</p>
 
-    <h4>Funnel Charts</h4>
-    <p>Visualizes conversion stages from labels to values:</p>
+    <h4>Funnel Chart</h4>
     <pre>[{
   "series": ["Pipeline"],
   "data": [[1000, 800, 500, 200, 50]],
-  "labels": ["Visits", "Leads", "Qualified", "Proposals", "Sales"]
+  "labels": ["Visits", "Leads", "Qualified", "Proposals", "Sales"],
+  "funnelSort": "descending",
+  "funnelAlign": "center"
 }]</pre>
-    <p>Options: <code>funnelSort</code> (descending/ascending/none), <code>funnelAlign</code> (center/left/right), <code>funnelGap</code> (layer gap)</p>
 
-    <h4>Heatmap Charts</h4>
-    <p><b>Format 1:</b> Series-based (rows are series, columns are labels):</p>
+    <h4>Heatmap (series-based)</h4>
     <pre>[{
   "series": ["Morning", "Afternoon", "Evening"],
   "data": [[5, 8, 3, 6], [9, 4, 7, 2], [3, 6, 8, 5]],
   "labels": ["Mon", "Tue", "Wed", "Thu"]
 }]</pre>
-    <p><b>Format 2:</b> Explicit matrix with <code>[xIndex, yIndex, value]</code> triplets:</p>
+
+    <h4>Heatmap (matrix format)</h4>
     <pre>[{
   "heatmapData": [[0, 0, 5], [1, 0, 10], [0, 1, 15], [1, 1, 20]],
   "heatmapXLabels": ["Col A", "Col B"],
-  "heatmapYLabels": ["Row 1", "Row 2"]
+  "heatmapYLabels": ["Row 1", "Row 2"],
+  "heatmapMin": 0,
+  "heatmapMax": 25
 }]</pre>
-    <p>Options: <code>heatmapMin</code>/<code>heatmapMax</code> (color scale range)</p>
 
-    <h3>Data Zoom</h3>
-    <p>Enable pan/zoom on large datasets (line, bar, horizontalBar, scatter charts):</p>
+    <h3>Advanced Features</h3>
+
+    <h4>Data Zoom</h4>
+    <p>Enable pan/zoom on large datasets (line, bar, scatter):</p>
+    <pre>{
+  "dataZoom": true,
+  "dataZoomType": "both",
+  "dataZoomStart": 0,
+  "dataZoomEnd": 100
+}</pre>
+    <p>Types: <code>slider</code> (handle bar), <code>inside</code> (scroll/pinch), <code>both</code>.</p>
+
+    <h4>Mark Lines (Thresholds)</h4>
+    <p>Add horizontal/vertical reference lines (line, bar, scatter):</p>
+    <pre>{
+  "markLines": [
+    {"value": 75, "label": "Target", "color": "#00FF00"},
+    {"value": 25, "label": "Min", "lineStyle": "dashed", "axis": "y"}
+  ]
+}</pre>
+
+    <h3>Styling</h3>
+    <p>Use the <b>Class</b> field to add CSS classes for custom styling:</p>
+    <pre>.my-chart .echarts-for-react { background: #f5f5f5; }
+.my-chart canvas { border-radius: 8px; }</pre>
+
+    <h3>Best Practices</h3>
     <ul>
-        <li><code>dataZoom</code>: Enable zoom (true/false)</li>
-        <li><code>dataZoomType</code>: "slider" (handle), "inside" (scroll/pinch), or "both"</li>
-        <li><code>dataZoomStart</code>/<code>dataZoomEnd</code>: Initial zoom range (0-100%)</li>
+        <li>Use <code>msg.topic</code> consistently to maintain separate series</li>
+        <li>Set appropriate X-axis time windows to limit data accumulation</li>
+        <li>Store chart output and re-inject on deploy to preserve state</li>
+        <li>Use mark lines for thresholds instead of additional series</li>
+        <li>For large datasets, enable dataZoom for better performance</li>
+        <li>Clear charts with <code>[]</code> before switching chart types</li>
+        <li>Use categorical labels for bar/pie; timestamps for line/scatter</li>
     </ul>
 
-    <h3>Mark Lines (Thresholds)</h3>
-    <p>Add horizontal/vertical reference lines (line, bar, horizontalBar, scatter charts):</p>
-    <pre>markLines: [
-  { value: 75, label: "Target", color: "#00FF00" },
-  { value: 25, label: "Min", lineStyle: "dashed" }
-]</pre>
-    <p>Options per line: <code>value</code>, <code>label</code>, <code>color</code>, <code>lineStyle</code> (solid/dashed/dotted), <code>axis</code> (x/y)</p>
-
-    <h3>Clearing the Chart</h3>
-    <p>Send <code>msg.payload</code> containing an empty array <code>[]</code> to clear the chart.</p>
-
-    <h3>Chart Options</h3>
-    <p>Minimum and Maximum <b>Y</b> axis values are optional. The graph will auto-scale to any values received.</p>
-    <p>The <b>X</b> axis defines a time window or a maximum number of points to display. Older data will be automatically removed.
-    The axis labels can be formatted using a <a href="https://momentjs.com/docs/#/displaying/format/" target="_blank">Moment.js format</a> string.</p>
-    <p>The <b>Blank label</b> field displays text before any valid data is received.</p>
-    <p>The label can also be set dynamically using <code>{{msg.topic}}</code> syntax.</p>
-    <p>The node output contains the chart state array that can be persisted and re-sent to restore the chart.</p>
-    <p>If a <b>Class</b> is specified, it will be added to the parent card for custom CSS styling. The Class can be set at runtime via <code>msg.className</code>.</p>
-    <p>See <b><a href="https://github.com/node-red/node-red-dashboard/blob/master/Charts.md" target="_new">Charts.md</a></b> for additional examples and an importable example flow.</p>
+    <p>See <b><a href="https://github.com/node-red/node-red-dashboard/blob/master/Charts.md" target="_blank">Charts.md</a></b>
+    for additional examples and importable flows.</p>
 </script>

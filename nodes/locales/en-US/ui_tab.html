@@ -1,13 +1,93 @@
 <script type="text/html" data-help-name="ui_tab">
-    <p>Tab configuration for Dashboard</p>
-    <p><b>Disabled</b> pages are not included in the Dashboard app, and are therefore not functional.
-       The tab name still appears in the Navigation Menu (unless it is also hidden).
-    </p>
-    <p><b>Hidden</b> pages are not listed in the Left-hand Navigation Menu.
-       However, they are still active in the Dashboard, and can be shown by using a `ui_control` msg.
-    </p>
-    <p>The <b>Icon</b> field can be either a <a href="https://klarsys.github.io/angular-material-icons/" target="_blank">Material Design icon</a>
-    <i>(e.g. 'check', 'close')</i> or a <a href="https://fontawesome.com/v4.7.0/icons/" target="_blank">Font Awesome icon</a>
-    <i>(e.g. 'fa-fire')</i>, or a <a href="https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md">Weather icon</a>.
-    You can use the full set of google material icons if you add 'mi-' to the icon name. e.g. 'mi-videogame_asset'.</p>
+    <p>A <b>Tab</b> represents a page in the dashboard navigation. Each tab contains one or more
+    groups of widgets and appears in the sidebar navigation menu.</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Name <span class="property-type">string</span></dt>
+        <dd>The display name shown in the navigation menu and browser title bar when the tab is active.
+        This name is also used to form group IDs (e.g., <code>TabName_GroupName</code>).</dd>
+
+        <dt>Icon <span class="property-type">string</span></dt>
+        <dd>An icon displayed next to the tab name in the navigation menu. Supports:
+        <ul>
+            <li><a href="https://klarsys.github.io/angular-material-icons/" target="_blank">Material Design icons</a> - e.g., <code>dashboard</code>, <code>home</code>, <code>settings</code></li>
+            <li><a href="https://fontawesome.com/v4.7.0/icons/" target="_blank">Font Awesome 4.7 icons</a> - e.g., <code>fa-fire</code>, <code>fa-cog</code></li>
+            <li><a href="https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md" target="_blank">Weather icons</a> - e.g., <code>wi-wu-sunny</code></li>
+            <li>Full Google Material icons with <code>mi-</code> prefix - e.g., <code>mi-videogame_asset</code></li>
+        </ul></dd>
+
+        <dt>State <span class="property-type">Enabled | Disabled</span></dt>
+        <dd>Controls whether the tab is functional:
+        <ul>
+            <li><b>Enabled</b> - Tab is fully active and accessible</li>
+            <li><b>Disabled</b> - Tab is not included in the dashboard app; widgets on this tab will not function.
+            The tab name may still appear in the navigation menu (unless also hidden).</li>
+        </ul></dd>
+
+        <dt>Nav. Menu <span class="property-type">Visible | Hidden</span></dt>
+        <dd>Controls navigation menu visibility:
+        <ul>
+            <li><b>Visible</b> - Tab appears in the sidebar navigation menu</li>
+            <li><b>Hidden</b> - Tab does not appear in the menu, but remains active and accessible
+            via direct URL or <code>ui_control</code> node</li>
+        </ul></dd>
+    </dl>
+
+    <h3>Tab Order</h3>
+    <p>The order of tabs in the navigation menu is determined by their position in the Dashboard sidebar
+    layout editor. Drag tabs to reorder them. The first (topmost) tab is displayed by default when
+    opening the dashboard.</p>
+
+    <h3>Use Cases for Hidden Tabs</h3>
+    <ul>
+        <li><b>Admin pages</b> - Create configuration screens accessible only via direct link</li>
+        <li><b>Conditional content</b> - Show tabs based on user role or application state</li>
+        <li><b>Wizard flows</b> - Navigate between hidden tabs programmatically</li>
+        <li><b>Detail views</b> - Open from a button or link on another tab</li>
+    </ul>
+
+    <h3>Dynamic Control</h3>
+    <p>Tabs can be shown, hidden, enabled, or disabled at runtime using the <code>ui_control</code> node:</p>
+    <pre>// Navigate to a specific tab
+msg.payload = "Settings";  // by name
+msg.payload = 2;           // by index (0-based)
+msg.payload = {"tab": "Settings"};
+
+// Next/previous tab
+msg.payload = "+1";  // next tab
+msg.payload = "-1";  // previous tab
+
+// Show/hide tabs
+msg.payload = {"tabs": {"hide": "Admin", "show": "Dashboard"}};
+
+// Enable/disable tabs
+msg.payload = {"tabs": {"disable": ["Debug", "Test"], "enable": "Main"}};</pre>
+
+    <h3>Direct URL Access</h3>
+    <p>Each tab can be accessed directly by appending its index to the dashboard URL:</p>
+    <pre>http://&lt;host&gt;:&lt;port&gt;/ui/#!/0   (first tab)
+http://&lt;host&gt;:&lt;port&gt;/ui/#!/1   (second tab)
+http://&lt;host&gt;:&lt;port&gt;/ui/#!/2   (third tab)</pre>
+    <p>This works for hidden tabs as well, allowing bookmarking of specific pages.</p>
+
+    <h3>Tab Change Events</h3>
+    <p>When a user navigates between tabs, the <code>ui_control</code> node emits a message:</p>
+    <pre>{
+  "payload": "change",
+  "socketid": "abc123...",
+  "socketip": "192.168.1.100",
+  "tab": 1,
+  "name": "Settings"
+}</pre>
+    <p>This can be used to trigger data refresh or logging when users switch pages.</p>
+
+    <h3>Best Practices</h3>
+    <ul>
+        <li>Use clear, concise tab names that describe the content</li>
+        <li>Choose meaningful icons to aid navigation</li>
+        <li>Limit the number of visible tabs to avoid cluttered navigation</li>
+        <li>Use hidden tabs for advanced features rather than disabling them</li>
+        <li>Consider mobile users - tabs should have short names on narrow screens</li>
+    </ul>
 </script>

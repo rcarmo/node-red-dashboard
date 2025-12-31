@@ -1,8 +1,93 @@
 <script type="text/html" data-help-name="ui_link">
-    <p>The <b>Icon</b> can be defined, as either a <a href="https://klarsys.github.io/angular-material-icons/" target="_blank">Material Design icon</a>
-    <i>(e.g. 'check', 'close')</i> or a <a href="https://fontawesome.com/v4.7.0/icons/" target="_blank">Font Awesome icon</a>
-    <i>(e.g. 'fa-fire')</i>, or a <a href="https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md">Weather icon</a>.
-    You can use the full set of google material icons if you add 'mi-' to the icon name. e.g. 'mi-videogame_asset'.</p>
-    <p>The <b>Open in</b> field controls whether the link opens in a <i>New Tab</i>, or if the link is opened within an <i>iframe</i> on the same page. Some sites, including Google, do not allow the rendering of their page inside an iframe. If you select the <i>iframe</i> option and the site does not show, this is simply because that site forbids the use of it inside an iframe.</p>
-    <p>If a <b>Class</b> is specified, it will be added to the parent card. This way you can style the card and the elements inside it with custom CSS. The Class can be set at runtime by setting a <code>msg.className</code> string property.</p>
+    <p>Adds a navigation link to the dashboard sidebar menu, allowing users to open external websites
+    or navigate to other resources directly from the dashboard.</p>
+
+    <h3>Configuration</h3>
+    <dl class="message-properties">
+        <dt>Name <span class="property-type">string</span></dt>
+        <dd>The display text shown in the navigation menu for this link.</dd>
+
+        <dt>Link <span class="property-type">URL</span></dt>
+        <dd>The destination URL. Can be:
+        <ul>
+            <li>External website: <code>https://www.example.com</code></li>
+            <li>Internal path: <code>/admin</code> or <code>/api/status</code></li>
+            <li>Protocol links: <code>mailto:user@example.com</code></li>
+        </ul></dd>
+
+        <dt>Icon <span class="property-type">string</span></dt>
+        <dd>An icon displayed next to the link name. Supports:
+        <ul>
+            <li><a href="https://klarsys.github.io/angular-material-icons/" target="_blank">Material Design icons</a> - e.g., <code>open_in_browser</code>, <code>link</code>, <code>launch</code></li>
+            <li><a href="https://fontawesome.com/v4.7.0/icons/" target="_blank">Font Awesome 4.7 icons</a> - e.g., <code>fa-external-link</code>, <code>fa-globe</code></li>
+            <li><a href="https://github.com/Paul-Reed/weather-icons-lite/blob/master/css_mappings.md" target="_blank">Weather icons</a></li>
+            <li>Full Google Material icons with <code>mi-</code> prefix - e.g., <code>mi-open_in_new</code></li>
+        </ul></dd>
+
+        <dt>Open in <span class="property-type">New Tab | This Tab | iFrame</span></dt>
+        <dd>Controls how the link opens:
+        <ul>
+            <li><b>New Tab</b> - Opens in a new browser tab/window (default)</li>
+            <li><b>This Tab</b> - Navigates away from the dashboard in the current tab</li>
+            <li><b>iFrame</b> - Displays the linked page within the dashboard as embedded content</li>
+        </ul></dd>
+    </dl>
+
+    <h3>iFrame Mode</h3>
+    <p>When using the <b>iFrame</b> option, the linked page is embedded within the dashboard layout.
+    This allows viewing external content without leaving the dashboard.</p>
+
+    <p><b>Important limitations:</b></p>
+    <ul>
+        <li>Many websites (including Google, Facebook, YouTube) block embedding via
+        <code>X-Frame-Options</code> or <code>Content-Security-Policy</code> headers</li>
+        <li>If a site doesn't load in the iframe, it's because that site forbids embedding</li>
+        <li>Only sites that explicitly allow framing will work</li>
+        <li>HTTPS dashboards can only embed HTTPS content (mixed content blocked)</li>
+    </ul>
+
+    <p><b>Sites that typically work in iframes:</b></p>
+    <ul>
+        <li>Your own internal web applications</li>
+        <li>Node-RED admin UI (<code>/admin</code>)</li>
+        <li>Documentation sites without frame restrictions</li>
+        <li>Simple HTML pages you host yourself</li>
+    </ul>
+
+    <h3>Link Order</h3>
+    <p>Links appear in the navigation menu alongside tabs. Their position is determined by the
+    Dashboard sidebar layout editor. Links can be interspersed with tabs or grouped together.</p>
+
+    <h3>Use Cases</h3>
+    <ul>
+        <li><b>Documentation</b> - Link to user guides or help pages</li>
+        <li><b>Admin access</b> - Quick link to Node-RED editor (<code>/admin</code>)</li>
+        <li><b>Related systems</b> - Links to other dashboards or control systems</li>
+        <li><b>External resources</b> - Weather services, data sources, vendor portals</li>
+        <li><b>Embedded monitoring</b> - Display Grafana dashboards or status pages (iframe mode)</li>
+    </ul>
+
+    <h3>Styling</h3>
+    <p>Links appear in the navigation menu with an external link indicator icon.
+    The appearance follows the dashboard theme settings.</p>
+
+    <p>If a <b>Class</b> is specified, it will be added to the link element for custom CSS styling.
+    The class can also be set dynamically via <code>msg.className</code>.</p>
+
+    <h3>Differences from Tabs</h3>
+    <table>
+        <tr><th>Feature</th><th>Tab</th><th>Link</th></tr>
+        <tr><td>Contains widgets</td><td>✓</td><td>✗</td></tr>
+        <tr><td>External URLs</td><td>✗</td><td>✓</td></tr>
+        <tr><td>Appears in menu</td><td>✓</td><td>✓</td></tr>
+        <tr><td>Can be hidden</td><td>✓</td><td>✗</td></tr>
+        <tr><td>iFrame embedding</td><td>✗</td><td>✓</td></tr>
+    </table>
+
+    <h3>Node Characteristics</h3>
+    <ul>
+        <li>Links have <b>no inputs or outputs</b> - they are navigation-only</li>
+        <li>Links are <b>configuration nodes</b> that don't appear in flows</li>
+        <li>Links cannot be controlled dynamically via <code>ui_control</code></li>
+    </ul>
 </script>
