@@ -22,7 +22,7 @@ This repository is an experimental refactor of the Node-RED Dashboard runtime to
 | **i18n** | Locale bundles with fallback (`ui-control` lang → site → browser → `en`), localized aria labels |
 | **Accessibility** | ARIA roles, keyboard navigation, focus management, screen reader announcements |
 
-### Widgets Implemented
+### Widgets Implemented (but not fully tested)
 
 | Widget | Status | Notes |
 |--------|--------|-------|
